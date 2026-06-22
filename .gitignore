@@ -1,0 +1,7 @@
+# Private learning sources and generated databases outside the distributable app
+/database/
+/ios-prototype/
+/Cahier_des_charges_App_JLPT_N5.md
+
+# Local tooling
+.codex/

@@ -1,0 +1,30 @@
+{
+  "name": "expo-jlpt-n5-coach-sdk54",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "export:web": "expo export --platform web",
+    "preview:iphone": "expo start --web --port 8083 --clear"
+  },
+  "dependencies": {
+    "expo": "~54.0.35",
+    "expo-asset": "~12.0.13",
+    "expo-speech": "~14.0.8",
+    "expo-sqlite": "~16.0.10",
+    "expo-status-bar": "~3.0.9",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-svg": "15.12.1",
+    "react-native-web": "^0.21.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.0",
+    "typescript": "~5.9.2"
+  },
+  "private": true
+}
