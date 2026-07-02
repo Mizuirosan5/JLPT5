@@ -8,6 +8,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "export:web": "expo export --platform web",
+    "typecheck": "tsc --noEmit",
+    "validate": "npm run typecheck && npm run export:web",
     "preview:iphone": "expo start --web --port 8083 --clear"
   },
   "dependencies": {
@@ -25,6 +27,9 @@
   "devDependencies": {
     "@types/react": "~19.1.0",
     "typescript": "~5.9.2"
+  },
+  "engines": {
+    "node": ">=20 <25"
   },
   "private": true
 }
