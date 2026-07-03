@@ -9,6 +9,8 @@
     "web": "expo start --web",
     "export:web": "expo export --platform web",
     "typecheck": "tsc --noEmit",
+    "smoke": "node scripts/smoke-check.mjs",
+    "test": "npm run validate && npm run smoke",
     "validate": "npm run typecheck && npm run export:web",
     "preview:iphone": "expo start --web --port 8083 --clear"
   },
