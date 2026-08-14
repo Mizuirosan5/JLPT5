@@ -1243,15 +1243,15 @@ Saison hebdomadaire locale sans reseau.
 
 ### Implementation
 
-- [ ] Creer table saison locale.
-- [ ] Creer `services/localLeague.ts`.
-- [ ] Calculer ligue depuis XP/assiduite.
+- [x] Creer table saison locale.
+- [x] Creer `services/localLeague.ts`.
+- [x] Calculer ligue depuis XP/assiduite.
 - [ ] Ajouter objectif hebdomadaire.
-- [ ] Ajouter carte dashboard.
-- [ ] Ajouter animation promotion.
+- [x] Ajouter carte dashboard.
+- [x] Ajouter animation promotion.
 - [ ] Ajouter historique simple.
-- [ ] Garantir aucun reseau.
-- [ ] Lancer validations obligatoires.
+- [x] Garantir aucun reseau.
+- [x] Lancer validations obligatoires.
 
 ### Tests
 

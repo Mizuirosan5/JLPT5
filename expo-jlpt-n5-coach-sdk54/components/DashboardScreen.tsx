@@ -43,6 +43,7 @@ import {
 import { loadGrammarProgressSummary } from '../services/grammarProgress';
 import { formatElapsedTime } from '../services/time';
 import { loadSrsOverview } from '../services/srs';
+import { buildLocalLeagueStatus, saveLocalLeagueSeason } from '../services/localLeague';
 import type {
   DailyGoalDay,
   DailyGoalMetrics,
@@ -150,6 +151,7 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
     nextDueAt: null,
   });
   const rewardAnim = useRef(new Animated.Value(0)).current;
+  const leagueAnim = useRef(new Animated.Value(0)).current;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -264,6 +266,13 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
     rewardSummary.xp;
   const levelProgress = getLevelProgressFromXp(xpTotal);
   const { level, xpCurrentLevel, xpRequiredForLevel, xpToNextLevel } = levelProgress;
+  const localLeague = buildLocalLeagueStatus({
+    activeDays: streakDays,
+    level,
+    weeklyAttempts: weeklyGoalMetrics.attempts,
+    xpCurrentLevel,
+    xpRequiredForLevel,
+  });
   const examReadiness = Math.min(100, Math.round(masteryRate * 0.55 + quizSummary.rate * 0.35 + Math.min(streakDays, 10)));
   const recommendedDomain =
     masteryDomains
@@ -286,6 +295,28 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
     level,
   });
   const unlockedBadgeCount = badgeViews.filter((badge) => badge.unlocked).length;
+
+  useEffect(() => {
+    if (loading) return;
+    saveLocalLeagueSeason(db, localLeague, xpTotal, streakDays).catch((error) => {
+      console.error('Unable to save local league season', error);
+    });
+  }, [db, loading, localLeague, streakDays, xpTotal]);
+
+  useEffect(() => {
+    if (!localLeague.promoted) {
+      leagueAnim.setValue(0);
+      return;
+    }
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(leagueAnim, { toValue: 1, duration: 720, useNativeDriver: true }),
+        Animated.timing(leagueAnim, { toValue: 0, duration: 720, useNativeDriver: true }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [leagueAnim, localLeague.promoted]);
 
   if (loading) {
     return <LoadingView />;
@@ -319,6 +350,47 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
             recommendedDomain={recommendedDomain}
             rewardSummary={{ ...rewardSummary, badges: unlockedBadgeCount }}
           />
+
+          <View style={styles.dailyTrackingCard}>
+            <View style={styles.dailyTrackingHeader}>
+              <View>
+                <Text style={styles.dailyTrackingKicker}>Ligue locale</Text>
+                <Text style={styles.dailyTrackingTitle}>{localLeague.current.name}</Text>
+              </View>
+              <Animated.Text
+                style={[
+                  styles.dailyTrackingBadge,
+                  localLeague.promoted && {
+                    transform: [{ scale: leagueAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.12] }) }],
+                    opacity: leagueAnim.interpolate({ inputRange: [0, 1], outputRange: [0.78, 1] }),
+                  },
+                ]}
+              >
+                {localLeague.current.symbol}
+              </Animated.Text>
+            </View>
+            <View style={styles.pathProgressTrack}>
+              <View style={[styles.pathProgressFill, { width: `${localLeague.progress}%` }]} />
+            </View>
+            <View style={styles.dailyTrackingStats}>
+              <View style={styles.dailyTrackingStat}>
+                <Text style={styles.dailyTrackingValue}>{localLeague.weeklyPoints}</Text>
+                <Text style={styles.dailyTrackingLabel}>points</Text>
+              </View>
+              <View style={styles.dailyTrackingStat}>
+                <Text style={styles.dailyTrackingValue}>{localLeague.promotionTarget}</Text>
+                <Text style={styles.dailyTrackingLabel}>promotion</Text>
+              </View>
+              <View style={styles.dailyTrackingStat}>
+                <Text style={styles.dailyTrackingValue}>{localLeague.maintenanceTarget}</Text>
+                <Text style={styles.dailyTrackingLabel}>maintien</Text>
+              </View>
+            </View>
+            <Text style={styles.dailyTrackingHint}>
+              {localLeague.promoted ? 'Promotion debloquee cette semaine. ' : ''}
+              {localLeague.statusLabel} · {localLeague.statusDetail}
+            </Text>
+          </View>
 
           <Pressable onPress={() => onNavigate?.('review')} style={styles.dailyTrackingCard}>
             <View style={styles.dailyTrackingHeader}>

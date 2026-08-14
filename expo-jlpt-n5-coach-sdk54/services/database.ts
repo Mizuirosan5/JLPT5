@@ -145,6 +145,18 @@ export async function initializeDatabase(db: SQLiteDatabase) {
       PRIMARY KEY (content_id, content_type)
     );
 
+    CREATE TABLE IF NOT EXISTS app_local_league_season (
+      season_key TEXT PRIMARY KEY,
+      league_name TEXT NOT NULL,
+      division TEXT NOT NULL,
+      xp_start INTEGER NOT NULL,
+      xp_current INTEGER NOT NULL,
+      active_days INTEGER NOT NULL DEFAULT 0,
+      promoted INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS app_grammar_lesson_state (
       lesson_id TEXT PRIMARY KEY,
       opened_count INTEGER NOT NULL DEFAULT 0,

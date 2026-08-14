@@ -4139,6 +4139,12 @@ export const styles = StyleSheet.create({
     fontWeight: '800',
     lineHeight: 16,
   },
+  dailyTrackingHint: {
+    color: '#325B67',
+    fontSize: 12,
+    fontWeight: '800',
+    lineHeight: 17,
+  },
   attendanceStrip: {
     flexDirection: 'row',
     gap: 6,
