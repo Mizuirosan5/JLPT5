@@ -399,19 +399,19 @@ Adapter les objectifs a la maniere d'apprendre de l'utilisateur.
 
 ## Bonus A - Exercices varies MVP
 
-- [ ] QCM standard.
-- [ ] Japonais vers francais.
-- [ ] Francais vers japonais.
-- [ ] Kanji vers kana.
-- [ ] Phrase a trou.
+- [x] QCM standard.
+- [x] Japonais vers francais.
+- [x] Francais vers japonais.
+- [x] Kanji vers kana.
+- [x] Phrase a trou.
 
 ## Bonus B - Kanji composants petit lot
 
-- [ ] Structure `kanjiComponents.ts`.
-- [ ] 20 kanji prioritaires.
-- [ ] Mnemonique FR.
-- [ ] Mots lies.
-- [ ] Detail kanji.
+- [x] Structure `kanjiComponents.ts`.
+- [x] 20 kanji prioritaires.
+- [x] Mnemonique FR.
+- [x] Mots lies.
+- [x] Detail kanji.
 
 ## Bonus C - Immersion texte petit lot
 

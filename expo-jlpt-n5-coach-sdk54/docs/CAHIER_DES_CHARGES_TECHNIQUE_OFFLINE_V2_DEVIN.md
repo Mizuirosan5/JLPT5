@@ -833,14 +833,14 @@ Fiche kanji detaillee avec composants, histoires et mots lies.
 
 ### Implementation
 
-- [ ] Creer `data/kanjiComponents.ts`.
+- [x] Creer `data/kanjiComponents.ts`.
 - [ ] Ajouter composants pour les 80 kanji N5 prioritaires.
-- [ ] Ajouter mnemoniques FR.
-- [ ] Ajouter confusions proches.
-- [ ] Creer `services/kanjiComponents.ts`.
+- [x] Ajouter mnemoniques FR.
+- [x] Ajouter confusions proches.
+- [x] Creer `services/kanjiComponents.ts`.
 - [ ] Creer `KanjiDetailScreen`.
-- [ ] Ajouter acces depuis cartes vocab/kanji.
-- [ ] Lier kanji -> mots vocabulaire.
+- [x] Ajouter acces depuis cartes vocab/kanji.
+- [x] Lier kanji -> mots vocabulaire.
 - [ ] Ajouter quiz composants.
 - [ ] Ajouter quiz lecture kanji.
 - [ ] Connecter SRS kanji.

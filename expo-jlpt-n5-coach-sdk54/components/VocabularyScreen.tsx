@@ -17,6 +17,7 @@ import {
   updateVocabularyCardFlag,
   type VocabularyCardState,
 } from '../services/vocabulary';
+import { buildKanjiDetail, type KanjiDetail } from '../services/kanjiComponents';
 import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../services/preferences';
 import { EmptyState, Metric, Section } from './sharedUi';
 import { SegmentButton } from './formControls';
@@ -78,6 +79,7 @@ export function VocabularyScreen() {
   const [cardFilter, setCardFilter] = useState<VocabularyCardFilter>('all');
   const [cardStates, setCardStates] = useState<Record<string, VocabularyCardState>>({});
   const [preferences, setPreferences] = useState<LearningPreferences>(DEFAULT_LEARNING_PREFERENCES);
+  const [selectedKanjiDetail, setSelectedKanjiDetail] = useState<KanjiDetail | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -327,6 +329,7 @@ export function VocabularyScreen() {
                     seenCount={cardStates[item.id]?.seen_count ?? 0}
                     onToggleFavorite={() => toggleCardFlag(item.id, 'favorite')}
                     onToggleReview={() => toggleCardFlag(item.id, 'review')}
+                    onOpenDetail={item.kanji ? () => setSelectedKanjiDetail(buildKanjiDetail(item.kanji!, scopedItems)) : undefined}
                   >
                     <VocabularyFlashCard
                       card={item}
@@ -356,6 +359,9 @@ export function VocabularyScreen() {
                   </VocabularySmartCardShell>
                 ))}
           </View>
+          {!!selectedKanjiDetail && (
+            <KanjiDetailPanel detail={selectedKanjiDetail} onClose={() => setSelectedKanjiDetail(null)} />
+          )}
         </Section>
       ) : (
         groupedItems.map(([category, words]) => (
@@ -446,6 +452,7 @@ function VocabularyFlashCard({
 function VocabularySmartCardShell({
   children,
   favorite,
+  onOpenDetail,
   review,
   seenCount,
   onToggleFavorite,
@@ -453,6 +460,7 @@ function VocabularySmartCardShell({
 }: {
   children: ReactNode;
   favorite: boolean;
+  onOpenDetail?: () => void;
   review: boolean;
   seenCount: number;
   onToggleFavorite: () => void;
@@ -478,8 +486,74 @@ function VocabularySmartCardShell({
             {review ? 'A revoir' : 'Revoir'}
           </Text>
         </Pressable>
+        {!!onOpenDetail && (
+          <Pressable onPress={onOpenDetail} style={styles.vocabSmartActionButton}>
+            <Text style={styles.vocabSmartActionText}>Detail</Text>
+          </Pressable>
+        )}
       </View>
       <Text style={styles.vocabSmartSeenText}>{seenCount} vue{seenCount > 1 ? 's' : ''}</Text>
+    </View>
+  );
+}
+
+function KanjiDetailPanel({ detail, onClose }: { detail: KanjiDetail; onClose: () => void }) {
+  const item = detail.item;
+  return (
+    <View style={styles.aptitudeReportCard}>
+      <View style={styles.aptitudeReportHeader}>
+        <View>
+          <Text style={styles.pathNextLabel}>Detail kanji</Text>
+          <Text style={styles.pathModuleDetailTitle}>{detail.character}</Text>
+          <Text style={styles.pathModuleDetailText}>{item.meaning_fr}</Text>
+        </View>
+        <Pressable style={styles.drawerCloseButton} onPress={onClose}>
+          <Text style={styles.drawerCloseText}>x</Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.aptitudeInsightGrid}>
+        <View style={styles.aptitudeInsightCard}>
+          <Text style={styles.pathNextLabel}>Composants</Text>
+          <Text style={styles.pathRequirementText}>{detail.components.join(' + ')}</Text>
+        </View>
+        <View style={styles.aptitudeInsightCard}>
+          <Text style={styles.pathNextLabel}>Lectures</Text>
+          <Text style={styles.pathRequirementText}>
+            {[item.n5_readings, item.onyomi, item.kunyomi].filter(Boolean).join(' / ') || 'A reviser'}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.pathGuidanceBox}>
+        <Text style={styles.pathGuidanceLabel}>Mnemonique</Text>
+        <Text style={styles.pathGuidanceText}>{detail.mnemonicFr}</Text>
+      </View>
+
+      {!!detail.confusions.length && (
+        <View style={styles.pathRequirementList}>
+          <View style={styles.pathRequirementItem}>
+            <Text style={styles.pathRequirementIndex}>!</Text>
+            <Text style={styles.pathRequirementText}>A ne pas confondre avec : {detail.confusions.join(', ')}</Text>
+          </View>
+        </View>
+      )}
+
+      <View style={styles.pathRequirementList}>
+        {detail.relatedWords.length ? detail.relatedWords.map((word, index) => (
+          <View key={word.id} style={styles.pathRequirementItem}>
+            <Text style={styles.pathRequirementIndex}>{index + 1}</Text>
+            <Text style={styles.pathRequirementText}>
+              {(word.kanji || word.japanese)} {word.kana ? `(${word.kana})` : ''} : {word.meaning_fr}
+            </Text>
+          </View>
+        )) : (
+          <View style={styles.pathRequirementItem}>
+            <Text style={styles.pathRequirementIndex}>1</Text>
+            <Text style={styles.pathRequirementText}>Aucun mot lie trouve dans la base locale pour ce kanji.</Text>
+          </View>
+        )}
+      </View>
     </View>
   );
 }
