@@ -14,6 +14,7 @@ import type {
   WordLookupEntry,
 } from '../models';
 import { detectOfflineAudio, speakJapanese, stopOfflineAudio, type OfflineAudioState } from '../services/audio';
+import { hasEmbeddedAudioAsset, playEmbeddedAudioAsset, stopEmbeddedAudioAsset } from '../services/embeddedAudio';
 import {
   buildAudioQuizQuestions,
   buildEmbeddedAudioPack,
@@ -60,16 +61,22 @@ export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate }: AudioQu
       });
     return () => {
       mounted = false;
+      stopEmbeddedAudioAsset();
       stopOfflineAudio();
     };
   }, [db]);
 
   const currentQuestion = session?.questions[session.currentIndex] ?? null;
   const canPlayAudio = audioEnabled && audio.available;
+  const canPlayEmbeddedAudio = Boolean(currentQuestion && hasEmbeddedAudioAsset(currentQuestion.item.id));
 
   const playCurrentAudio = useCallback(() => {
     if (!currentQuestion || !audioEnabled) return;
-    speakJapanese(currentQuestion.item.japanese || currentQuestion.item.kana, audio, true);
+    playEmbeddedAudioAsset(currentQuestion.item.id, true)
+      .then((playedEmbedded) => {
+        if (!playedEmbedded) speakJapanese(currentQuestion.item.japanese || currentQuestion.item.kana, audio, true);
+      })
+      .catch(() => speakJapanese(currentQuestion.item.japanese || currentQuestion.item.kana, audio, true));
   }, [audio, audioEnabled, currentQuestion]);
 
   useEffect(() => {
@@ -85,6 +92,7 @@ export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate }: AudioQu
   };
 
   const quitAudioQuiz = () => {
+    stopEmbeddedAudioAsset();
     stopOfflineAudio();
     setSelectedWordLookup(null);
     setSession(null);
@@ -134,6 +142,7 @@ export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate }: AudioQu
 
   const advanceAudioQuiz = () => {
     if (!session) return;
+    stopEmbeddedAudioAsset();
     stopOfflineAudio();
     setSelectedWordLookup(null);
     const nextIndex = session.currentIndex + 1;
@@ -194,7 +203,7 @@ export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate }: AudioQu
               <Text style={styles.quizConfigTitle}>{canPlayAudio ? 'Audio local prêt' : 'Mode sans voix détectée'}</Text>
               <Text style={styles.quizConfigText}>
                 {canPlayAudio
-                  ? 'Le quiz lit les phrases avec la voix japonaise disponible sur l appareil.'
+                  ? 'Le quiz lit les fichiers embarques quand ils existent, puis utilise la voix japonaise locale en secours.'
                   : 'Le quiz reste utilisable en fallback texte si la voix japonaise locale est absente ou désactivée.'}
               </Text>
               <Text style={styles.quizConfigText}>Chaque réponse alimente la mémoire SRS audio.</Text>
@@ -242,7 +251,9 @@ export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate }: AudioQu
           </View>
           <Text style={styles.questionTitle}>{currentQuestion.prompt}</Text>
           <Pressable style={styles.primaryButton} onPress={playCurrentAudio}>
-            <Text style={styles.primaryButtonText}>{canPlayAudio ? 'Réécouter' : 'Afficher le prompt'}</Text>
+            <Text style={styles.primaryButtonText}>
+              {canPlayEmbeddedAudio ? 'Réécouter le fichier' : canPlayAudio ? 'Réécouter' : 'Afficher le prompt'}
+            </Text>
           </Pressable>
           {!canPlayAudio && (
             <JapaneseLookupText

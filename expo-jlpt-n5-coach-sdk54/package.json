@@ -12,11 +12,13 @@
     "smoke": "node scripts/smoke-check.mjs",
     "test": "npm run validate && npm run smoke",
     "validate": "npm run typecheck && npm run export:web",
-    "preview:iphone": "expo start --web --port 8083 --clear"
+    "preview:iphone": "expo start --web --port 8083 --clear",
+    "audio:generate": "powershell -ExecutionPolicy Bypass -File scripts/generate-audio-pack.ps1"
   },
   "dependencies": {
     "expo": "~54.0.35",
     "expo-asset": "~12.0.13",
+    "expo-audio": "~1.1.1",
     "expo-speech": "~14.0.8",
     "expo-sqlite": "~16.0.10",
     "expo-status-bar": "~3.0.9",

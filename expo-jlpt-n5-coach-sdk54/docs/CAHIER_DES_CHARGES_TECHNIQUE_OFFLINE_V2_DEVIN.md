@@ -899,6 +899,10 @@ Audio embarque ou TTS local uniquement.
 - [x] Ajouter les chemins hybrides `embedded_file` pour le noyau audio N5 recommande.
 - [x] Ajouter le manifest `assets/audio/audio-pack-manifest.json`.
 - [x] Ajouter le generateur local `scripts/generate-audio-pack.ps1`.
+- [x] Installer `expo-audio` pour la lecture des fichiers audio embarques.
+- [x] Ajouter `data/audioAssetRegistry.ts` genere par le script.
+- [x] Lire le fichier audio embarque si disponible, puis utiliser le TTS japonais local en fallback.
+- [x] Ajouter le script npm `audio:generate`.
 
 ### Note implementation pack massif
 
@@ -907,7 +911,7 @@ Il reste compatible offline et sans service externe. Les fichiers WAV/MP3 natifs
 
 Le pack hybride recommande prepare maintenant les chemins de fichiers embarques pour le noyau N5 essentiel.
 Sur cette machine, la generation WAV est bloquee tant qu'aucune voix japonaise Windows n'est installee.
-Apres installation d'une voix japonaise, lancer `powershell -ExecutionPolicy Bypass -File scripts/generate-audio-pack.ps1` depuis le dossier app pour produire les fichiers dans `assets/audio/n5_core`.
+Apres installation d'une voix japonaise, lancer `npm run audio:generate` depuis le dossier app pour produire les fichiers dans `assets/audio/n5_core` et mettre a jour `data/audioAssetRegistry.ts`.
 
 ### Tests
 
