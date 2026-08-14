@@ -286,6 +286,9 @@ export function KanaArcadeQuizScreen({ kanaArcadeCards, onNavigate }: KanaArcade
           <SegmentButton label="Kanji" active={false} onPress={() => onNavigate('global', 'kanji')} />
           <SegmentButton label="JLPT" active={false} onPress={() => onNavigate('adaptive')} />
         </View>
+        <View style={styles.segmented}>
+          <SegmentButton label="Audio" active={false} onPress={() => onNavigate('audio')} />
+        </View>
 
         {!kanaArcadeSession ? (
           <>

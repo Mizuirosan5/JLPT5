@@ -1,4 +1,5 @@
 import { SQLiteDatabase } from 'expo-sqlite';
+import { CORE_AUDIO_PACK } from '../data/audioPack';
 
 export async function initializeDatabase(db: SQLiteDatabase) {
   await db.execAsync(`
@@ -177,5 +178,33 @@ export async function initializeDatabase(db: SQLiteDatabase) {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS app_audio_asset (
+      id TEXT PRIMARY KEY,
+      category TEXT NOT NULL,
+      japanese TEXT NOT NULL,
+      kana TEXT,
+      romaji TEXT,
+      meaning_fr TEXT NOT NULL,
+      asset_kind TEXT NOT NULL DEFAULT 'tts_local',
+      asset_path TEXT,
+      created_at TEXT NOT NULL
+    );
   `);
+
+  for (const item of CORE_AUDIO_PACK) {
+    await db.runAsync(
+      `
+      INSERT OR IGNORE INTO app_audio_asset (
+        id, category, japanese, kana, romaji, meaning_fr, asset_kind, asset_path, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, 'tts_local', NULL, datetime('now'))
+      `,
+      item.id,
+      item.category,
+      item.japanese,
+      item.kana,
+      item.romaji ?? null,
+      item.meaningFr
+    );
+  }
 }

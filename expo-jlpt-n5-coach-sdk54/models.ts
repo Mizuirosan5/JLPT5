@@ -43,7 +43,7 @@ export type KanaQuizAnswerMode = 'multiple_choice' | 'direct_input';
 export type KanaQuizSize = 10 | 20;
 export type KanaViewerPanel = 'card' | 'trace';
 export type KanaPracticeMode = 'standard' | 'story' | 'confusion' | 'matching';
-export type MainQuizMode = 'global' | 'kana_arcade' | 'adaptive' | 'grammar';
+export type MainQuizMode = 'global' | 'kana_arcade' | 'adaptive' | 'grammar' | 'audio';
 export type GrammarQuizMode = 'direct_input' | 'blank_qcm' | 'matching' | 'question_answer' | 'arcade';
 export type GlobalQuizMode = GrammarQuizMode;
 export type GlobalQuizDomain = 'kana' | 'vocabulary' | 'grammar' | 'kanji';
@@ -449,6 +449,51 @@ export type GlobalMatchingSession = {
   score: number;
   finished: boolean;
   locked: boolean;
+};
+
+export type AudioPackCategory =
+  | 'kana'
+  | 'number'
+  | 'greeting'
+  | 'classroom'
+  | 'daily'
+  | 'vocabulary'
+  | 'grammar'
+  | 'immersion'
+  | 'story';
+
+export type AudioPackItem = {
+  id: string;
+  category: AudioPackCategory;
+  japanese: string;
+  kana: string;
+  romaji?: string | null;
+  meaningFr: string;
+  promptFr: string;
+};
+
+export type AudioQuizMode = 'listen_meaning' | 'listen_japanese';
+
+export type AudioQuizQuestion = {
+  id: string;
+  item: AudioPackItem;
+  mode: AudioQuizMode;
+  prompt: string;
+  correctAnswer: string;
+  choices: string[];
+  explanation: string;
+};
+
+export type AudioQuizSession = {
+  questions: AudioQuizQuestion[];
+  currentIndex: number;
+  selected: string | null;
+  correctCount: number;
+  score: number;
+  streak: number;
+  bestStreak: number;
+  mistakes: Array<{ question: AudioQuizQuestion; selected: string }>;
+  finished: boolean;
 };
 
 export type ExamSegment = {

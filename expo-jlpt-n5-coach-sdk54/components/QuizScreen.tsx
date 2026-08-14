@@ -7,6 +7,7 @@ import { JapaneseCorrectionDetails, JapaneseLookupText, WordLookupPanel, useVoca
 import { KanaArcadeQuizScreen } from './KanaArcadeQuizScreen';
 import { GlobalQuizScreen } from './GlobalQuizScreen';
 import { GrammarQuizScreen } from './GrammarQuizScreen';
+import { AudioQuizScreen } from './AudioQuizScreen';
 import { EmptyState, LoadingView } from './sharedUi';
 import type {
   KanaCard,
@@ -290,6 +291,15 @@ export function QuizScreen({
     );
   }
 
+  if (quizMode === 'audio') {
+    return (
+      <AudioQuizScreen
+        vocabularyLookupEntries={vocabularyLookupEntries}
+        onNavigate={navigateQuiz}
+      />
+    );
+  }
+
   if (!question) {
     return <EmptyState title="Aucune question" />;
   }
@@ -305,6 +315,9 @@ export function QuizScreen({
         <SegmentButton label="Grammaire" active={false} onPress={() => setQuizMode('grammar')} />
         <SegmentButton label="Kanji" active={false} onPress={() => openKnowledgeQuizScope('kanji')} />
         <SegmentButton label="JLPT" active onPress={() => setQuizMode('adaptive')} />
+      </View>
+      <View style={styles.segmented}>
+        <SegmentButton label="Audio" active={false} onPress={() => setQuizMode('audio')} />
       </View>
       <Text style={styles.questionMeta}>{question.skill_id.toUpperCase()}</Text>
       <Text style={styles.questionTitle}>{question.prompt_fr}</Text>

@@ -314,6 +314,9 @@ export function GlobalQuizScreen({
           <SegmentButton label="Kanji" active={knowledgeQuizScope === 'kanji'} onPress={() => openKnowledgeQuizScope('kanji')} />
           <SegmentButton label="JLPT" active={false} onPress={() => onNavigate('adaptive')} />
         </View>
+        <View style={styles.segmented}>
+          <SegmentButton label="Audio" active={false} onPress={() => onNavigate('audio')} />
+        </View>
 
         {!globalQuizSession && !globalMatchingSession ? (
           <>

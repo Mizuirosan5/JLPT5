@@ -890,11 +890,23 @@ Audio embarque ou TTS local uniquement.
 - [x] Respecter preference `audio_enabled`.
 - [x] Verifier que l'app ne casse pas sans audio.
 - [x] Lancer validations obligatoires.
+- [x] Ajouter un catalogue audio embarque local pour salutations, nombres, classe et phrases N5 courantes.
+- [x] Generer un pack audio massif a partir du vocabulaire, de la grammaire, des dialogues et des textes d'immersion deja embarques.
+- [x] Ajouter la table locale `app_audio_asset` pour exposer le pack audio au tableau de bord.
+- [x] Creer un quiz audio dedie avec modes sens francais et lecture japonaise.
+- [x] Connecter le quiz audio aux tentatives locales et a la memoire SRS.
+- [x] Ajouter l'entree Audio dans la navigation quiz.
+
+### Note implementation pack massif
+
+Le pack audio massif V1 est embarque sous forme de catalogue local de prompts japonais et utilise le TTS japonais local de l'appareil via `expo-speech`.
+Il reste compatible offline et sans service externe. Les fichiers WAV/MP3 natifs massifs ne sont pas ajoutes dans ce lot.
 
 ### Tests
 
 - Sans audio -> app ne casse pas.
 - Audio desactive -> aucun bouton intrusif.
+- Quiz audio -> lance une session, rejoue le prompt, sauvegarde la reponse et alimente le SRS.
 
 ## Chantier 6 - Immersion texte cliquable
 
