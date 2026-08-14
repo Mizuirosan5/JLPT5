@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { styles } from '../appStyles';
 import { SegmentButton } from './formControls';
+import { JapaneseCorrectionDetails, JapaneseLookupText, WordLookupPanel } from './JapaneseLookup';
 import { EmptyState, Section } from './sharedUi';
 import { GLOBAL_QUIZ_MODES } from '../models';
 import type {
@@ -13,18 +14,22 @@ import type {
   KanaCard,
   KanjiItem,
   KnowledgeQuizScope,
+  LearningPreferences,
   MainQuizMode,
   WordLookupEntry,
 } from '../models';
-import { normalizeAnswer } from '../services/text';
+import { hasJapaneseText, normalizeAnswer } from '../services/text';
 import {
   buildGlobalMatchingSession,
   buildGlobalQuizQuestions,
   createGlobalQuizSession,
   getGlobalDomainLabel,
   getKnowledgeQuizModeCopy,
+  type KanjiAnswerTarget,
 } from '../services/globalQuizFactory';
 import { getGrammarStreakMultiplier } from '../services/grammarPedagogy';
+import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../services/preferences';
+import { recordSrsReviewForQuestionAttempt } from '../services/srs';
 
 type GlobalQuizScreenProps = {
   initialScope: KnowledgeQuizScope;
@@ -49,13 +54,29 @@ export function GlobalQuizScreen({
   const [globalMatchingSession, setGlobalMatchingSession] = useState<GlobalMatchingSession | null>(null);
   const [globalDirectInput, setGlobalDirectInput] = useState('');
   const [globalMatchMessage, setGlobalMatchMessage] = useState('Choisis un ??l??ment, puis sa correspondance.');
+  const [kanjiAnswerTarget, setKanjiAnswerTarget] = useState<KanjiAnswerTarget>('french');
+  const [selectedWordLookup, setSelectedWordLookup] = useState<WordLookupEntry | null>(null);
+  const [preferences, setPreferences] = useState<LearningPreferences>(DEFAULT_LEARNING_PREFERENCES);
 
   useEffect(() => {
     setKnowledgeQuizScope(initialScope);
   }, [initialScope]);
 
+  useEffect(() => {
+    loadLearningPreferences(db)
+      .then((loadedPreferences) => {
+        setPreferences(loadedPreferences);
+        setGlobalQuizSize(loadedPreferences.preferredSessionLength === 5 ? 10 : 20);
+        if (loadedPreferences.japaneseAnswerMode) setKanjiAnswerTarget('japanese');
+      })
+      .catch((error) => {
+        console.error('Unable to load global quiz preferences', error);
+      });
+  }, [db]);
+
   const startGlobalQuiz = () => {
     setGlobalDirectInput('');
+    setSelectedWordLookup(null);
     setGlobalMatchMessage('Choisis un élément, puis sa correspondance.');
     if (globalQuizMode === 'matching') {
       setGlobalQuizSession(null);
@@ -73,7 +94,9 @@ export function GlobalQuizScreen({
           kanaArcadeCards,
           vocabularyLookupEntries,
           globalKanjiItems,
-          knowledgeQuizScope
+          knowledgeQuizScope,
+          kanjiAnswerTarget,
+          preferences
         )
       )
     );
@@ -83,6 +106,7 @@ export function GlobalQuizScreen({
     setGlobalQuizSession(null);
     setGlobalMatchingSession(null);
     setGlobalDirectInput('');
+    setSelectedWordLookup(null);
     setGlobalMatchMessage('Choisis un élément, puis sa correspondance.');
   };
 
@@ -91,6 +115,7 @@ export function GlobalQuizScreen({
     setGlobalQuizSession(null);
     setGlobalMatchingSession(null);
     setGlobalDirectInput('');
+    setSelectedWordLookup(null);
     setGlobalMatchMessage('Choisis un élément, puis sa correspondance.');
   };
 
@@ -128,6 +153,12 @@ export function GlobalQuizScreen({
         isCorrect ? 1 : 0,
         `global:${current.domain}`
       );
+      await recordSrsReviewForQuestionAttempt(db, {
+        questionId: current.id,
+        skillId: `global:${current.domain}`,
+        sourceMode: 'global_quiz',
+        isCorrect,
+      });
     } catch (error) {
       console.error('Unable to save global quiz answer', error);
     }
@@ -135,6 +166,7 @@ export function GlobalQuizScreen({
 
   const advanceGlobalQuiz = () => {
     if (!globalQuizSession) return;
+    setSelectedWordLookup(null);
     const nextIndex = globalQuizSession.currentIndex + 1;
     setGlobalQuizSession({
       ...globalQuizSession,
@@ -185,6 +217,12 @@ export function GlobalQuizScreen({
         isCorrect ? 1 : 0,
         `global:${left.domain}`
       );
+      await recordSrsReviewForQuestionAttempt(db, {
+        questionId: left.id,
+        skillId: `global:${left.domain}`,
+        sourceMode: 'global_matching',
+        isCorrect,
+      });
     } catch (error) {
       console.error('Unable to save global matching answer', error);
     }
@@ -319,10 +357,26 @@ export function GlobalQuizScreen({
                 })}
               </View>
               {globalQuizMode !== 'matching' && (
-                <View style={styles.segmented}>
-                  <SegmentButton label="10 questions" active={globalQuizSize === 10} onPress={() => setGlobalQuizSize(10)} />
-                  <SegmentButton label="20 questions" active={globalQuizSize === 20} onPress={() => setGlobalQuizSize(20)} />
-                </View>
+                <>
+                  {knowledgeQuizScope === 'kanji' && (
+                    <View style={styles.segmented}>
+                      <SegmentButton
+                        label="Kanji -> francais"
+                        active={kanjiAnswerTarget === 'french'}
+                        onPress={() => setKanjiAnswerTarget('french')}
+                      />
+                      <SegmentButton
+                        label="Kanji -> japonais"
+                        active={kanjiAnswerTarget === 'japanese'}
+                        onPress={() => setKanjiAnswerTarget('japanese')}
+                      />
+                    </View>
+                  )}
+                  <View style={styles.segmented}>
+                    <SegmentButton label="10 questions" active={globalQuizSize === 10} onPress={() => setGlobalQuizSize(10)} />
+                    <SegmentButton label="20 questions" active={globalQuizSize === 20} onPress={() => setGlobalQuizSize(20)} />
+                  </View>
+                </>
               )}
               <View style={styles.quizConfigCard}>
                 <Text style={styles.quizConfigTitle}>
@@ -379,6 +433,7 @@ export function GlobalQuizScreen({
             </View>
             <Text style={styles.questionTitle}>Relie les connaissances correspondantes</Text>
             <Text style={styles.feedbackMnemonic}>{globalMatchMessage}</Text>
+            <WordLookupPanel entry={selectedWordLookup} onClose={() => setSelectedWordLookup(null)} />
             <View style={styles.grammarMatchingBoard}>
               <View style={styles.grammarMatchingColumn}>
                 <Text style={styles.grammarMatchingColumnTitle}>Question</Text>
@@ -397,7 +452,12 @@ export function GlobalQuizScreen({
                       ]}
                     >
                       <Text style={styles.globalMatchDomain}>{getGlobalDomainLabel(pair.domain)}</Text>
-                      <Text style={styles.grammarMatchJapanese}>{pair.left}</Text>
+                      <JapaneseLookupText
+                        text={pair.left}
+                        entries={vocabularyLookupEntries}
+                        onSelect={setSelectedWordLookup}
+                        style={styles.grammarMatchJapanese}
+                      />
                     </Pressable>
                   );
                 })}
@@ -476,8 +536,18 @@ export function GlobalQuizScreen({
               <Text style={styles.quizScorePill}>{globalQuizSession.score} pts</Text>
               <Text style={styles.quizScorePill}>Combo x{getGrammarStreakMultiplier(globalQuizSession.streak)}</Text>
             </View>
+            <View style={styles.globalQuestionSkillCard}>
+              <Text style={styles.globalQuestionSkillLabel}>{currentQuestion.formatLabel}</Text>
+              <Text style={styles.globalQuestionSkillText}>{currentQuestion.measuredSkill}</Text>
+            </View>
             <Text style={styles.questionTitle}>{currentQuestion.prompt}</Text>
-            <Text style={styles.globalQuestionDisplay}>{currentQuestion.display}</Text>
+            <JapaneseLookupText
+              text={currentQuestion.display}
+              entries={vocabularyLookupEntries}
+              onSelect={setSelectedWordLookup}
+              style={[styles.globalQuestionDisplay, currentQuestion.domain === 'kanji' && styles.globalKanjiQuestionDisplay]}
+            />
+            <WordLookupPanel entry={selectedWordLookup} onClose={() => setSelectedWordLookup(null)} />
             {currentQuestion.choices.length > 0 ? (
               <View style={styles.choiceList}>
                 {currentQuestion.choices.map((choice) => {
@@ -494,7 +564,16 @@ export function GlobalQuizScreen({
                         globalQuizSession.selected && selectedChoice && !correct && styles.choiceWrong,
                       ]}
                     >
-                      <Text style={styles.choiceText}>{choice}</Text>
+                      {globalQuizSession.selected !== null && hasJapaneseText(choice) ? (
+                        <JapaneseLookupText
+                          text={choice}
+                          entries={vocabularyLookupEntries}
+                          onSelect={setSelectedWordLookup}
+                          style={styles.choiceText}
+                        />
+                      ) : (
+                        <Text style={styles.choiceText}>{choice}</Text>
+                      )}
                     </Pressable>
                   );
                 })}
@@ -524,7 +603,27 @@ export function GlobalQuizScreen({
                   {normalizeAnswer(globalQuizSession.selected) === normalizeAnswer(currentQuestion.correctAnswer) ? 'Correct' : 'À revoir'}
                 </Text>
                 <Text style={styles.feedbackText}>Réponse : {currentQuestion.correctAnswer}</Text>
-                <Text style={styles.feedbackText}>{currentQuestion.explanation}</Text>
+                {hasJapaneseText(currentQuestion.correctAnswer) && (
+                  <JapaneseLookupText
+                    text={currentQuestion.correctAnswer}
+                    entries={vocabularyLookupEntries}
+                    onSelect={setSelectedWordLookup}
+                    style={styles.feedbackText}
+                  />
+                )}
+                <JapaneseCorrectionDetails
+                  japanese={hasJapaneseText(currentQuestion.display) ? currentQuestion.display : currentQuestion.correctAnswer}
+                  translation={currentQuestion.prompt}
+                  expectedAnswer={currentQuestion.correctAnswer}
+                  explanation={currentQuestion.explanation}
+                  entries={vocabularyLookupEntries}
+                  showRomaji={preferences.showRomaji}
+                  showTranslationFirst={preferences.showTranslationFirst}
+                  sourceQuestionId={currentQuestion.id}
+                  sourceMode="global_quiz"
+                  selectedAnswer={globalQuizSession.selected}
+                  onSelect={setSelectedWordLookup}
+                />
                 <Pressable style={styles.primaryButton} onPress={advanceGlobalQuiz}>
                   <Text style={styles.primaryButtonText}>
                     {globalQuizSession.currentIndex + 1 >= globalQuizSession.questions.length ? 'Voir le résultat' : 'Question suivante'}

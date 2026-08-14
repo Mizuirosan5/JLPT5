@@ -178,7 +178,7 @@ export function KanaCardViewer({
               onMastered={onMastered}
             />
           ) : card ? (
-            <KanaTracePanel card={card} />
+            <KanaTracePanel card={card} onReview={onReview} onMastered={onMastered} />
           ) : (
             <EmptyText text="Aucune carte à afficher." />
             )}

@@ -1,9 +1,21 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
+import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { styles } from '../appStyles';
 import type { JapaneseTextToken, VocabularyExample, WordLookupEntry } from '../models';
+import { saveErrorFlashcard } from '../services/errorFlashcards';
+import { markSrsItemForReview, type SrsItemType } from '../services/srs';
 import { getVocabularyCategory } from '../services/vocabulary';
+
+export type CorrectionToken = JapaneseTextToken;
+export type CorrectionInsight = {
+  japanese?: string | null;
+  kana?: string | null;
+  translation?: string | null;
+  expectedAnswer?: string | null;
+  explanation?: string | null;
+};
 
 export function useVocabularyLookupIndex(db: SQLiteDatabase): WordLookupEntry[] {
   const [entries, setEntries] = useState<WordLookupEntry[]>(CORE_GRAMMAR_LOOKUP_ENTRIES);
@@ -71,7 +83,21 @@ export function JapaneseLookupText({
 }
 
 export function WordLookupPanel({ entry, onClose }: { entry: WordLookupEntry | null; onClose: () => void }) {
+  const db = useSQLiteContext();
+  const [reviewAdded, setReviewAdded] = useState(false);
+  useEffect(() => {
+    setReviewAdded(false);
+  }, [entry?.id]);
   if (!entry) return null;
+  const itemType = getLookupSrsItemType(entry);
+  const addToReview = async () => {
+    try {
+      await markSrsItemForReview(db, { itemId: entry.id, itemType });
+      setReviewAdded(true);
+    } catch (error) {
+      console.error('Unable to add lookup entry to SRS review', error);
+    }
+  };
   return (
     <View style={styles.wordLookupPanel}>
       <View style={styles.wordLookupHeader}>
@@ -84,14 +110,150 @@ export function WordLookupPanel({ entry, onClose }: { entry: WordLookupEntry | n
         </Pressable>
       </View>
       {!!entry.kana && entry.kana !== (entry.kanji || entry.japanese) && (
-        <Text style={styles.wordLookupLine}>Kana : {entry.kana}</Text>
+        <Text style={styles.wordLookupLine}>Hiragana / kana : {entry.kana}</Text>
       )}
       {!!entry.romaji && <Text style={styles.wordLookupLine}>Romaji : {entry.romaji}</Text>}
       <Text style={styles.wordLookupMeaning}>Français : {entry.meaning_fr}</Text>
       <Text style={styles.wordLookupUsage}>{entry.usage}</Text>
+      <View style={styles.wordLookupActionRow}>
+        <Pressable style={[styles.wordLookupActionButton, reviewAdded && styles.wordLookupActionButtonDone]} onPress={addToReview}>
+          <Text style={styles.wordLookupActionText}>{reviewAdded ? 'Ajoute aux revisions' : 'Ajouter a revoir'}</Text>
+        </Pressable>
+        <Text style={styles.wordLookupActionMeta}>{formatLookupSrsType(itemType)}</Text>
+      </View>
     </View>
   );
 }
+
+function getLookupSrsItemType(entry: WordLookupEntry): SrsItemType {
+  if (entry.id.startsWith('lookup-')) return 'grammar';
+  return 'vocabulary';
+}
+
+function formatLookupSrsType(type: SrsItemType): string {
+  if (type === 'grammar') return 'Point de grammaire';
+  if (type === 'kanji') return 'Kanji';
+  return 'Vocabulaire';
+}
+
+export function JapaneseCorrectionDetails({
+  japanese,
+  kana,
+  translation,
+  expectedAnswer,
+  explanation,
+  entries,
+  showRomaji = true,
+  showTranslationFirst = false,
+  sourceQuestionId,
+  sourceMode = 'correction',
+  selectedAnswer,
+  onSelect,
+}: {
+  japanese?: string | null;
+  kana?: string | null;
+  translation?: string | null;
+  expectedAnswer?: string | null;
+  explanation?: string | null;
+  entries: WordLookupEntry[];
+  showRomaji?: boolean;
+  showTranslationFirst?: boolean;
+  sourceQuestionId?: string | null;
+  sourceMode?: string;
+  selectedAnswer?: string | null;
+  onSelect: (entry: WordLookupEntry) => void;
+}) {
+  const db = useSQLiteContext();
+  const [answerReviewAdded, setAnswerReviewAdded] = useState(false);
+  useEffect(() => {
+    setAnswerReviewAdded(false);
+  }, [expectedAnswer]);
+  const hasJapanese = Boolean(japanese?.trim());
+  const hasKana = Boolean(kana?.trim() && kana !== japanese);
+  const expectedLookupEntry = useMemo(
+    () =>
+      expectedAnswer
+        ? entries.find((entry) =>
+            getLookupCandidates(entry).some((candidate) => candidate === expectedAnswer || expectedAnswer.includes(candidate))
+          ) ?? null
+        : null,
+    [entries, expectedAnswer]
+  );
+  const canCreateErrorCard = Boolean(sourceQuestionId && expectedAnswer?.trim());
+  const translationBlock = !!translation && (
+    <View style={styles.correctionInsightBlock}>
+      <Text style={styles.correctionInsightLabel}>Sens</Text>
+      <Text style={styles.correctionInsightText}>{translation}</Text>
+    </View>
+  );
+  return (
+    <View style={styles.correctionInsightCard}>
+      <Text style={styles.correctionInsightKicker}>Correction detaillee</Text>
+      {showTranslationFirst && translationBlock}
+      {hasJapanese && (
+        <View style={styles.correctionInsightBlock}>
+          <Text style={styles.correctionInsightLabel}>Phrase japonaise</Text>
+          <JapaneseLookupText text={japanese!} entries={entries} onSelect={onSelect} style={styles.correctionInsightJapanese} />
+        </View>
+      )}
+      {hasKana && (
+        <View style={styles.correctionInsightBlock}>
+          <Text style={styles.correctionInsightLabel}>Lecture kana</Text>
+          <JapaneseLookupText text={kana!} entries={entries} onSelect={onSelect} style={styles.correctionInsightText} />
+        </View>
+      )}
+      {!showTranslationFirst && translationBlock}
+      {!!expectedAnswer && (
+        <View style={styles.correctionInsightBlock}>
+          <Text style={styles.correctionInsightLabel}>Reponse attendue</Text>
+          <Text style={styles.correctionInsightText}>{expectedAnswer}</Text>
+          {(expectedLookupEntry || canCreateErrorCard) && (
+            <Pressable
+              style={[styles.wordLookupActionButton, answerReviewAdded && styles.wordLookupActionButtonDone]}
+              onPress={async () => {
+                try {
+                  if (sourceQuestionId && expectedAnswer) {
+                    await saveErrorFlashcard(db, {
+                      sourceQuestionId,
+                      sourceMode,
+                      itemType: expectedLookupEntry ? getLookupSrsItemType(expectedLookupEntry) : undefined,
+                      prompt: translation || japanese || expectedAnswer,
+                      japanese,
+                      translation,
+                      expectedAnswer,
+                      selectedAnswer,
+                      explanation,
+                    });
+                  } else if (expectedLookupEntry) {
+                    await markSrsItemForReview(db, {
+                      itemId: expectedLookupEntry.id,
+                      itemType: getLookupSrsItemType(expectedLookupEntry),
+                    });
+                  }
+                  setAnswerReviewAdded(true);
+                } catch (error) {
+                  console.error('Unable to add expected answer to error reviews', error);
+                }
+              }}
+            >
+              <Text style={styles.wordLookupActionText}>
+                {answerReviewAdded ? 'Ajoute aux revisions' : 'Ajouter cette reponse a revoir'}
+              </Text>
+            </Pressable>
+          )}
+        </View>
+      )}
+      {!!explanation && (
+        <View style={styles.correctionInsightBlock}>
+          <Text style={styles.correctionInsightLabel}>Pourquoi</Text>
+          <Text style={styles.correctionInsightText}>{explanation}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+export const SmartCorrectionPanel = JapaneseCorrectionDetails;
 
 function tokenizeJapaneseTextForLookup(text: string, entries: WordLookupEntry[]): JapaneseTextToken[] {
   if (!text) return [];
@@ -120,11 +282,30 @@ function tokenizeJapaneseTextForLookup(text: string, entries: WordLookupEntry[])
       continue;
     }
 
+    const singleKanjiMatch = isKanjiChar(char) ? findSingleKanjiLookupEntry(char, sortedEntries) : null;
+    if (singleKanjiMatch) {
+      tokens.push({ text: char, entry: singleKanjiMatch });
+      index += 1;
+      continue;
+    }
+
     tokens.push({ text: char });
     index += 1;
   }
 
   return tokens;
+}
+
+function isKanjiChar(value: string): boolean {
+  return /^[\u4E00-\u9FFF]$/.test(value);
+}
+
+function findSingleKanjiLookupEntry(char: string, entries: WordLookupEntry[]): WordLookupEntry | null {
+  return (
+    entries.find((entry) =>
+      [entry.kanji, entry.japanese].some((value) => value?.includes(char)) && Boolean(entry.kana || entry.romaji)
+    ) ?? null
+  );
 }
 
 function getLookupCandidates(entry: WordLookupEntry): string[] {

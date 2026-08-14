@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View, type StyleProp, type TextStyle } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import Svg, { Circle, Defs, G, Line, LinearGradient, Path, Rect, Stop, Text as SvgText } from 'react-native-svg';
 import { styles } from '../appStyles';
-import type { KanjiItem, VocabularyCardData, VocabularyItem, VocabularyScope, VocabularyViewMode } from '../models';
+import type { KanjiItem, LearningPreferences, VocabularyCardData, VocabularyItem, VocabularyScope, VocabularyViewMode } from '../models';
 import {
   buildVocabularyCards,
   getVocabularyCardSearchText,
@@ -11,10 +11,58 @@ import {
   getVocabularyMainText,
   getVocabularyThemeLabel,
   loadKanjiItems,
+  loadVocabularyCardStates,
   loadVocabularyItems,
+  recordVocabularyCardSeen,
+  updateVocabularyCardFlag,
+  type VocabularyCardState,
 } from '../services/vocabulary';
+import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../services/preferences';
 import { EmptyState, Metric, Section } from './sharedUi';
 import { SegmentButton } from './formControls';
+
+function getCompactReading(value: string | null | undefined) {
+  if (!value?.trim()) return '-';
+  return value
+    .split(/[、,;；/]/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+    .join('\n');
+}
+
+function formatCardReading(values: string[]) {
+  const compact = values
+    .flatMap((value) => value.split(/[;,/、]/))
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 5);
+  if (!compact.length) return 'lecture';
+  const [first, second, ...rest] = compact;
+  return [first?.toUpperCase(), second?.toUpperCase(), rest.length ? `/ ${rest.join(', ')}` : '']
+    .filter(Boolean)
+    .join(', ');
+}
+
+function formatCardMeaning(values: string[]) {
+  return values
+    .flatMap((value) => value.split(/[;,/]/))
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 4)
+    .join(', ');
+}
+
+function getKanjiCardTextStyle(
+  baseStyle: StyleProp<TextStyle>,
+  value: string,
+  singleSize: number,
+  compactSize: number,
+): StyleProp<TextStyle> {
+  return [baseStyle, value.length <= 1 ? { fontSize: singleSize } : { fontSize: compactSize }];
+}
+
+type VocabularyCardFilter = 'all' | 'favorites' | 'review';
 
 export function VocabularyScreen() {
   const db = useSQLiteContext();
@@ -27,24 +75,30 @@ export function VocabularyScreen() {
   const [viewMode, setViewMode] = useState<VocabularyViewMode>('cards');
   const [flippedIds, setFlippedIds] = useState<Set<string>>(new Set());
   const [selectedVocabularyTheme, setSelectedVocabularyTheme] = useState<string | null>(null);
+  const [cardFilter, setCardFilter] = useState<VocabularyCardFilter>('all');
+  const [cardStates, setCardStates] = useState<Record<string, VocabularyCardState>>({});
+  const [preferences, setPreferences] = useState<LearningPreferences>(DEFAULT_LEARNING_PREFERENCES);
 
   useEffect(() => {
     let mounted = true;
-    Promise.all([loadVocabularyItems(db), loadKanjiItems(db)])
-      .then(([{ rows, total, n5 }, kanjiRows]) => {
+    Promise.all([loadVocabularyItems(db), loadKanjiItems(db), loadVocabularyCardStates(db), loadLearningPreferences(db)])
+      .then(([{ rows, total, n5 }, kanjiRows, stateRows, loadedPreferences]) => {
         if (!mounted) return;
         setTotalCount(total);
         setN5Count(n5);
         setItems(rows.map((row) => ({ ...row, category: getVocabularyCategory(row) })));
         setKanjiItems(kanjiRows);
+        setCardStates(indexVocabularyCardStates(stateRows));
+        setPreferences(loadedPreferences);
       })
       .catch((error) => {
         console.error('Unable to load vocabulary', error);
         if (mounted) {
-          setTotalCount(0);
-          setItems([]);
-          setKanjiItems([]);
-        }
+        setTotalCount(0);
+        setItems([]);
+        setKanjiItems([]);
+        setCardStates({});
+      }
       });
     return () => {
       mounted = false;
@@ -110,10 +164,29 @@ export function VocabularyScreen() {
     const filteredCards = normalized
       ? cards.filter((card) => getVocabularyCardSearchText(card).includes(normalized))
       : cards;
-    return filteredCards.slice(0, 80);
-  }, [query, scopedItems, scopedKanjiItems]);
+    return filterVocabularyCards(filteredCards, cardStates, cardFilter).slice(0, 80);
+  }, [query, scopedItems, scopedKanjiItems, cardFilter, cardStates]);
 
-  const genericDeckItems = useMemo(() => filteredItems.slice(0, 160), [filteredItems]);
+  const genericDeckItems = useMemo(
+    () => filterGenericVocabularyCards(filteredItems, cardStates, cardFilter).slice(0, 160),
+    [filteredItems, cardStates, cardFilter]
+  );
+
+  const smartCardStats = useMemo(() => {
+    const allCardIds =
+      scope === 'n5'
+        ? buildVocabularyCards(scopedItems, scopedKanjiItems).filter((card) => !!card.kanji).map((card) => card.id)
+        : filteredItems.map((item) => item.id);
+    return allCardIds.reduce(
+      (acc, id) => {
+        const state = cardStates[id];
+        if (state?.favorite) acc.favorites += 1;
+        if (state?.review) acc.review += 1;
+        return acc;
+      },
+      { total: allCardIds.length, favorites: 0, review: 0 }
+    );
+  }, [scope, scopedItems, scopedKanjiItems, filteredItems, cardStates]);
 
   const toggleVocabularyCard = (id: string) => {
     setFlippedIds((current) => {
@@ -122,6 +195,23 @@ export function VocabularyScreen() {
       else next.add(id);
       return next;
     });
+    recordVocabularyCardSeen(db, id).catch((error) => console.error('Unable to record vocabulary card seen', error));
+  };
+
+  const toggleCardFlag = async (id: string, flag: 'favorite' | 'review') => {
+    const current = cardStates[id];
+    const nextValue = !(flag === 'favorite' ? current?.favorite : current?.review);
+    setCardStates((states) => ({
+      ...states,
+      [id]: {
+        card_id: id,
+        favorite: flag === 'favorite' ? (nextValue ? 1 : 0) : current?.favorite ?? 0,
+        review: flag === 'review' ? (nextValue ? 1 : 0) : current?.review ?? 0,
+        seen_count: current?.seen_count ?? 0,
+        updated_at: new Date().toISOString(),
+      },
+    }));
+    await updateVocabularyCardFlag(db, id, flag, nextValue);
   };
 
   return (
@@ -149,6 +239,14 @@ export function VocabularyScreen() {
         <SegmentButton label="Flashcards" active={viewMode === 'cards'} onPress={() => setViewMode('cards')} />
         <SegmentButton label="Liste" active={viewMode === 'list'} onPress={() => setViewMode('list')} />
       </View>
+
+      {viewMode === 'cards' && (
+        <View style={styles.segmented}>
+          <SegmentButton label={`Toutes ${smartCardStats.total}`} active={cardFilter === 'all'} onPress={() => setCardFilter('all')} />
+          <SegmentButton label={`Favoris ${smartCardStats.favorites}`} active={cardFilter === 'favorites'} onPress={() => setCardFilter('favorites')} />
+          <SegmentButton label={`A revoir ${smartCardStats.review}`} active={cardFilter === 'review'} onPress={() => setCardFilter('review')} />
+        </View>
+      )}
 
       <View style={styles.grammarStatsRow}>
         <Metric label="En base" value={totalCount} />
@@ -222,22 +320,40 @@ export function VocabularyScreen() {
           <View style={styles.vocabularyDeckGrid}>
             {scope === 'n5'
               ? deckItems.map((item, index) => (
-                  <VocabularyFlashCard
+                  <VocabularySmartCardShell
                     key={item.id}
-                    card={item}
-                    index={index}
-                    flipped={flippedIds.has(item.id)}
-                    onPress={() => toggleVocabularyCard(item.id)}
-                  />
+                    favorite={!!cardStates[item.id]?.favorite}
+                    review={!!cardStates[item.id]?.review}
+                    seenCount={cardStates[item.id]?.seen_count ?? 0}
+                    onToggleFavorite={() => toggleCardFlag(item.id, 'favorite')}
+                    onToggleReview={() => toggleCardFlag(item.id, 'review')}
+                  >
+                    <VocabularyFlashCard
+                      card={item}
+                      index={index}
+                      flipped={flippedIds.has(item.id)}
+                      showRomaji={preferences.showRomaji}
+                      onPress={() => toggleVocabularyCard(item.id)}
+                    />
+                  </VocabularySmartCardShell>
                 ))
               : genericDeckItems.map((item, index) => (
-                  <GenericVocabularyFlashCard
+                  <VocabularySmartCardShell
                     key={item.id}
-                    item={item}
-                    index={index}
-                    flipped={flippedIds.has(item.id)}
-                    onPress={() => toggleVocabularyCard(item.id)}
-                  />
+                    favorite={!!cardStates[item.id]?.favorite}
+                    review={!!cardStates[item.id]?.review}
+                    seenCount={cardStates[item.id]?.seen_count ?? 0}
+                    onToggleFavorite={() => toggleCardFlag(item.id, 'favorite')}
+                    onToggleReview={() => toggleCardFlag(item.id, 'review')}
+                  >
+                    <GenericVocabularyFlashCard
+                      item={item}
+                      index={index}
+                      flipped={flippedIds.has(item.id)}
+                      showRomaji={preferences.showRomaji}
+                      onPress={() => toggleVocabularyCard(item.id)}
+                    />
+                  </VocabularySmartCardShell>
                 ))}
           </View>
         </Section>
@@ -251,7 +367,7 @@ export function VocabularyScreen() {
                   <View style={styles.grammarLessonRowBody}>
                     <Text style={styles.grammarLessonTitle}>{item.kanji || item.japanese}</Text>
                     <Text style={styles.grammarLessonPattern}>
-                      {[item.kana, item.romaji].filter(Boolean).join(' · ')}
+                      {[item.kana, preferences.showRomaji ? item.romaji : null].filter(Boolean).join(' / ')}
                     </Text>
                     <Text style={styles.quizConfigText}>{item.meaning_fr}</Text>
                   </View>
@@ -267,23 +383,23 @@ export function VocabularyScreen() {
 
 function VocabularyFlashCard({
   card,
-  index,
+  index: _index,
   flipped,
+  showRomaji,
   onPress,
 }: {
   card: VocabularyCardData;
   index: number;
   flipped: boolean;
+  showRomaji: boolean;
   onPress: () => void;
 }) {
   const mainText = card.root;
   const primary = card.primary;
-  const kanaText = card.kanaReadings.slice(0, 3).join(' / ') || primary.kana || primary.japanese;
-  const romajiText = card.kanji?.n5_readings || card.readings.slice(0, 4).join(' / ') || primary.romaji?.trim() || 'lecture';
-  const meaningText = card.meanings.slice(0, 4).join(', ') || primary.meaning_fr?.trim() || 'sens à compléter';
-  const levelText = (primary.jlpt_level ?? 'N5').toUpperCase();
-  const relatedEntries = card.entries.slice(0, 5);
-  const strokeText = card.kanji?.stroke_count ? `${card.kanji.stroke_count} traits` : `${card.entries.length} mot${card.entries.length > 1 ? 's' : ''}`;
+  const romajiText = showRomaji ? formatCardReading(card.readings.length ? card.readings : [primary.romaji ?? '']) : '';
+  const meaningText = formatCardMeaning(card.meanings.length ? card.meanings : [primary.meaning_fr]) || 'sens';
+  const onyomiText = getCompactReading(card.kanji?.onyomi);
+  const kunyomiText = getCompactReading(card.kanji?.kunyomi || card.kanji?.n5_readings || primary.kana || primary.japanese);
 
   return (
     <Pressable
@@ -292,64 +408,33 @@ function VocabularyFlashCard({
     >
       {!flipped ? (
         <>
-          <View style={styles.vocabCardTopRow}>
-            <Text style={styles.vocabCardCorner}>{mainText}</Text>
-            <Text style={styles.vocabCardStroke}>{strokeText}</Text>
-            <Text style={styles.vocabCardCorner}>{levelText}</Text>
-          </View>
-          <View style={styles.vocabCardCenter}>
-            <Text adjustsFontSizeToFit numberOfLines={1} style={styles.vocabCardMain}>
+          <View style={styles.vocabCardFrontCenter}>
+            <Text numberOfLines={1} style={getKanjiCardTextStyle(styles.vocabCardMain, mainText, 104, 82)}>
               {mainText}
-            </Text>
-            <Text numberOfLines={2} style={styles.vocabCardFrontMeaning}>
-              {card.meanings[0] ?? primary.meaning_fr}
-            </Text>
-          </View>
-          <View style={styles.vocabCardBottomRow}>
-            <Text numberOfLines={2} style={styles.vocabCardSmall}>
-              {kanaText}
-            </Text>
-            <Text numberOfLines={2} style={styles.vocabCardSmallRight}>
-              {index + 1}
             </Text>
           </View>
         </>
       ) : (
         <>
-          <View style={styles.vocabCardTopRow}>
-            <Text numberOfLines={1} style={styles.vocabCardCorner}>
+          <View style={styles.vocabCardCenter}>
+            <Text numberOfLines={1} style={getKanjiCardTextStyle(styles.vocabCardBackKanji, mainText, 46, 38)}>
               {mainText}
             </Text>
-            <Text style={styles.vocabCardStroke}>{strokeText}</Text>
-            <Text style={styles.vocabCardCorner}>語</Text>
-          </View>
-          <View style={styles.vocabCardCenter}>
-            <Text adjustsFontSizeToFit numberOfLines={2} style={styles.vocabCardReading}>
-              {romajiText}
-            </Text>
-            <Text adjustsFontSizeToFit numberOfLines={3} style={styles.vocabCardMeaning}>
+            {showRomaji && (
+              <Text numberOfLines={3} style={styles.vocabCardReading}>
+                {romajiText}
+              </Text>
+            )}
+            <Text numberOfLines={5} style={styles.vocabCardMeaning}>
               {meaningText}
             </Text>
-            {!!card.kanji && (
-              <View style={styles.vocabKanjiReadingBox}>
-                <Text numberOfLines={2} style={styles.vocabKanjiReadingText}>ON : {card.kanji.onyomi || '—'}</Text>
-                <Text numberOfLines={2} style={styles.vocabKanjiReadingText}>KUN : {card.kanji.kunyomi || '—'}</Text>
-              </View>
-            )}
-            <View style={styles.vocabRelatedList}>
-              {relatedEntries.map((entry) => (
-                <Text key={entry.id} numberOfLines={1} style={styles.vocabRelatedItem}>
-                  {getVocabularyMainText(entry)} {entry.kana ? `(${entry.kana})` : ''} : {entry.meaning_fr}
-                </Text>
-              ))}
-            </View>
           </View>
           <View style={styles.vocabCardBottomRow}>
-            <Text numberOfLines={2} style={styles.vocabCardSmall}>
-              {kanaText}
+            <Text numberOfLines={3} style={styles.vocabCardSmall}>
+              {onyomiText}
             </Text>
-            <Text numberOfLines={2} style={styles.vocabCardSmallRight}>
-              {primary.category}
+            <Text numberOfLines={3} style={styles.vocabCardSmallRight}>
+              {kunyomiText}
             </Text>
           </View>
         </>
@@ -358,19 +443,62 @@ function VocabularyFlashCard({
   );
 }
 
+function VocabularySmartCardShell({
+  children,
+  favorite,
+  review,
+  seenCount,
+  onToggleFavorite,
+  onToggleReview,
+}: {
+  children: ReactNode;
+  favorite: boolean;
+  review: boolean;
+  seenCount: number;
+  onToggleFavorite: () => void;
+  onToggleReview: () => void;
+}) {
+  return (
+    <View style={styles.vocabSmartCardShell}>
+      {children}
+      <View style={styles.vocabSmartCardActions}>
+        <Pressable
+          onPress={onToggleFavorite}
+          style={[styles.vocabSmartActionButton, favorite && styles.vocabSmartActionButtonActive]}
+        >
+          <Text style={[styles.vocabSmartActionText, favorite && styles.vocabSmartActionTextActive]}>
+            {favorite ? 'Favori' : 'Favori'}
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={onToggleReview}
+          style={[styles.vocabSmartActionButton, review && styles.vocabSmartActionButtonReview]}
+        >
+          <Text style={[styles.vocabSmartActionText, review && styles.vocabSmartActionTextActive]}>
+            {review ? 'A revoir' : 'Revoir'}
+          </Text>
+        </Pressable>
+      </View>
+      <Text style={styles.vocabSmartSeenText}>{seenCount} vue{seenCount > 1 ? 's' : ''}</Text>
+    </View>
+  );
+}
+
 function GenericVocabularyFlashCard({
   item,
   index,
   flipped,
+  showRomaji,
   onPress,
 }: {
   item: VocabularyItem;
   index: number;
   flipped: boolean;
+  showRomaji: boolean;
   onPress: () => void;
 }) {
   const mainText = getVocabularyMainText(item);
-  const reading = [item.kana, item.romaji].filter(Boolean).join(' · ') || 'lecture à compléter';
+  const reading = [item.kana, showRomaji ? item.romaji : null].filter(Boolean).join(' / ') || 'lecture a completer';
   const theme = getVocabularyThemeLabel(item);
 
   return (
@@ -458,6 +586,37 @@ function GenericVocabularyIllustration({
       </Svg>
     </View>
   );
+}
+
+function indexVocabularyCardStates(rows: VocabularyCardState[]): Record<string, VocabularyCardState> {
+  return rows.reduce<Record<string, VocabularyCardState>>((acc, row) => {
+    acc[row.card_id] = row;
+    return acc;
+  }, {});
+}
+
+function filterVocabularyCards(
+  cards: VocabularyCardData[],
+  states: Record<string, VocabularyCardState>,
+  filter: VocabularyCardFilter
+): VocabularyCardData[] {
+  if (filter === 'all') return cards;
+  return cards.filter((card) => {
+    const state = states[card.id];
+    return filter === 'favorites' ? !!state?.favorite : !!state?.review;
+  });
+}
+
+function filterGenericVocabularyCards(
+  items: VocabularyItem[],
+  states: Record<string, VocabularyCardState>,
+  filter: VocabularyCardFilter
+): VocabularyItem[] {
+  if (filter === 'all') return items;
+  return items.filter((item) => {
+    const state = states[item.id];
+    return filter === 'favorites' ? !!state?.favorite : !!state?.review;
+  });
 }
 
 function getVocabularyVisual(item: VocabularyItem): { kind: string; symbol: string; colors: [string, string] } {

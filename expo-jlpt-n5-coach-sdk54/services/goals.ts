@@ -49,12 +49,22 @@ export function addMonths(date: Date, months: number): Date {
 }
 
 export function getGoalProgress(goalId: string, metrics: DailyGoalMetrics): number {
-  if (goalId.endsWith('questions')) return metrics.attempts;
   if (goalId === 'daily-precision') return metrics.attempts >= 10 ? metrics.rate : 0;
   if (goalId === 'weekly-precision') return metrics.attempts >= 80 ? metrics.rate : 0;
   if (goalId === 'monthly-precision') return metrics.attempts >= 400 ? metrics.rate : 0;
   if (goalId === 'yearly-precision') return metrics.attempts >= 5000 ? metrics.rate : 0;
   if (goalId === 'daily-quiz') return metrics.quizAttempts + (metrics.grammarActivities ?? 0);
+  if (goalId.startsWith('daily-') && goalId.includes('precision')) return metrics.attempts >= 10 ? metrics.rate : 0;
+  if (goalId.startsWith('daily-') && (goalId.includes('quiz') || goalId.includes('session') || goalId.includes('grammar'))) {
+    return metrics.quizAttempts + (metrics.grammarActivities ?? 0);
+  }
+  if (
+    goalId.endsWith('questions') ||
+    (goalId.startsWith('daily-') &&
+      (goalId.includes('question') || goalId.includes('review') || goalId.includes('focus') || goalId.includes('endurance')))
+  ) {
+    return metrics.attempts;
+  }
   if (goalId.endsWith('quiz')) return metrics.quizAttempts;
   if (goalId.endsWith('connection')) return metrics.activeDays ?? 0;
   return 0;

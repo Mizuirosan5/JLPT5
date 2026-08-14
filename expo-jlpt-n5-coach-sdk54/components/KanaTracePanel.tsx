@@ -4,6 +4,8 @@ import Svg, { Circle, G, Line, Path, Polygon, Text as SvgText } from 'react-nati
 import { styles } from '../appStyles';
 import type { KanaCard, TraceGuideArrow as TraceGuideArrowModel, TracePoint, TraceStroke } from '../models';
 
+type TracePracticeMode = 'guide' | 'practice' | 'test';
+
 const TRACE_GUIDES: Record<string, TraceGuideArrowModel[]> = {
   あ: [
     { label: '1', start: { x: 88, y: 76 }, end: { x: 214, y: 76 } },
@@ -108,13 +110,25 @@ function TraceGuideArrow({ arrow }: { arrow: TraceGuideArrowModel }) {
   );
 }
 
-export function KanaTracePanel({ card }: { card: KanaCard }) {
+export function KanaTracePanel({
+  card,
+  onReview,
+  onMastered,
+}: {
+  card: KanaCard;
+  onReview?: () => void;
+  onMastered?: () => void;
+}) {
   const [strokes, setStrokes] = useState<TraceStroke[]>([]);
+  const [practiceMode, setPracticeMode] = useState<TracePracticeMode>('guide');
+  const [completedRepetitions, setCompletedRepetitions] = useState(0);
   const [padSize, setPadSize] = useState({ width: 300, height: 300 });
   const lastPointRef = useRef<TracePoint | null>(null);
 
   useEffect(() => {
     setStrokes([]);
+    setCompletedRepetitions(0);
+    setPracticeMode('guide');
     lastPointRef.current = null;
   }, [card.id]);
 
@@ -154,6 +168,7 @@ export function KanaTracePanel({ card }: { card: KanaCard }) {
         },
         onPanResponderRelease: () => {
           lastPointRef.current = null;
+          setCompletedRepetitions((count) => Math.min(3, count + 1));
         },
         onPanResponderTerminate: () => {
           lastPointRef.current = null;
@@ -162,6 +177,9 @@ export function KanaTracePanel({ card }: { card: KanaCard }) {
     [normalizeTracePoint]
   );
   const traceArrows = getTraceGuideArrows(card.character);
+  const showGhost = practiceMode !== 'test';
+  const showArrows = practiceMode === 'guide';
+  const practicePrompt = getTracePracticePrompt(practiceMode, completedRepetitions);
   const handlePadLayout = useCallback((event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
     setPadSize({ width, height });
@@ -170,15 +188,45 @@ export function KanaTracePanel({ card }: { card: KanaCard }) {
   return (
     <View style={styles.tracePanel}>
       <Text style={styles.traceTitle}>{card.character}</Text>
-      <Text style={styles.traceSubtitle}>Suis les flèches numérotées, puis trace par-dessus le modèle.</Text>
+      <Text style={styles.traceSubtitle}>{practicePrompt}</Text>
+      <View style={styles.traceModeRow}>
+        <Pressable
+          style={[styles.traceModeButton, practiceMode === 'guide' && styles.traceModeButtonActive]}
+          onPress={() => setPracticeMode('guide')}
+        >
+          <Text style={[styles.traceModeText, practiceMode === 'guide' && styles.traceModeTextActive]}>Guide</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.traceModeButton, practiceMode === 'practice' && styles.traceModeButtonActive]}
+          onPress={() => setPracticeMode('practice')}
+        >
+          <Text style={[styles.traceModeText, practiceMode === 'practice' && styles.traceModeTextActive]}>Pratique</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.traceModeButton, practiceMode === 'test' && styles.traceModeButtonActive]}
+          onPress={() => setPracticeMode('test')}
+        >
+          <Text style={[styles.traceModeText, practiceMode === 'test' && styles.traceModeTextActive]}>Test</Text>
+        </Pressable>
+      </View>
+      <View style={styles.traceProgressRow}>
+        {[0, 1, 2].map((step) => (
+          <View
+            key={`${card.id}-trace-step-${step}`}
+            style={[styles.traceProgressDot, completedRepetitions > step && styles.traceProgressDotDone]}
+          />
+        ))}
+        <Text style={styles.traceProgressText}>{completedRepetitions}/3 traces</Text>
+      </View>
       <View style={styles.tracePad} onLayout={handlePadLayout} {...traceResponder.panHandlers}>
-        <Text style={styles.traceGhost}>{card.character}</Text>
+        {showGhost && <Text style={styles.traceGhost}>{card.character}</Text>}
         <View style={styles.traceCenterLineVertical} />
         <View style={styles.traceCenterLineHorizontal} />
         <Svg width="100%" height="100%" viewBox="0 0 300 300" style={styles.traceSvg}>
-          {traceArrows.map((arrow) => (
-            <TraceGuideArrow key={`${card.character}-${arrow.label}`} arrow={arrow} />
-          ))}
+          {showArrows &&
+            traceArrows.map((arrow) => (
+              <TraceGuideArrow key={`${card.character}-${arrow.label}`} arrow={arrow} />
+            ))}
           {strokes.map((stroke) => {
             const path = pointsToSvgPath(stroke.points);
             return path ? (
@@ -200,6 +248,36 @@ export function KanaTracePanel({ card }: { card: KanaCard }) {
           <Text style={styles.viewerNavText}>Effacer</Text>
         </Pressable>
       </View>
+      <View style={styles.traceSelfCheckCard}>
+        <Text style={styles.traceSelfCheckTitle}>Auto-controle</Text>
+        <Text style={styles.traceSelfCheckText}>
+          Verifie l'ordre, la direction, la taille et l'equilibre. Si tu hesites encore, marque la carte a revoir.
+        </Text>
+        <View style={styles.traceSelfCheckActions}>
+          <Pressable style={styles.traceSelfCheckButton} onPress={onReview}>
+            <Text style={styles.traceSelfCheckButtonText}>A revoir</Text>
+          </Pressable>
+          <Pressable
+            style={[
+              styles.traceSelfCheckButton,
+              styles.traceSelfCheckButtonStrong,
+              completedRepetitions < 3 && styles.primaryButtonDisabled,
+            ]}
+            disabled={completedRepetitions < 3}
+            onPress={onMastered}
+          >
+            <Text style={[styles.traceSelfCheckButtonText, styles.traceSelfCheckButtonTextStrong]}>
+              Maitrise
+            </Text>
+          </Pressable>
+        </View>
+      </View>
     </View>
   );
+}
+
+function getTracePracticePrompt(mode: TracePracticeMode, repetitions: number): string {
+  if (mode === 'guide') return 'Observe les fleches, puis trace lentement en respectant le sens.';
+  if (mode === 'practice') return `Trace sans les fleches. Objectif : 3 repetitions propres (${repetitions}/3).`;
+  return 'Mode test : le modele disparait. Ecris de memoire, puis compare mentalement.';
 }

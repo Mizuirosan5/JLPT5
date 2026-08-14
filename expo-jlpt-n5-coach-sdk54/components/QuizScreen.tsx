@@ -3,7 +3,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { styles } from '../appStyles';
 import { SegmentButton } from './formControls';
-import { JapaneseLookupText, WordLookupPanel, useVocabularyLookupIndex } from './JapaneseLookup';
+import { JapaneseCorrectionDetails, JapaneseLookupText, WordLookupPanel, useVocabularyLookupIndex } from './JapaneseLookup';
 import { KanaArcadeQuizScreen } from './KanaArcadeQuizScreen';
 import { GlobalQuizScreen } from './GlobalQuizScreen';
 import { GrammarQuizScreen } from './GrammarQuizScreen';
@@ -12,6 +12,7 @@ import type {
   KanaCard,
   KanjiItem,
   KnowledgeQuizScope,
+  LearningPreferences,
   MainQuizMode,
   QuizChoice,
   QuizQuestion,
@@ -22,11 +23,21 @@ import {
   getCombinedKanaExamplePreset,
   normalizeKanaRomaji,
 } from '../services/kanaVisual';
-import { normalizeAnswer } from '../services/text';
+import { hasJapaneseText, normalizeAnswer } from '../services/text';
 import { loadKanjiItems } from '../services/vocabulary';
 import { shuffle } from '../services/random';
+import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../services/preferences';
+import { recordSrsReviewForQuestionAttempt } from '../services/srs';
 
-export function QuizScreen() {
+type QuizLocation = { mode: MainQuizMode; scope: KnowledgeQuizScope };
+
+export function QuizScreen({
+  backSignal = 0,
+  onBackStateChange,
+}: {
+  backSignal?: number;
+  onBackStateChange?: (canGoBack: boolean) => void;
+}) {
   const db = useSQLiteContext();
   const vocabularyLookupEntries = useVocabularyLookupIndex(db);
   const [loading, setLoading] = useState(true);
@@ -35,10 +46,18 @@ export function QuizScreen() {
   const [selected, setSelected] = useState<QuizChoice | null>(null);
   const [quizMode, setQuizMode] = useState<MainQuizMode>('global');
   const [knowledgeQuizScope, setKnowledgeQuizScope] = useState<KnowledgeQuizScope>('all');
+  const [quizHistory, setQuizHistory] = useState<QuizLocation[]>([]);
   const [globalKanjiItems, setGlobalKanjiItems] = useState<KanjiItem[]>([]);
   const [selectedWordLookup, setSelectedWordLookup] = useState<WordLookupEntry | null>(null);
   const [selectedWordLookupAnchorId, setSelectedWordLookupAnchorId] = useState<string | null>(null);
   const [kanaArcadeCards, setKanaArcadeCards] = useState<KanaCard[]>([]);
+  const [preferences, setPreferences] = useState<LearningPreferences>(DEFAULT_LEARNING_PREFERENCES);
+
+  useEffect(() => {
+    loadLearningPreferences(db)
+      .then(setPreferences)
+      .catch((error) => console.error('Unable to load quiz preferences', error));
+  }, [db]);
 
   const loadKanaArcadeCards = useCallback(async () => {
     try {
@@ -199,15 +218,43 @@ export function QuizScreen() {
         choice.is_correct ? 1 : 0,
         question.skill_id
       );
+      await recordSrsReviewForQuestionAttempt(db, {
+        questionId: question.question_id,
+        skillId: question.skill_id,
+        sourceMode: 'adaptive_quiz',
+        isCorrect: choice.is_correct === 1,
+      });
     } catch (error) {
       console.error('Unable to save adaptive quiz answer', error);
     }
   };
 
   const openKnowledgeQuizScope = (scope: KnowledgeQuizScope) => {
+    setQuizHistory((history) => [...history, { mode: quizMode, scope: knowledgeQuizScope }].slice(-20));
     setKnowledgeQuizScope(scope);
     setQuizMode('global');
   };
+
+  const navigateQuiz = (mode: MainQuizMode, scope?: KnowledgeQuizScope) => {
+    setQuizHistory((history) => [...history, { mode: quizMode, scope: knowledgeQuizScope }].slice(-20));
+    setQuizMode(mode);
+    if (scope) setKnowledgeQuizScope(scope);
+  };
+
+  useEffect(() => {
+    onBackStateChange?.(quizHistory.length > 0);
+  }, [onBackStateChange, quizHistory.length]);
+
+  useEffect(() => {
+    if (backSignal <= 0) return;
+    setQuizHistory((history) => {
+      const previous = history[history.length - 1];
+      if (!previous) return history;
+      setQuizMode(previous.mode);
+      setKnowledgeQuizScope(previous.scope);
+      return history.slice(0, -1);
+    });
+  }, [backSignal]);
 
   if (loading) {
     return <LoadingView />;
@@ -220,10 +267,7 @@ export function QuizScreen() {
         kanaArcadeCards={kanaArcadeCards}
         vocabularyLookupEntries={vocabularyLookupEntries}
         globalKanjiItems={globalKanjiItems}
-        onNavigate={(mode, scope) => {
-          setQuizMode(mode);
-          if (scope) setKnowledgeQuizScope(scope);
-        }}
+        onNavigate={navigateQuiz}
       />
     );
   }
@@ -232,10 +276,7 @@ export function QuizScreen() {
     return (
       <GrammarQuizScreen
         vocabularyLookupEntries={vocabularyLookupEntries}
-        onNavigate={(mode, scope) => {
-          setQuizMode(mode);
-          if (scope) setKnowledgeQuizScope(scope);
-        }}
+        onNavigate={navigateQuiz}
       />
     );
   }
@@ -244,10 +285,7 @@ export function QuizScreen() {
     return (
       <KanaArcadeQuizScreen
         kanaArcadeCards={kanaArcadeCards}
-        onNavigate={(mode, scope) => {
-          setQuizMode(mode);
-          if (scope) setKnowledgeQuizScope(scope);
-        }}
+        onNavigate={navigateQuiz}
       />
     );
   }
@@ -281,7 +319,7 @@ export function QuizScreen() {
             }}
             style={styles.japanese}
           />
-          {selectedWordLookupAnchorId === 'quiz-adaptive' && (
+          {selectedWordLookupAnchorId?.startsWith('quiz-adaptive') && (
             <WordLookupPanel
               entry={selectedWordLookup}
               onClose={() => {
@@ -308,7 +346,19 @@ export function QuizScreen() {
                 selected && isSelected && !isCorrect && styles.choiceWrong,
               ]}
             >
-              <Text style={styles.choiceText}>{choice.choice_text}</Text>
+              {selected && hasJapaneseText(choice.choice_text) ? (
+                <JapaneseLookupText
+                  text={choice.choice_text}
+                  entries={vocabularyLookupEntries}
+                  onSelect={(entry) => {
+                    setSelectedWordLookup(entry);
+                    setSelectedWordLookupAnchorId('quiz-adaptive-choice');
+                  }}
+                  style={styles.choiceText}
+                />
+              ) : (
+                <Text style={styles.choiceText}>{choice.choice_text}</Text>
+              )}
               {selected && isCorrect && <Text style={styles.choiceIcon}>???</Text>}
               {selected && isSelected && !isCorrect && <Text style={styles.choiceIcon}>??</Text>}
             </Pressable>
@@ -321,7 +371,22 @@ export function QuizScreen() {
           <Text style={styles.feedbackTitle}>
             {selected.is_correct ? 'Correct' : '?? revoir'}
           </Text>
-          <Text style={styles.feedbackText}>{question.explanation_fr}</Text>
+          <JapaneseCorrectionDetails
+            japanese={question.prompt_ja}
+            translation={question.prompt_fr}
+            expectedAnswer={question.correct_answer}
+            explanation={question.explanation_fr}
+            entries={vocabularyLookupEntries}
+            showRomaji={preferences.showRomaji}
+            showTranslationFirst={preferences.showTranslationFirst}
+            sourceQuestionId={question.question_id}
+            sourceMode="adaptive_quiz"
+            selectedAnswer={selected.choice_text}
+            onSelect={(entry) => {
+              setSelectedWordLookup(entry);
+              setSelectedWordLookupAnchorId('quiz-adaptive-feedback');
+            }}
+          />
           <Pressable style={styles.primaryButton} onPress={loadQuestion}>
             <Text style={styles.primaryButtonText}>Question suivante</Text>
           </Pressable>

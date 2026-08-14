@@ -1,6 +1,14 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import type { KanjiItem, VocabularyCardData, VocabularyExample, VocabularyItem } from '../models';
 
+export type VocabularyCardState = {
+  card_id: string;
+  favorite: number;
+  review: number;
+  seen_count: number;
+  updated_at: string;
+};
+
 export function getVocabularyCategory(item: VocabularyExample): string {
   const text = `${item.japanese} ${item.kana ?? ''} ${item.kanji ?? ''} ${item.romaji ?? ''} ${item.meaning_fr}`.toLowerCase();
   if (/父|母|兄|姉|弟|妹|家族|famille|père|mère|frère|sœur/.test(text)) return 'Famille';
@@ -229,4 +237,53 @@ export async function loadKanjiItems(db: SQLiteDatabase): Promise<KanjiItem[]> {
     WHERE jlpt_level = 'N5'
     ORDER BY id
   `);
+}
+
+export async function loadVocabularyCardStates(db: SQLiteDatabase): Promise<VocabularyCardState[]> {
+  return db.getAllAsync<VocabularyCardState>(`
+    SELECT card_id, favorite, review, seen_count, updated_at
+    FROM app_vocabulary_card_state
+  `);
+}
+
+export async function updateVocabularyCardFlag(
+  db: SQLiteDatabase,
+  cardId: string,
+  flag: 'favorite' | 'review',
+  value: boolean
+): Promise<void> {
+  const favoriteValue = flag === 'favorite' ? (value ? 1 : 0) : 0;
+  const reviewValue = flag === 'review' ? (value ? 1 : 0) : 0;
+  await db.runAsync(
+    `
+    INSERT INTO app_vocabulary_card_state (
+      card_id, favorite, review, seen_count, updated_at
+    ) VALUES (?, ?, ?, 0, datetime('now'))
+    ON CONFLICT(card_id) DO UPDATE SET
+      favorite = CASE WHEN ? = 'favorite' THEN ? ELSE favorite END,
+      review = CASE WHEN ? = 'review' THEN ? ELSE review END,
+      updated_at = datetime('now')
+    `,
+    cardId,
+    favoriteValue,
+    reviewValue,
+    flag,
+    favoriteValue,
+    flag,
+    reviewValue
+  );
+}
+
+export async function recordVocabularyCardSeen(db: SQLiteDatabase, cardId: string): Promise<void> {
+  await db.runAsync(
+    `
+    INSERT INTO app_vocabulary_card_state (
+      card_id, favorite, review, seen_count, updated_at
+    ) VALUES (?, 0, 0, 1, datetime('now'))
+    ON CONFLICT(card_id) DO UPDATE SET
+      seen_count = seen_count + 1,
+      updated_at = datetime('now')
+    `,
+    cardId
+  );
 }

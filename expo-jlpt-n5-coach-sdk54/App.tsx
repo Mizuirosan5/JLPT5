@@ -1,19 +1,25 @@
 import { StatusBar } from 'expo-status-bar';
 import { SQLiteProvider } from 'expo-sqlite';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SafeAreaView, Text, View } from 'react-native';
 import { styles } from './appStyles';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
+import { AppNavigation } from './components/AppNavigation';
 import { DashboardScreen } from './components/DashboardScreen';
 import { ExamScreen } from './components/ExamScreen';
+import { ErrorFlashcardsScreen } from './components/ErrorFlashcardsScreen';
 import { GrammarLessonsScreen } from './components/GrammarLessonsScreen';
 import { KanaScreen } from './components/KanaScreen';
 import { LearningPathScreen } from './components/LearningPathScreen';
+import { LearningPreferencesScreen } from './components/LearningPreferencesScreen';
+import { QuickSessionScreen } from './components/QuickSessionScreen';
 import { QuizScreen } from './components/QuizScreen';
+import { ReviewQueueScreen } from './components/ReviewQueueScreen';
 import { VocabularyScreen } from './components/VocabularyScreen';
-import { HeaderJapanScene, TabButton } from './components/shellUi';
+import { HeaderJapanScene } from './components/shellUi';
 import { initializeDatabase } from './services/database';
 import type { Screen } from './models';
+type NavGroupId = 'all' | 'path' | 'learn' | 'quiz' | 'settings';
 
 export default function App() {
   return (
@@ -31,9 +37,43 @@ export default function App() {
     </AppErrorBoundary>
   );
 }
-
 function MainApp() {
   const [screen, setScreen] = useState<Screen>('dashboard');
+  const [screenHistory, setScreenHistory] = useState<Screen[]>([]);
+  const [drawerGroup, setDrawerGroup] = useState<NavGroupId | null>(null);
+  const [childCanGoBack, setChildCanGoBack] = useState(false);
+  const [childBackSignal, setChildBackSignal] = useState(0);
+
+  function navigateTo(nextScreen: Screen) {
+    setScreen((currentScreen) => {
+      if (currentScreen === nextScreen) return currentScreen;
+      setScreenHistory((history) => [...history, currentScreen].slice(-20));
+      return nextScreen;
+    });
+    setDrawerGroup(null);
+  }
+
+  useEffect(() => {
+    if (screen !== 'quiz') setChildCanGoBack(false);
+  }, [screen]);
+
+  function goBack() {
+    if (drawerGroup) {
+      setDrawerGroup(null);
+      return;
+    }
+    if (childCanGoBack) {
+      setChildBackSignal((value) => value + 1);
+      return;
+    }
+    setScreenHistory((history) => {
+      const previous = history[history.length - 1] ?? 'dashboard';
+      setScreen(previous);
+      return history.slice(0, -1);
+    });
+  }
+
+  const canGoBack = !!drawerGroup || childCanGoBack || screenHistory.length > 0 || screen !== 'dashboard';
 
   return (
     <SafeAreaView style={styles.app}>
@@ -43,7 +83,7 @@ function MainApp() {
         <View style={styles.headerTextBlock}>
           <Text style={styles.kicker}>JLPT N5</Text>
           <Text style={styles.title}>Coach Japonais</Text>
-          <Text style={styles.headerSubtitle}>日本語を楽しく · Objectif réussite</Text>
+          <Text style={styles.headerSubtitle}>日本語を楽しく · Objectif reussite</Text>
         </View>
         <View style={styles.headerBadgeStack}>
           <Text style={styles.badge}>N5</Text>
@@ -52,24 +92,28 @@ function MainApp() {
       </View>
 
       <View style={styles.screenStage}>
-        {screen === 'dashboard' && <DashboardScreen />}
-        {screen === 'path' && <LearningPathScreen onNavigate={setScreen} />}
+        {screen === 'dashboard' && <DashboardScreen onNavigate={navigateTo} />}
+        {screen === 'path' && <LearningPathScreen onNavigate={navigateTo} />}
+        {screen === 'review' && <ReviewQueueScreen />}
+        {screen === 'errors' && <ErrorFlashcardsScreen />}
         {screen === 'kana' && <KanaScreen />}
         {screen === 'vocabulary' && <VocabularyScreen />}
         {screen === 'grammar' && <GrammarLessonsScreen />}
-        {screen === 'quiz' && <QuizScreen />}
+        {screen === 'preferences' && <LearningPreferencesScreen />}
+        {screen === 'quick' && <QuickSessionScreen />}
+        {screen === 'quiz' && <QuizScreen backSignal={childBackSignal} onBackStateChange={setChildCanGoBack} />}
         {screen === 'exam' && <ExamScreen />}
       </View>
 
-      <View style={styles.tabs}>
-        <TabButton icon="数" label="Stats" active={screen === 'dashboard'} onPress={() => setScreen('dashboard')} />
-        <TabButton icon="道" label="Parcours" active={screen === 'path'} onPress={() => setScreen('path')} />
-        <TabButton icon="仮" label="Kana" active={screen === 'kana'} onPress={() => setScreen('kana')} />
-        <TabButton icon="語" label="Vocab" active={screen === 'vocabulary'} onPress={() => setScreen('vocabulary')} />
-        <TabButton icon="文" label="Grammaire" active={screen === 'grammar'} onPress={() => setScreen('grammar')} />
-        <TabButton icon="問" label="Quiz" active={screen === 'quiz'} onPress={() => setScreen('quiz')} />
-        <TabButton icon="試" label="JLPT" active={screen === 'exam'} onPress={() => setScreen('exam')} />
-      </View>
+      <AppNavigation
+        drawerGroup={drawerGroup}
+        canGoBack={canGoBack}
+        screen={screen}
+        onBack={goBack}
+        onClose={() => setDrawerGroup(null)}
+        onNavigate={navigateTo}
+        onOpen={setDrawerGroup}
+      />
     </SafeAreaView>
   );
 }

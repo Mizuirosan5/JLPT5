@@ -1,7 +1,28 @@
 // Shared app models and small static configs used across screens.
 
-export type Screen = 'dashboard' | 'path' | 'kana' | 'vocabulary' | 'grammar' | 'quiz' | 'exam';
+export type Screen =
+  | 'dashboard'
+  | 'path'
+  | 'review'
+  | 'errors'
+  | 'kana'
+  | 'vocabulary'
+  | 'grammar'
+  | 'quiz'
+  | 'exam'
+  | 'quick'
+  | 'preferences';
 export type DashboardTab = 'overview' | 'quiz' | 'mastery' | 'progress' | 'focus';
+export type QuizDifficultyPreference = 'soft' | 'normal' | 'hard';
+export type LearningPlanMode = 'balanced' | 'kana_first' | 'grammar_intensive' | 'exam_revision';
+export type LearningPreferences = {
+  showRomaji: boolean;
+  showTranslationFirst: boolean;
+  quizDifficulty: QuizDifficultyPreference;
+  preferredSessionLength: 5 | 10 | 20;
+  japaneseAnswerMode: boolean;
+  learningPlanMode: LearningPlanMode;
+};
 export type KanaTab = 'hiragana' | 'katakana' | 'combined';
 export type KanaMode = 'learn' | 'exercise';
 export type GrammarMode = 'learn' | 'exercise';
@@ -19,6 +40,19 @@ export type MainQuizMode = 'global' | 'kana_arcade' | 'adaptive' | 'grammar';
 export type GrammarQuizMode = 'direct_input' | 'blank_qcm' | 'matching' | 'question_answer' | 'arcade';
 export type GlobalQuizMode = GrammarQuizMode;
 export type GlobalQuizDomain = 'kana' | 'vocabulary' | 'grammar' | 'kanji';
+export type GlobalQuizFormat =
+  | 'kana_reading'
+  | 'kana_recognition'
+  | 'vocabulary_meaning'
+  | 'vocabulary_reading'
+  | 'vocabulary_japanese'
+  | 'kanji_meaning'
+  | 'kanji_reading'
+  | 'kanji_japanese_word'
+  | 'grammar_blank'
+  | 'grammar_rule'
+  | 'grammar_translation'
+  | 'grammar_situation';
 export type KnowledgeQuizScope = 'all' | 'kana' | 'vocabulary' | 'kanji';
 export const GRAMMAR_QUIZ_MODES: Array<{
   id: GrammarQuizMode;
@@ -149,6 +183,23 @@ export type LearningPathStage = {
   reward: string;
   screen: Screen;
   actionLabel: string;
+  subSteps?: LearningPathSubStep[];
+  detail?: string;
+  checkpoints?: string[];
+  prerequisites?: string[];
+  successCriteria?: string[];
+  lockedReason?: string;
+  nextActionHint?: string;
+};
+
+export type LearningPathSubStep = {
+  id: string;
+  code: string;
+  title: string;
+  objective: string;
+  requirement: string;
+  progress: number;
+  status: 'locked' | 'active' | 'done';
 };
 
 export type GrammarLessonExample = {
@@ -220,6 +271,16 @@ export type DailyGoalDay = {
 export type RewardSummary = {
   xp: number;
   badges: number;
+};
+
+export type SrsOverview = {
+  dueToday: number;
+  fragile: number;
+  known: number;
+  solid: number;
+  mastered: number;
+  total: number;
+  nextDueAt: string | null;
 };
 
 export type RewardToast = {
@@ -336,6 +397,9 @@ export type GrammarMatchingSession = {
 export type GlobalQuizQuestion = {
   id: string;
   domain: GlobalQuizDomain;
+  format: GlobalQuizFormat;
+  formatLabel: string;
+  measuredSkill: string;
   prompt: string;
   display: string;
   correctAnswer: string;

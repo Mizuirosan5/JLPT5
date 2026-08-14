@@ -15,6 +15,7 @@ import type {
 import { buildKanaArcadeQuestions, getKanaArcadeMultiplier } from '../services/kanaArcade';
 import { normalizeAnswer } from '../services/text';
 import { formatElapsedTime } from '../services/time';
+import { recordSrsReviewForQuestionAttempt } from '../services/srs';
 
 type KanaArcadeQuizScreenProps = {
   kanaArcadeCards: KanaCard[];
@@ -215,6 +216,14 @@ export function KanaArcadeQuizScreen({ kanaArcadeCards, onNavigate }: KanaArcade
         isCorrect ? 1 : 0,
         `kana_arcade:${current.prompt.script}:${current.prompt.character.length > 1 ? 'combined' : 'basic'}`
       );
+      await recordSrsReviewForQuestionAttempt(db, {
+        questionId: current.prompt.id,
+        itemId: current.prompt.id,
+        itemType: 'kana',
+        skillId: `kana_arcade:${current.prompt.script}:${current.prompt.character.length > 1 ? 'combined' : 'basic'}`,
+        sourceMode: 'kana_arcade',
+        isCorrect,
+      });
     } catch (error) {
       console.error('Unable to save kana arcade answer', error);
     }

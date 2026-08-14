@@ -1,5 +1,6 @@
 import { SQLiteDatabase } from 'expo-sqlite';
 import type { GrammarLesson, GrammarLessonStatus, GrammarProgressSummary, MasteryDomainStats } from '../models';
+import { recordSrsReviewForQuestionAttempt } from './srs';
 
 type GrammarMenuResolver = (lesson: GrammarLesson) => string;
 
@@ -157,6 +158,14 @@ export async function recordGrammarExerciseAttempt(
     isCorrect ? 1 : 0,
     `grammar:${getGrammarMainMenu(lesson)}`
   );
+  await recordSrsReviewForQuestionAttempt(db, {
+    questionId: `${sourceMode}:${lesson.id}`,
+    itemId: lesson.id,
+    itemType: 'grammar',
+    skillId: `grammar:${getGrammarMainMenu(lesson)}`,
+    sourceMode,
+    isCorrect,
+  });
 }
 
 function grammarLessonStatusToNumber(status: GrammarLessonStatus): number {

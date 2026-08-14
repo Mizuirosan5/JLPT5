@@ -27,8 +27,8 @@ function isBadgeUnlocked(badge: BadgeDefinition, context: BadgeProgressContext):
     case 'perfect-100': return perfectDays >= 100;
     case 'perfect-200': return perfectDays >= 200;
     case 'perfect-365': return perfectDays >= 365;
-    case 'streak-3': return context.streakDays >= 10;
-    case 'streak-7': return context.streakDays >= 20;
+    case 'streak-3': return context.streakDays >= 3;
+    case 'streak-7': return context.streakDays >= 7;
     case 'streak-30': return context.streakDays >= 50;
     case 'streak-100': return context.streakDays >= 100;
     case 'streak-365': return context.streakDays >= 365;

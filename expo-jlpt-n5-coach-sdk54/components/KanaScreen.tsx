@@ -13,6 +13,7 @@ import { buildConfusionKanaQuiz, buildKanaExercise, buildKanaQuiz, buildMatching
 import { buildDailyKanaDeck, buildSmartKanaDeck, getKanaPriority } from '../services/kanaProgress';
 import { shuffle } from '../services/random';
 import { normalizeAnswer } from '../services/text';
+import { recordSrsReviewForQuestionAttempt } from '../services/srs';
 import type {
   KanaCard,
   KanaDisplayStyle,
@@ -480,6 +481,14 @@ export function KanaScreen() {
       isCorrect ? 1 : 0,
       `kana:${exercise.prompt.script}:${exercise.direction}`
     );
+    await recordSrsReviewForQuestionAttempt(db, {
+      questionId: exercise.prompt.id,
+      itemId: exercise.prompt.id,
+      itemType: 'kana',
+      skillId: `kana:${exercise.prompt.script}:${exercise.direction}`,
+      sourceMode: 'kana_exercise',
+      isCorrect,
+    });
     await updateKanaCardState(exercise.prompt.id, {
       seenDelta: 1,
       correctDelta: isCorrect ? 1 : 0,

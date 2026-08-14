@@ -29,6 +29,14 @@ export async function initializeDatabase(db: SQLiteDatabase) {
       updated_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS app_vocabulary_card_state (
+      card_id TEXT PRIMARY KEY,
+      favorite INTEGER NOT NULL DEFAULT 0,
+      review INTEGER NOT NULL DEFAULT 0,
+      seen_count INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS app_kana_time_record (
       id TEXT PRIMARY KEY,
       script TEXT NOT NULL,
@@ -71,6 +79,45 @@ export async function initializeDatabase(db: SQLiteDatabase) {
       badge_code TEXT NOT NULL,
       claimed_at TEXT NOT NULL,
       PRIMARY KEY (day, goal_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS app_user_learning_preferences (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS app_srs_item_state (
+      item_id TEXT NOT NULL,
+      item_type TEXT NOT NULL,
+      status TEXT NOT NULL,
+      ease REAL NOT NULL DEFAULT 2.5,
+      interval_days INTEGER NOT NULL DEFAULT 0,
+      due_at TEXT NOT NULL,
+      last_reviewed_at TEXT,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      correct INTEGER NOT NULL DEFAULT 0,
+      wrong_streak INTEGER NOT NULL DEFAULT 0,
+      correct_streak INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL,
+      PRIMARY KEY (item_id, item_type)
+    );
+
+    CREATE TABLE IF NOT EXISTS app_error_flashcard (
+      id TEXT PRIMARY KEY,
+      source_question_id TEXT NOT NULL,
+      source_mode TEXT NOT NULL,
+      item_type TEXT NOT NULL,
+      prompt TEXT NOT NULL,
+      japanese TEXT,
+      translation TEXT,
+      expected_answer TEXT NOT NULL,
+      selected_answer TEXT,
+      explanation TEXT,
+      archived INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      UNIQUE(source_question_id, expected_answer)
     );
 
     CREATE TABLE IF NOT EXISTS app_grammar_lesson_state (

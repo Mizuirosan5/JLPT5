@@ -10,6 +10,7 @@ import type {
   DailyGoalDay,
   MasteryDomainStats,
   RewardSummary,
+  SrsOverview,
 } from '../models';
 import { getBadgeGate } from '../services/badges';
 import { formatDateKey, isQuestComplete } from '../services/goals';
@@ -38,6 +39,8 @@ export function CoachPremiumPanel({
   xpToNextLevel,
   streakDays,
   quests,
+  nextQuests = [],
+  srsOverview,
   goalCalendar,
   recommendedDomain,
   rewardSummary,
@@ -49,6 +52,8 @@ export function CoachPremiumPanel({
   xpToNextLevel: number;
   streakDays: number;
   quests: CoachQuest[];
+  nextQuests?: CoachQuest[];
+  srsOverview?: SrsOverview;
   goalCalendar: DailyGoalDay[];
   recommendedDomain: MasteryDomainStats | null;
   rewardSummary: RewardSummary;
@@ -61,9 +66,25 @@ export function CoachPremiumPanel({
     ? Math.max(0, recommendedDomain.total - recommendedDomain.mastered)
     : 0;
   const completedQuests = quests.filter(isQuestComplete).length;
-  const perfectDays = goalCalendar.filter((day) => Number(day.completed) === Number(day.total)).length;
-  const activeDays = goalCalendar.filter((day) => Number(day.completed) > 0).length;
-  const remainingPerfectDays = Math.max(0, CALENDAR_HISTORY_DAYS - perfectDays);
+  const tomorrowUnlocked = quests.length > 0 && completedQuests === quests.length && nextQuests.length > 0;
+  const recentDays = goalCalendar.slice(-7);
+  const weekActiveDays = recentDays.filter(
+    (day) => Number(day.attempts) > 0 || Number(day.quizAttempts) > 0 || Number(day.grammarActivities ?? 0) > 0
+  ).length;
+  const todayKey = formatDateKey(new Date());
+  const todayAttendanceDay = goalCalendar.find((day) => day.day === todayKey);
+  const todayIsActive =
+    Number(todayAttendanceDay?.attempts ?? 0) > 0 ||
+    Number(todayAttendanceDay?.quizAttempts ?? 0) > 0 ||
+    Number(todayAttendanceDay?.grammarActivities ?? 0) > 0 ||
+    completedQuests > 0;
+  const attendanceRate = todayIsActive ? 100 : 0;
+  const attendanceMilestones = [
+    { days: 1, xp: 60, label: 'jour travaille' },
+    { days: 3, xp: 260, label: 'serie 3 jours' },
+    { days: 7, xp: 780, label: 'serie 7 jours' },
+  ];
+  const nextAttendanceMilestone = attendanceMilestones.find((milestone) => milestone.days > streakDays);
   return (
     <View style={styles.coachPanel}>
       <View style={styles.coachHero}>
@@ -89,29 +110,72 @@ export function CoachPremiumPanel({
       <View style={styles.dailyTrackingCard}>
         <View style={styles.dailyTrackingHeader}>
           <View>
-            <Text style={styles.dailyTrackingKicker}>Suivi journalier</Text>
-            <Text style={styles.dailyTrackingTitle}>{completedQuests}/3 objectifs aujourd'hui</Text>
+            <Text style={styles.dailyTrackingKicker}>Assiduité</Text>
+            <Text style={styles.dailyTrackingTitle}>{streakDays} jour{streakDays > 1 ? 's' : ''} de suite</Text>
           </View>
-          <Text style={styles.dailyTrackingBadge}>{league.symbol}</Text>
+          <Text style={styles.dailyTrackingBadge}>{todayIsActive ? '1/1' : '0/1'}</Text>
         </View>
-        <View style={styles.dailyTrackingStats}>
-          <View style={styles.dailyTrackingStat}>
-            <Text style={styles.dailyTrackingValue}>{perfectDays}</Text>
-            <Text style={styles.dailyTrackingLabel}>jours badge</Text>
-          </View>
-          <View style={styles.dailyTrackingStat}>
-            <Text style={styles.dailyTrackingValue}>{activeDays}</Text>
-            <Text style={styles.dailyTrackingLabel}>jours actifs</Text>
-          </View>
-          <View style={styles.dailyTrackingStat}>
-            <Text style={styles.dailyTrackingValue}>{remainingPerfectDays}</Text>
-            <Text style={styles.dailyTrackingLabel}>à valider</Text>
-          </View>
+        <View style={styles.attendanceStrip}>
+          {recentDays.map((day) => {
+            const active =
+              Number(day.attempts) > 0 ||
+              Number(day.quizAttempts) > 0 ||
+              Number(day.grammarActivities ?? 0) > 0;
+            return (
+              <View
+                key={day.day}
+                style={[
+                  styles.attendanceDot,
+                  active && styles.attendanceDotComplete,
+                ]}
+              >
+                <Text style={[styles.attendanceDotText, active && styles.attendanceDotTextActive]}>
+                  {day.day.slice(8)}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+        <View style={styles.attendanceProgressTrack}>
+          <View style={[styles.attendanceProgressFill, { width: `${attendanceRate}%` }]} />
         </View>
         <Text style={styles.dailyTrackingMeta}>
-          {rewardSummary.xp} XP gagnés · {rewardSummary.badges} badges rares · prochain niveau dans {xpToNextLevel} XP
+          7 jours : {weekActiveDays}/7 actif{weekActiveDays > 1 ? 's' : ''}. Bonus : +60 XP aujourd'hui, +260 XP a 3 jours, +780 XP a 7 jours.
+          {nextAttendanceMilestone
+            ? ` Prochain palier : ${nextAttendanceMilestone.label}.`
+            : ' Palier 7 jours obtenu.'}
+          {' '}Objectifs du jour : {completedQuests}/{quests.length || 3}.
         </Text>
       </View>
+
+      {srsOverview && (
+        <View style={styles.dailyTrackingCard}>
+          <View style={styles.dailyTrackingHeader}>
+            <View>
+              <Text style={styles.dailyTrackingKicker}>Memoire SRS</Text>
+              <Text style={styles.dailyTrackingTitle}>{srsOverview.dueToday} revisions dues aujourd'hui</Text>
+            </View>
+            <Text style={styles.dailyTrackingBadge}>SRS</Text>
+          </View>
+          <View style={styles.dailyTrackingStats}>
+            <View style={styles.dailyTrackingStat}>
+              <Text style={styles.dailyTrackingValue}>{srsOverview.fragile}</Text>
+              <Text style={styles.dailyTrackingLabel}>fragiles</Text>
+            </View>
+            <View style={styles.dailyTrackingStat}>
+              <Text style={styles.dailyTrackingValue}>{srsOverview.solid}</Text>
+              <Text style={styles.dailyTrackingLabel}>solides</Text>
+            </View>
+            <View style={styles.dailyTrackingStat}>
+              <Text style={styles.dailyTrackingValue}>{srsOverview.mastered}</Text>
+              <Text style={styles.dailyTrackingLabel}>maitrises</Text>
+            </View>
+          </View>
+          <Text style={styles.dailyTrackingMeta}>
+            {srsOverview.total} elements suivis. Les erreurs reviennent plus vite, les acquis s'espacent.
+          </Text>
+        </View>
+      )}
 
       <View style={styles.xpCard}>
         <View style={styles.xpHeader}>
@@ -132,6 +196,9 @@ export function CoachPremiumPanel({
       </View>
 
       <QuestGroup title="Objectifs quotidiens" detail="Rapides, pour garder le rythme." quests={quests} />
+      {tomorrowUnlocked && (
+        <QuestGroup title="Objectifs de demain debloques" detail="Apercu du prochain jour : nouveau theme, seuil plus ajuste." quests={nextQuests} />
+      )}
     </View>
   );
 }
@@ -237,22 +304,23 @@ export function DailyGoalCalendar({ days }: { days: DailyGoalDay[] }) {
 }
 
 export function BadgeCollection({ badges }: { badges: BadgeView[] }) {
-  const unlockedCount = badges.filter((badge) => badge.unlocked).length;
-  const domains: BadgeDomain[] = ['quotidien', 'kana', 'quiz', 'vocabulaire', 'grammaire', 'kanji', 'jlpt', 'maitrise'];
+  const displayedBadges = badges.filter((badge) => badge.domain !== 'quotidien');
+  const displayedUnlockedCount = displayedBadges.filter((badge) => badge.unlocked).length;
+  const domains: BadgeDomain[] = ['kana', 'quiz', 'vocabulaire', 'grammaire', 'kanji', 'jlpt', 'maitrise'];
   const difficulties: BadgeDifficulty[] = ['facile', 'moyen', 'difficile', 'expert', 'legendaire'];
 
   return (
     <View style={styles.badgeCollectionCard}>
       <View style={styles.badgeCollectionHeader}>
         <View>
-          <Text style={styles.badgeCollectionTitle}>{unlockedCount}/{badges.length} badges</Text>
+          <Text style={styles.badgeCollectionTitle}>{displayedUnlockedCount}/{displayedBadges.length} badges</Text>
           <Text style={styles.badgeCollectionMeta}>Badges rares, ligues et accomplissements longs calibrés pour une année complète de pratique intensive.</Text>
         </View>
       </View>
 
       <View style={styles.badgeDifficultyGrid}>
         {difficulties.map((difficulty) => {
-          const difficultyBadges = badges.filter((badge) => badge.difficulty === difficulty);
+          const difficultyBadges = displayedBadges.filter((badge) => badge.difficulty === difficulty);
           const difficultyUnlocked = difficultyBadges.filter((badge) => badge.unlocked).length;
           const gate = getBadgeGate(difficulty);
           return (
@@ -268,7 +336,7 @@ export function BadgeCollection({ badges }: { badges: BadgeView[] }) {
       </View>
 
       {domains.map((domain) => {
-        const domainBadges = badges.filter((badge) => badge.domain === domain);
+        const domainBadges = displayedBadges.filter((badge) => badge.domain === domain);
         if (domainBadges.length === 0) return null;
         const domainUnlocked = domainBadges.filter((badge) => badge.unlocked).length;
         return (

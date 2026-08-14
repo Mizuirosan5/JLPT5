@@ -50,6 +50,8 @@ export type DashboardGoalDefinitions = {
 
 export type DashboardGoalData = {
   today: DailyGoalMetrics;
+  todayDefinitions: GoalDefinition[];
+  tomorrowDefinitions: GoalDefinition[];
   weekly: DailyGoalMetrics;
   monthly: DailyGoalMetrics;
   yearly: DailyGoalMetrics;
@@ -59,25 +61,44 @@ export type DashboardGoalData = {
   rewardToast: RewardToast | null;
 };
 
+type AttendanceBonus = {
+  id: string;
+  claimDay: string;
+  title: string;
+  rewardXp: number;
+  badgeCode: string;
+  unlocked: boolean;
+};
+
+const ATTENDANCE_BONUSES = [
+  { id: 'attendance-day-1', title: 'Jour travaille', rewardXp: 60, badgeCode: 'ASSIDUITE-1', streakTarget: 1, repeat: 'daily' },
+  { id: 'attendance-streak-3', title: 'Serie 3 jours', rewardXp: 260, badgeCode: 'ASSIDUITE-3', streakTarget: 3, repeat: 'once' },
+  { id: 'attendance-streak-7', title: 'Serie 7 jours', rewardXp: 780, badgeCode: 'ASSIDUITE-7', streakTarget: 7, repeat: 'once' },
+] as const;
+
 export async function ensureDailyGoalPlan(
   db: SQLiteDatabase,
   dailyDefinitions: GoalDefinition[],
   goalPlanDays: number
 ) {
-  const existing = await db.getFirstAsync<{ days: number }>(
+  const profile = await loadDailyGoalProfile(db);
+  await db.runAsync(
     `
-    SELECT COUNT(DISTINCT day) AS days
-    FROM app_daily_goal_plan
+    DELETE FROM app_daily_goal_plan
     WHERE day >= date('now')
+      AND goal_id LIKE 'daily-%'
     `
   );
-  if ((existing?.days ?? 0) >= 365) return;
 
   const start = new Date();
   start.setDate(start.getDate() - 364);
   const days = buildDateRange(goalPlanDays, start);
+  const todayKey = formatDateKey(new Date());
+  const todayIndex = Math.max(0, days.indexOf(todayKey));
   for (const day of days) {
-    for (const goal of dailyDefinitions) {
+    const dayIndex = Math.max(0, days.indexOf(day) - todayIndex);
+    const goals = day >= todayKey ? buildAdaptiveDailyGoals(day, dayIndex, profile) : dailyDefinitions;
+    for (const goal of goals) {
       await db.runAsync(
         `
         INSERT OR IGNORE INTO app_daily_goal_plan (
@@ -94,6 +115,214 @@ export async function ensureDailyGoalPlan(
       );
     }
   }
+}
+
+type DailyGoalProfile = {
+  level: number;
+  accuracy: number;
+  totalAttempts: number;
+  activeDays: number;
+  weakDomain: string;
+};
+
+async function loadDailyGoalProfile(db: SQLiteDatabase): Promise<DailyGoalProfile> {
+  const stats = await db.getFirstAsync<{
+    attempts: number;
+    correct: number | null;
+    activeDays: number;
+  }>(`
+    SELECT
+      (SELECT COUNT(*) FROM app_question_attempt_local) AS attempts,
+      (SELECT SUM(is_correct) FROM app_question_attempt_local) AS correct,
+      (
+        SELECT COUNT(DISTINCT day)
+        FROM (
+          SELECT date(answered_at) AS day FROM app_question_attempt_local
+          UNION
+          SELECT date(created_at) AS day FROM app_kana_arcade_score
+        )
+      ) AS activeDays
+  `);
+  const weakSkill = await db.getFirstAsync<{ skill_id: string }>(`
+    SELECT skill_id
+    FROM app_question_attempt_local
+    GROUP BY skill_id
+    HAVING COUNT(*) >= 2
+    ORDER BY ROUND(SUM(is_correct) * 100.0 / COUNT(*)) ASC, COUNT(*) DESC
+    LIMIT 1
+  `);
+  const totalAttempts = stats?.attempts ?? 0;
+  const correct = stats?.correct ?? 0;
+  const accuracy = totalAttempts > 0 ? Math.round((correct / totalAttempts) * 100) : 0;
+  const activeDays = stats?.activeDays ?? 0;
+  const level = Math.max(1, Math.min(250, Math.floor(totalAttempts / 35) + Math.floor(activeDays / 5) + Math.floor(accuracy / 25) + 1));
+  return {
+    level,
+    accuracy,
+    totalAttempts,
+    activeDays,
+    weakDomain: inferWeakDomain(weakSkill?.skill_id),
+  };
+}
+
+function inferWeakDomain(skillId?: string): string {
+  const value = (skillId ?? '').toLowerCase();
+  if (value.includes('grammar') || value.includes('particle')) return 'grammaire';
+  if (value.includes('kanji')) return 'kanji';
+  if (value.includes('vocab')) return 'vocabulaire';
+  if (value.includes('kana') || value.includes('hiragana') || value.includes('katakana')) return 'kana';
+  if (value.includes('comprehension')) return 'comprehension';
+  return 'kana';
+}
+
+async function calculateAttendanceStreak(db: SQLiteDatabase, todayKey: string): Promise<number> {
+  const activeRows = await db.getAllAsync<{ day: string }>(
+    `
+    SELECT day
+    FROM (
+      SELECT date(answered_at) AS day
+      FROM app_question_attempt_local
+      WHERE date(answered_at) <= ?
+      UNION
+      SELECT date(created_at) AS day
+      FROM app_kana_arcade_score
+      WHERE date(created_at) <= ?
+    )
+    ORDER BY day DESC
+    LIMIT 370
+    `,
+    todayKey,
+    todayKey
+  );
+  const activeDays = new Set(activeRows.map((row) => row.day));
+  const cursor = new Date(`${todayKey}T12:00:00`);
+  let streak = 0;
+
+  for (let index = 0; index < 370; index += 1) {
+    const key = formatDateKey(cursor);
+    if (!activeDays.has(key)) break;
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+}
+
+function buildAttendanceBonuses(todayKey: string, streakDays: number): AttendanceBonus[] {
+  return ATTENDANCE_BONUSES.map((bonus) => ({
+    id: bonus.id,
+    claimDay: bonus.repeat === 'daily' ? todayKey : `milestone:${bonus.id}`,
+    title: bonus.title,
+    rewardXp: bonus.rewardXp,
+    badgeCode: bonus.badgeCode,
+    unlocked: streakDays >= bonus.streakTarget,
+  }));
+}
+
+function buildAdaptiveDailyGoals(day: string, dayIndex: number, profile: DailyGoalProfile): GoalDefinition[] {
+  const difficulty = Math.max(1, Math.min(5, Math.floor((profile.level - 1) / 12) + 1));
+  const wave = dayIndex % 7;
+  const longWave = dayIndex % 30;
+  const domain = pickDailyDomain(profile.weakDomain, dayIndex);
+  const questionTarget = 10 + difficulty * 4 + (wave % 3) * 2 + Math.floor(dayIndex / 30);
+  const precisionTarget = Math.min(94, 68 + difficulty * 4 + (profile.accuracy >= 80 ? 4 : 0) + (longWave % 4));
+  const minimumPrecisionAnswers = 8 + difficulty * 2;
+  const sessionTarget = difficulty >= 5 ? 3 : difficulty >= 3 ? 2 : 1;
+  const rewardBase = 90 + difficulty * 35;
+  const dayCode = day.replace(/-/g, '');
+  const questionVariants = [
+    ['Mission ciblage', `Repondre a ${questionTarget} questions, avec priorite ${domain}.`, 'focus'],
+    ['Revision active', `Faire ${questionTarget} reponses pour consolider les acquis fragiles.`, 'review'],
+    ['Endurance N5', `Tenir ${questionTarget} questions sans casser le rythme.`, 'endurance'],
+    ['Exploration mixte', `Explorer ${questionTarget} questions sur plusieurs familles N5.`, 'question'],
+  ];
+  const precisionVariants = [
+    ['Precision propre', `Atteindre ${precisionTarget}% avec au moins ${minimumPrecisionAnswers} reponses.`, 'precision'],
+    ['Zero hasard', `Viser ${precisionTarget}% : lis avant de repondre, surtout en ${domain}.`, 'precision'],
+    ['Controle qualite', `Garder ${precisionTarget}% de reussite minimum aujourd hui.`, 'precision'],
+  ];
+  const sessionVariants = [
+    ['Session guidee', `Terminer ${sessionTarget} session quiz ou grammaire adaptee au niveau ${profile.level}.`, 'session'],
+    [`Atelier ${domain}`, `Finir ${sessionTarget} activite quiz/grammaire orientee ${domain}.`, 'quiz'],
+    ['Bloc application', `Valider ${sessionTarget} entrainement complet apres la revision.`, 'grammar'],
+  ];
+  const question = questionVariants[dayIndex % questionVariants.length];
+  const precision = precisionVariants[(dayIndex + difficulty) % precisionVariants.length];
+  const session = sessionVariants[(dayIndex + wave) % sessionVariants.length];
+  return [
+    {
+      id: `daily-${question[2]}-${dayCode}`,
+      title: question[0],
+      description: question[1],
+      target: questionTarget,
+      rewardXp: rewardBase,
+      badgeCode: 'XP',
+      unit: 'questions',
+      period: 'daily',
+    },
+    {
+      id: `daily-${precision[2]}-${dayCode}`,
+      title: precision[0],
+      description: precision[1],
+      target: precisionTarget,
+      rewardXp: rewardBase + 40,
+      badgeCode: 'XP',
+      unit: '%',
+      period: 'daily',
+    },
+    {
+      id: `daily-${session[2]}-${dayCode}`,
+      title: session[0],
+      description: session[1],
+      target: sessionTarget,
+      rewardXp: rewardBase + 80,
+      badgeCode: 'XP',
+      unit: 'activite',
+      period: 'daily',
+    },
+  ];
+}
+
+function pickDailyDomain(weakDomain: string, dayIndex: number): string {
+  const rotation = [weakDomain, 'kana', 'vocabulaire', 'grammaire', 'kanji', 'comprehension', 'JLPT mixte'];
+  return rotation[dayIndex % rotation.length] ?? weakDomain;
+}
+
+async function loadPlannedDailyDefinitions(db: SQLiteDatabase, day: string, fallback: GoalDefinition[]): Promise<GoalDefinition[]> {
+  const rows = await db.getAllAsync<{
+    goal_id: string;
+    title: string;
+    description: string;
+    target: number;
+    reward_xp: number;
+    badge_code: string;
+  }>(
+    `
+    SELECT goal_id, title, description, target, reward_xp, badge_code
+    FROM app_daily_goal_plan
+    WHERE day = ?
+    ORDER BY created_at ASC, goal_id ASC
+    LIMIT 3
+    `,
+    day
+  );
+  if (rows.length === 0) return fallback;
+  return rows.map((row) => ({
+    id: row.goal_id,
+    title: row.title,
+    description: row.description,
+    target: row.target,
+    rewardXp: row.reward_xp,
+    badgeCode: row.badge_code,
+    unit: inferDailyGoalUnit(row.goal_id),
+    period: 'daily',
+  }));
+}
+
+function inferDailyGoalUnit(goalId: string): string {
+  if (goalId.includes('precision')) return '%';
+  if (goalId.includes('session') || goalId.includes('quiz') || goalId.includes('grammar')) return 'activite';
+  return 'questions';
 }
 
 export async function loadDashboardOverviewData(
@@ -173,12 +402,27 @@ export async function loadDashboardOverviewData(
   `);
 
   const dailyProgress = await db.getAllAsync<DailyProgress>(`
-    SELECT date(answered_at) AS day,
-           COUNT(*) AS attempts,
-           SUM(is_correct) AS correct,
-           ROUND(SUM(is_correct) * 100.0 / COUNT(*)) AS rate
-    FROM app_question_attempt_local
-    GROUP BY date(answered_at)
+    SELECT day,
+           SUM(attempts) AS attempts,
+           SUM(correct) AS correct,
+           CASE
+             WHEN SUM(attempts) > 0 THEN ROUND(SUM(correct) * 100.0 / SUM(attempts))
+             ELSE 0
+           END AS rate
+    FROM (
+      SELECT date(answered_at) AS day,
+             COUNT(*) AS attempts,
+             SUM(is_correct) AS correct
+      FROM app_question_attempt_local
+      GROUP BY date(answered_at)
+      UNION ALL
+      SELECT date(created_at) AS day,
+             COUNT(*) AS attempts,
+             COUNT(*) AS correct
+      FROM app_kana_arcade_score
+      GROUP BY date(created_at)
+    )
+    GROUP BY day
     ORDER BY day DESC
     LIMIT 14
   `);
@@ -497,17 +741,22 @@ export async function loadDashboardGoalData(
   );
   today.quizAttempts = todayQuizAttempts?.quizAttempts ?? 0;
   today.grammarActivities = todayQuizAttempts?.grammarActivities ?? 0;
+  const todayDefinitions = await loadPlannedDailyDefinitions(db, todayKey, definitions.daily);
+  const tomorrowKey = formatDateKey(addDays(now, 1));
+  const tomorrowDefinitions = await loadPlannedDailyDefinitions(db, tomorrowKey, definitions.daily);
+  const attendanceStreak = await calculateAttendanceStreak(db, todayKey);
 
   const weekly = await loadGoalMetrics(weekStart, addDays(weekStart, 7));
   const monthly = await loadGoalMetrics(monthStart, addMonths(monthStart, 1));
   const yearly = await loadGoalMetrics(yearStart, addDays(now, 1));
 
   const questGroups = [
-    { key: todayKey, quests: buildQuests(today, definitions.daily) },
+    { key: todayKey, quests: buildQuests(today, todayDefinitions) },
     { key: `${weekly.day}:week`, quests: buildQuests(weekly, definitions.weekly) },
     { key: `${monthly.day}:month`, quests: buildQuests(monthly, definitions.monthly) },
     { key: `${yearly.day}:year`, quests: buildQuests(yearly, definitions.yearly) },
   ];
+  const attendanceBonuses = buildAttendanceBonuses(todayKey, attendanceStreak);
 
   for (const group of questGroups) {
     for (const quest of group.quests) {
@@ -551,6 +800,32 @@ export async function loadDashboardGoalData(
         quest.badgeCode
       );
       rewardToast = { title: quest.title, xp: quest.rewardXp, badgeCode: quest.badgeCode };
+    }
+  }
+  for (const bonus of attendanceBonuses) {
+    if (!bonus.unlocked) continue;
+    const existingClaim = await db.getFirstAsync<{ goal_id: string }>(
+      `
+      SELECT goal_id
+      FROM app_daily_reward_claim
+      WHERE day = ? AND goal_id = ?
+      `,
+      bonus.claimDay,
+      bonus.id
+    );
+    if (!existingClaim) {
+      await db.runAsync(
+        `
+        INSERT INTO app_daily_reward_claim (
+          day, goal_id, reward_xp, badge_code, claimed_at
+        ) VALUES (?, ?, ?, ?, datetime('now'))
+        `,
+        bonus.claimDay,
+        bonus.id,
+        bonus.rewardXp,
+        bonus.badgeCode
+      );
+      rewardToast = { title: bonus.title, xp: bonus.rewardXp, badgeCode: bonus.badgeCode };
     }
   }
 
@@ -620,8 +895,44 @@ export async function loadDashboardGoalData(
     ORDER BY p.day ASC
     `
   );
+  const firstCalendarDay = calendarRows[0]?.day ?? todayKey;
+  const plannedRows = await db.getAllAsync<{
+    day: string;
+    goal_id: string;
+    title: string;
+    description: string;
+    target: number;
+    reward_xp: number;
+    badge_code: string;
+  }>(
+    `
+    SELECT day, goal_id, title, description, target, reward_xp, badge_code
+    FROM app_daily_goal_plan
+    WHERE day >= ? AND day <= ?
+    ORDER BY day ASC, created_at ASC, goal_id ASC
+    `,
+    firstCalendarDay,
+    todayKey
+  );
+  const plannedDefinitionsByDay = plannedRows.reduce<Record<string, GoalDefinition[]>>((acc, row) => {
+    acc[row.day] = acc[row.day] ?? [];
+    if (acc[row.day].length < 3) {
+      acc[row.day].push({
+        id: row.goal_id,
+        title: row.title,
+        description: row.description,
+        target: row.target,
+        rewardXp: row.reward_xp,
+        badgeCode: row.badge_code,
+        unit: inferDailyGoalUnit(row.goal_id),
+        period: 'daily',
+      });
+    }
+    return acc;
+  }, {});
   const goalCalendar = calendarRows.map((day) => {
-    const quests = buildQuests(day, definitions.daily);
+    const dayDefinitions = plannedDefinitionsByDay[day.day] ?? definitions.daily;
+    const quests = buildQuests(day, dayDefinitions);
     return {
       ...day,
       completed: quests.filter(isQuestComplete).length,
@@ -631,6 +942,8 @@ export async function loadDashboardGoalData(
 
   return {
     today,
+    todayDefinitions,
+    tomorrowDefinitions,
     weekly,
     monthly,
     yearly,

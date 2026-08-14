@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, ScrollView, Text, View } from 'react-native';
+import { Animated, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { styles } from '../appStyles';
 import { buildBadgeViews } from '../services/badges';
@@ -22,9 +22,11 @@ import {
 } from '../services/progress';
 import {
   addDays,
+  buildQuests,
   formatDateKey,
   getMonthStart,
   getWeekStart,
+  type GoalDefinition,
 } from '../services/goals';
 import {
   BADGE_DEFINITIONS,
@@ -32,7 +34,6 @@ import {
   MONTHLY_GOAL_DEFINITIONS,
   WEEKLY_GOAL_DEFINITIONS,
   YEARLY_GOAL_DEFINITIONS,
-  buildDailyQuests,
 } from '../data/goalDefinitions';
 import {
   ALL_GRAMMAR_LESSONS,
@@ -41,6 +42,7 @@ import {
 } from '../services/grammarCourse';
 import { loadGrammarProgressSummary } from '../services/grammarProgress';
 import { formatElapsedTime } from '../services/time';
+import { loadSrsOverview } from '../services/srs';
 import type {
   DailyGoalDay,
   DailyGoalMetrics,
@@ -54,13 +56,14 @@ import type {
   QuizScoreTrend,
   RewardSummary,
   RewardToast,
+  Screen,
   SkillProgress,
+  SrsOverview,
 } from '../models';
 import { RubricButton } from './shellUi';
 import {
   BadgeCollection,
   CoachPremiumPanel,
-  DailyGoalCalendar,
   EmptyText,
   LoadingView,
   MasteryDomainCard,
@@ -70,7 +73,7 @@ import {
   StatsLineChart,
 } from './sharedUi';
 
-export function DashboardScreen() {
+export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) => void }) {
   const db = useSQLiteContext();
   const [loading, setLoading] = useState(true);
   const [dashboardTab, setDashboardTab] = useState<DashboardTab>('quiz');
@@ -132,9 +135,20 @@ export function DashboardScreen() {
     activeDays: 0,
   });
   const [goalCalendar, setGoalCalendar] = useState<DailyGoalDay[]>([]);
+  const [todayGoalDefinitions, setTodayGoalDefinitions] = useState<GoalDefinition[]>(DAILY_GOAL_DEFINITIONS);
+  const [tomorrowGoalDefinitions, setTomorrowGoalDefinitions] = useState<GoalDefinition[]>([]);
   const [rewardSummary, setRewardSummary] = useState<RewardSummary>({ xp: 0, badges: 0 });
   const [earnedBadgeCodes, setEarnedBadgeCodes] = useState<string[]>([]);
   const [rewardToast, setRewardToast] = useState<RewardToast | null>(null);
+  const [srsOverview, setSrsOverview] = useState<SrsOverview>({
+    dueToday: 0,
+    fragile: 0,
+    known: 0,
+    solid: 0,
+    mastered: 0,
+    total: 0,
+    nextDueAt: null,
+  });
   const rewardAnim = useRef(new Animated.Value(0)).current;
 
   const load = useCallback(async () => {
@@ -176,9 +190,12 @@ export function DashboardScreen() {
       setWeeklyGoalMetrics(goalData.weekly);
       setMonthlyGoalMetrics(goalData.monthly);
       setYearlyGoalMetrics(goalData.yearly);
+      setTodayGoalDefinitions(goalData.todayDefinitions);
+      setTomorrowGoalDefinitions(goalData.tomorrowDefinitions);
       setRewardSummary(goalData.rewardSummary);
       setEarnedBadgeCodes(goalData.earnedBadgeCodes);
       setGoalCalendar(goalData.goalCalendar);
+      setSrsOverview(await loadSrsOverview(db));
       if (goalData.rewardToast) setRewardToast(goalData.rewardToast);
     } catch (error) {
       console.error('Unable to load dashboard stats', error);
@@ -210,13 +227,13 @@ export function DashboardScreen() {
     Animated.sequence([
       Animated.timing(rewardAnim, {
         toValue: 1,
-        duration: 420,
+        duration: 520,
         useNativeDriver: true,
       }),
       Animated.timing(rewardAnim, {
         toValue: 0,
-        duration: 520,
-        delay: 1800,
+        duration: 620,
+        delay: getRewardCelebrationDuration(rewardToast),
         useNativeDriver: true,
       }),
     ]).start(({ finished }) => {
@@ -253,7 +270,11 @@ export function DashboardScreen() {
       .slice()
       .sort((a, b) => b.review - a.review || b.unseen - a.unseen || b.total - b.mastered - (a.total - a.mastered))[0] ??
     null;
-  const coachQuests = buildDailyQuests(todayGoalMetrics);
+  const coachQuests = buildQuests(todayGoalMetrics, todayGoalDefinitions);
+  const tomorrowQuests = buildQuests(
+    { day: formatDateKey(addDays(new Date(), 1)), attempts: 0, correct: 0, rate: 0, quizAttempts: 0, grammarActivities: 0 },
+    tomorrowGoalDefinitions
+  );
   const badgeViews = buildBadgeViews({
     stats,
     quizSummary,
@@ -282,36 +303,7 @@ export function DashboardScreen() {
 
       {dashboardTab === 'overview' && (
         <>
-          {rewardToast && (
-            <Animated.View
-              style={[
-                styles.rewardToast,
-                {
-                  opacity: rewardAnim,
-                  transform: [
-                    {
-                      translateY: rewardAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [-12, 0],
-                      }),
-                    },
-                    {
-                      scale: rewardAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0.96, 1],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-            >
-              <Text style={styles.rewardToastBadge}>{rewardToast.badgeCode}</Text>
-              <View style={styles.rewardToastCopy}>
-                <Text style={styles.rewardToastTitle}>Récompense gagnée</Text>
-                <Text style={styles.rewardToastText}>{rewardToast.title} · +{rewardToast.xp} XP</Text>
-              </View>
-            </Animated.View>
-          )}
+          <RewardCelebrationOverlay reward={rewardToast} anim={rewardAnim} onClose={() => setRewardToast(null)} />
 
           <CoachPremiumPanel
             examReadiness={examReadiness}
@@ -321,14 +313,37 @@ export function DashboardScreen() {
             xpToNextLevel={xpToNextLevel}
             streakDays={streakDays}
             quests={coachQuests}
+            nextQuests={tomorrowQuests}
+            srsOverview={srsOverview}
             goalCalendar={goalCalendar}
             recommendedDomain={recommendedDomain}
             rewardSummary={{ ...rewardSummary, badges: unlockedBadgeCount }}
           />
 
-          <Section title="Calendrier des badges journaliers">
-            <DailyGoalCalendar days={goalCalendar} />
-          </Section>
+          <Pressable onPress={() => onNavigate?.('review')} style={styles.dailyTrackingCard}>
+            <View style={styles.dailyTrackingHeader}>
+              <View>
+                <Text style={styles.dailyTrackingKicker}>A revoir aujourd'hui</Text>
+                <Text style={styles.dailyTrackingTitle}>{srsOverview.dueToday} revision{srsOverview.dueToday > 1 ? 's' : ''} due{srsOverview.dueToday > 1 ? 's' : ''}</Text>
+              </View>
+              <Text style={styles.dailyTrackingBadge}>SRS</Text>
+            </View>
+            <View style={styles.dailyTrackingStats}>
+              <View style={styles.dailyTrackingStat}>
+                <Text style={styles.dailyTrackingValue}>{srsOverview.fragile}</Text>
+                <Text style={styles.dailyTrackingLabel}>fragiles</Text>
+              </View>
+              <View style={styles.dailyTrackingStat}>
+                <Text style={styles.dailyTrackingValue}>{srsOverview.known}</Text>
+                <Text style={styles.dailyTrackingLabel}>connus</Text>
+              </View>
+              <View style={styles.dailyTrackingStat}>
+                <Text style={styles.dailyTrackingValue}>{srsOverview.mastered}</Text>
+                <Text style={styles.dailyTrackingLabel}>maitrises</Text>
+              </View>
+            </View>
+            <Text style={styles.dailyTrackingMeta}>Ouvrir la file de revision et lancer une session courte de 10 items.</Text>
+          </Pressable>
 
           <Section title="Collection de badges">
             <BadgeCollection badges={badgeViews} />
@@ -566,5 +581,200 @@ export function DashboardScreen() {
         </>
       )}
     </ScrollView>
+  );
+}
+
+function getRewardCelebrationKind(reward: RewardToast | null): 'daily' | 'streak' | 'epic' | 'badge' {
+  if (!reward) return 'daily';
+  if (reward.badgeCode.includes('ASSIDUITE-7') || reward.xp >= 700) return 'epic';
+  if (reward.badgeCode.includes('ASSIDUITE-3') || reward.xp >= 250) return 'streak';
+  if (!reward.badgeCode.includes('XP') && !reward.badgeCode.includes('ASSIDUITE-1')) return 'badge';
+  return 'daily';
+}
+
+function getRewardCelebrationDuration(reward: RewardToast | null): number {
+  const kind = getRewardCelebrationKind(reward);
+  if (kind === 'epic') return 3200;
+  if (kind === 'streak' || kind === 'badge') return 2500;
+  return 1600;
+}
+
+function getRewardCelebrationCopy(reward: RewardToast): { kicker: string; title: string; subtitle: string; symbol: string } {
+  const kind = getRewardCelebrationKind(reward);
+  if (kind === 'epic') {
+    return {
+      kicker: 'Palier majeur',
+      title: '7 jours de suite',
+      subtitle: 'La routine est installee. Bonus de continuite debloque.',
+      symbol: '連七',
+    };
+  }
+  if (kind === 'streak') {
+    return {
+      kicker: 'Serie validee',
+      title: '3 jours de suite',
+      subtitle: 'Tu construis une vraie habitude de travail.',
+      symbol: '連三',
+    };
+  }
+  if (kind === 'badge') {
+    return {
+      kicker: 'Badge obtenu',
+      title: reward.title,
+      subtitle: 'Nouvelle recompense ajoutee a ta progression.',
+      symbol: reward.badgeCode.slice(0, 3),
+    };
+  }
+  return {
+    kicker: 'Jour travaille',
+    title: 'Assiduite validee',
+    subtitle: 'Une journee active de plus dans ton parcours N5.',
+    symbol: '日',
+  };
+}
+
+function RewardCelebrationOverlay({
+  reward,
+  anim,
+  onClose,
+}: {
+  reward: RewardToast | null;
+  anim: Animated.Value;
+  onClose: () => void;
+}) {
+  if (!reward) return null;
+  const kind = getRewardCelebrationKind(reward);
+  const copy = getRewardCelebrationCopy(reward);
+  const isEpic = kind === 'epic';
+  const particleCount = isEpic ? 18 : kind === 'daily' ? 8 : 12;
+  const particles = Array.from({ length: particleCount }, (_, index) => index);
+
+  return (
+    <Animated.View
+      pointerEvents="box-none"
+      style={[
+        styles.rewardCelebrationLayer,
+        {
+          opacity: anim,
+        },
+      ]}
+    >
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.rewardCelebrationBackdrop,
+          {
+            opacity: anim.interpolate({ inputRange: [0, 1], outputRange: [0, isEpic ? 0.78 : 0.58] }),
+          },
+        ]}
+      />
+      <Pressable style={styles.rewardCelebrationTapCatcher} onPress={onClose}>
+        <Animated.View
+          style={[
+            styles.rewardCelebrationCard,
+            isEpic && styles.rewardCelebrationCardEpic,
+            {
+              transform: [
+                {
+                  translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [42, 0] }),
+                },
+                {
+                  scale: anim.interpolate({ inputRange: [0, 0.55, 1], outputRange: [0.78, 1.06, 1] }),
+                },
+              ],
+            },
+          ]}
+        >
+          <Animated.View
+            style={[
+              styles.rewardCelebrationHalo,
+              isEpic && styles.rewardCelebrationHaloEpic,
+              {
+                opacity: anim.interpolate({ inputRange: [0, 0.45, 1], outputRange: [0, 1, 0.72] }),
+                transform: [
+                  { scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.55, 1.45] }) },
+                  {
+                    rotate: anim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['-16deg', '18deg'],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          />
+          {particles.map((particle) => (
+            <Animated.View
+              key={particle}
+              style={[
+                styles.rewardCelebrationParticle,
+                particle % 3 === 0 && styles.rewardCelebrationParticleRed,
+                particle % 3 === 1 && styles.rewardCelebrationParticleTeal,
+                {
+                  left: `${8 + ((particle * 19) % 84)}%`,
+                  top: `${8 + ((particle * 31) % 72)}%`,
+                  opacity: anim.interpolate({ inputRange: [0, 0.35, 1], outputRange: [0, 1, 0] }),
+                  transform: [
+                    {
+                      translateY: anim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [24, -28 - (particle % 5) * 8],
+                      }),
+                    },
+                    {
+                      translateX: anim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, particle % 2 === 0 ? 20 + particle : -20 - particle],
+                      }),
+                    },
+                    {
+                      rotate: anim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ['0deg', `${120 + particle * 17}deg`],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            />
+          ))}
+          <Animated.View
+            style={[
+              styles.rewardCelebrationMedal,
+              isEpic && styles.rewardCelebrationMedalEpic,
+              {
+                transform: [
+                  { scale: anim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.5, 1.18, 1] }) },
+                  {
+                    rotate: anim.interpolate({
+                      inputRange: [0, 0.5, 1],
+                      outputRange: ['-10deg', '8deg', '0deg'],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <Text style={[styles.rewardCelebrationMedalText, isEpic && styles.rewardCelebrationMedalTextEpic]}>
+              {copy.symbol}
+            </Text>
+          </Animated.View>
+          <Text style={styles.rewardCelebrationKicker}>{copy.kicker}</Text>
+          <Text style={[styles.rewardCelebrationTitle, isEpic && styles.rewardCelebrationTitleEpic]}>{copy.title}</Text>
+          <Text style={styles.rewardCelebrationSubtitle}>{copy.subtitle}</Text>
+          <Animated.View
+            style={[
+              styles.rewardCelebrationXpPill,
+              {
+                transform: [{ scale: anim.interpolate({ inputRange: [0, 0.65, 1], outputRange: [0.85, 1.08, 1] }) }],
+              },
+            ]}
+          >
+            <Text style={styles.rewardCelebrationXp}>+{reward.xp} XP</Text>
+          </Animated.View>
+          <Text style={styles.rewardCelebrationHint}>Touchez pour fermer</Text>
+        </Animated.View>
+      </Pressable>
+    </Animated.View>
   );
 }

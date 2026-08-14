@@ -3,12 +3,26 @@ import { Image, Modal, Pressable, SafeAreaView, ScrollView, Text, View } from 'r
 import { useSQLiteContext } from 'expo-sqlite';
 import { styles } from '../appStyles';
 import { OFFICIAL_EXAM_QUESTION_ASSETS } from '../examQuestionAssets';
-import type { ExamSegment } from '../models';
+import type { ExamSegment, WordLookupEntry } from '../models';
+import { hasJapaneseText } from '../services/text';
+import { recordSrsReviewForQuestionAttempt } from '../services/srs';
 import { SegmentButton } from './formControls';
+import { JapaneseLookupText, SmartCorrectionPanel, WordLookupPanel, useVocabularyLookupIndex } from './JapaneseLookup';
 import { EmptyState, LoadingView } from './sharedUi';
+
+type ExamAnswerRecord = {
+  questionId: string;
+  section: string;
+  problemNumber: number;
+  questionNumber: number;
+  selected: number;
+  correctChoice: number;
+  isCorrect: boolean;
+};
 
 export function ExamScreen() {
   const db = useSQLiteContext();
+  const vocabularyLookupEntries = useVocabularyLookupIndex(db);
   const [edition, setEdition] = useState<'2012' | '2018'>('2018');
   const [loading, setLoading] = useState(true);
   const [index, setIndex] = useState(0);
@@ -17,6 +31,10 @@ export function ExamScreen() {
   const [correctCount, setCorrectCount] = useState(0);
   const [finished, setFinished] = useState(false);
   const [zoomVisible, setZoomVisible] = useState(false);
+  const [selectedWordLookup, setSelectedWordLookup] = useState<WordLookupEntry | null>(null);
+  const [examStartedAt, setExamStartedAt] = useState<number | null>(null);
+  const [elapsedMs, setElapsedMs] = useState(0);
+  const [answerHistory, setAnswerHistory] = useState<ExamAnswerRecord[]>([]);
 
   const segment = useMemo(() => segments[index] ?? null, [segments, index]);
   const questionAsset = segment ? OFFICIAL_EXAM_QUESTION_ASSETS[segment.question_id] : undefined;
@@ -34,6 +52,28 @@ export function ExamScreen() {
     () => getExamExplanation(segment, choices),
     [segment, choices]
   );
+  const sectionReport = useMemo(
+    () => buildExamSectionReport(answerHistory, segments),
+    [answerHistory, segments]
+  );
+  const examPercent = Math.round((correctCount / Math.max(1, segments.length)) * 100);
+  const examLevel = getExamLevel(examPercent);
+  const examWeakAxes = useMemo(
+    () => buildExamWeakAxes(sectionReport),
+    [sectionReport]
+  );
+  const examRecommendations = useMemo(
+    () => buildExamRecommendations(sectionReport, examPercent),
+    [sectionReport, examPercent]
+  );
+
+  useEffect(() => {
+    if (!examStartedAt || finished) return;
+    const timer = setInterval(() => {
+      setElapsedMs(Date.now() - examStartedAt);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [examStartedAt, finished]);
 
   useEffect(() => {
     async function load() {
@@ -56,7 +96,11 @@ export function ExamScreen() {
       setSegments(rows);
       setIndex(0);
       setSelected(null);
+      setSelectedWordLookup(null);
       setCorrectCount(0);
+      setElapsedMs(0);
+      setExamStartedAt(Date.now());
+      setAnswerHistory([]);
       setFinished(false);
       setLoading(false);
     }
@@ -65,8 +109,21 @@ export function ExamScreen() {
 
   const answer = async (value: number) => {
     if (!segment || selected !== null) return;
+    const isCorrect = value === segment.correct_choice;
     setSelected(value);
-    if (value === segment.correct_choice) setCorrectCount((count) => count + 1);
+    if (isCorrect) setCorrectCount((count) => count + 1);
+    setAnswerHistory((history) => [
+      ...history,
+      {
+        questionId: segment.question_id,
+        section: segment.section,
+        problemNumber: segment.problem_number,
+        questionNumber: segment.question_number,
+        selected: value,
+        correctChoice: segment.correct_choice,
+        isCorrect,
+      },
+    ]);
     await db.runAsync(
       `
       INSERT INTO app_question_attempt_local (
@@ -78,17 +135,25 @@ export function ExamScreen() {
       segment.question_id,
       String(value),
       String(segment.correct_choice),
-      value === segment.correct_choice ? 1 : 0,
+      isCorrect ? 1 : 0,
       segment.section
     );
+    await recordSrsReviewForQuestionAttempt(db, {
+      questionId: segment.question_id,
+      skillId: segment.section,
+      sourceMode: 'exam_mode',
+      isCorrect,
+    });
   };
 
   const next = () => {
     if (index >= segments.length - 1) {
+      if (examStartedAt) setElapsedMs(Date.now() - examStartedAt);
       setFinished(true);
       return;
     }
     setSelected(null);
+    setSelectedWordLookup(null);
     setIndex((current) => current + 1);
   };
 
@@ -106,6 +171,17 @@ export function ExamScreen() {
         </Text>
       </View>
 
+      <View style={styles.examSimulationCard}>
+        <View>
+          <Text style={styles.examSimulationLabel}>Simulation active</Text>
+          <Text style={styles.examSimulationTitle}>{formatDuration(elapsedMs)}</Text>
+        </View>
+        <View style={styles.examSimulationMeta}>
+          <Text style={styles.examSimulationMetaText}>{examPercent}%</Text>
+          <Text style={styles.examSimulationMetaLabel}>score actuel</Text>
+        </View>
+      </View>
+
       <View style={styles.segmented}>
         {(['2018', '2012'] as const).map((year) => (
           <SegmentButton
@@ -118,24 +194,56 @@ export function ExamScreen() {
       </View>
 
       {finished ? (
+        <>
         <View style={styles.examResultCard}>
           <Text style={styles.examResultKicker}>SESSION {edition} TERMINÉE</Text>
           <Text style={styles.examResultScore}>{correctCount}/{segments.length}</Text>
           <Text style={styles.examResultText}>
             {Math.round((correctCount / Math.max(1, segments.length)) * 100)} % de bonnes réponses
           </Text>
+          <Text style={styles.examResultText}>Temps : {formatDuration(elapsedMs)}</Text>
+          <Text style={styles.examResultText}>{examLevel}</Text>
           <Pressable
             style={styles.primaryButton}
             onPress={() => {
               setIndex(0);
               setSelected(null);
+              setSelectedWordLookup(null);
               setCorrectCount(0);
+              setElapsedMs(0);
+              setExamStartedAt(Date.now());
+              setAnswerHistory([]);
               setFinished(false);
             }}
           >
             <Text style={styles.primaryButtonText}>Recommencer cette annale</Text>
           </Pressable>
         </View>
+        <View style={styles.examReportGrid}>
+          {sectionReport.map((section) => (
+            <View key={section.section} style={styles.examReportSectionCard}>
+              <Text style={styles.examReportSectionTitle}>{getExamSectionLabel(section.section)}</Text>
+              <Text style={styles.examReportSectionScore}>{section.correct}/{section.total}</Text>
+              <View style={styles.pathProgressTrack}>
+                <View style={[styles.pathProgressFill, { width: `${section.rate}%` }]} />
+              </View>
+              <Text style={styles.examReportSectionText}>{section.rate}% - {getExamSectionDiagnosis(section.rate)}</Text>
+            </View>
+          ))}
+        </View>
+        <View style={styles.examAnalysisCard}>
+          <Text style={styles.examAnalysisTitle}>Axes prioritaires</Text>
+          {examWeakAxes.map((axis) => (
+            <Text key={axis} style={styles.examAnalysisText}>- {axis}</Text>
+          ))}
+        </View>
+        <View style={styles.examAnalysisCard}>
+          <Text style={styles.examAnalysisTitle}>Plan de reprise</Text>
+          {examRecommendations.map((recommendation) => (
+            <Text key={recommendation} style={styles.examAnalysisText}>- {recommendation}</Text>
+          ))}
+        </View>
+        </>
       ) : segment ? (
         <>
       <View style={styles.examProgressRow}>
@@ -151,12 +259,23 @@ export function ExamScreen() {
       </View>
       {segment.display_mode === 'native_text' ? (
         <View style={styles.examNativeCard}>
-          {!!segment.context_ja && <Text style={styles.examContextText}>{segment.context_ja}</Text>}
-          <Text style={styles.examPromptText}>
-            {segment.skill_id === 'vocabulary' && segment.problem_number === 1
-              ? renderExamKanjiHighlight(segment.prompt_ja ?? '')
-              : segment.prompt_ja}
-          </Text>
+          {!!segment.context_ja && (
+            <JapaneseLookupText
+              text={segment.context_ja}
+              entries={vocabularyLookupEntries}
+              onSelect={setSelectedWordLookup}
+              style={styles.examContextText}
+            />
+          )}
+          {!!segment.prompt_ja && (
+            <JapaneseLookupText
+              text={segment.prompt_ja}
+              entries={vocabularyLookupEntries}
+              onSelect={setSelectedWordLookup}
+              style={styles.examPromptText}
+            />
+          )}
+          <WordLookupPanel entry={selectedWordLookup} onClose={() => setSelectedWordLookup(null)} />
         </View>
       ) : (
       <Pressable style={styles.examPageFrame} onPress={() => setZoomVisible(true)}>
@@ -189,7 +308,16 @@ export function ExamScreen() {
             ]}
           >
             <Text style={styles.examChoiceNumber}>{value}</Text>
-            <Text style={styles.examChoiceText}>{choice}</Text>
+            {selected !== null && hasJapaneseText(choice) ? (
+              <JapaneseLookupText
+                text={choice}
+                entries={vocabularyLookupEntries}
+                onSelect={setSelectedWordLookup}
+                style={styles.examChoiceText}
+              />
+            ) : (
+              <Text style={styles.examChoiceText}>{choice}</Text>
+            )}
           </Pressable>
           );
         })}
@@ -205,8 +333,31 @@ export function ExamScreen() {
           <Text style={styles.examCorrectionAnswer}>
             Réponse correcte : {segment.correct_choice}. {choices[segment.correct_choice - 1]}
           </Text>
+          {hasJapaneseText(choices[segment.correct_choice - 1]) && (
+            <>
+              <JapaneseLookupText
+                text={choices[segment.correct_choice - 1]}
+                entries={vocabularyLookupEntries}
+                onSelect={setSelectedWordLookup}
+                style={styles.examCorrectionAnswer}
+              />
+              <WordLookupPanel entry={selectedWordLookup} onClose={() => setSelectedWordLookup(null)} />
+            </>
+          )}
           <Text style={styles.examCorrectionWhyTitle}>Pourquoi ?</Text>
           <Text style={styles.examCorrectionWhy}>{examExplanation}</Text>
+          <SmartCorrectionPanel
+            japanese={segment.prompt_ja || segment.context_ja || choices[segment.correct_choice - 1]}
+            translation={examInstruction}
+            expectedAnswer={choices[segment.correct_choice - 1]}
+            selectedAnswer={selected ? choices[selected - 1] : null}
+            explanation={examExplanation}
+            entries={vocabularyLookupEntries}
+            sourceQuestionId={segment.question_id}
+            sourceMode="exam_mode"
+            onSelect={setSelectedWordLookup}
+          />
+          <WordLookupPanel entry={selectedWordLookup} onClose={() => setSelectedWordLookup(null)} />
         </View>
       )}
       {selected !== null && (
@@ -255,6 +406,83 @@ function getExamInstruction(segment: ExamSegment | null): string {
   if (segment.problem_number === 1) return 'Choisis la particule ou la forme grammaticale qui complète correctement la phrase.';
   if (segment.problem_number === 2) return 'Remets mentalement les éléments dans l’ordre et trouve celui qui occupe la place marquée ★.';
   return 'Comprends le texte dans son ensemble et choisis l’élément qui assure une phrase logique et grammaticale.';
+}
+
+function formatDuration(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+}
+
+function getExamSectionLabel(section: string): string {
+  if (section === 'vocabulary') return 'Vocabulaire';
+  if (section === 'grammar') return 'Grammaire';
+  if (section === 'reading') return 'Lecture';
+  return section;
+}
+
+function buildExamSectionReport(answerHistory: ExamAnswerRecord[], segments: ExamSegment[]) {
+  const sections = Array.from(new Set(segments.map((segment) => segment.section)));
+  return sections.map((section) => {
+    const total = segments.filter((segment) => segment.section === section).length;
+    const answers = answerHistory.filter((answer) => answer.section === section);
+    const correct = answers.filter((answer) => answer.isCorrect).length;
+    return {
+      section,
+      total,
+      answered: answers.length,
+      correct,
+      rate: total > 0 ? Math.round((correct / total) * 100) : 0,
+    };
+  });
+}
+
+function getExamLevel(rate: number): string {
+  if (rate >= 88) return 'Niveau tres solide : tu peux travailler la vitesse et les erreurs fines.';
+  if (rate >= 72) return 'Niveau encourageant : base reelle, mais il faut stabiliser les sections faibles.';
+  if (rate >= 55) return 'Niveau intermediaire N5 : tu reconnais des elements, mais le risque examen reste eleve.';
+  return 'Niveau fragile : priorite aux bases, puis reprise progressive en conditions examen.';
+}
+
+function getExamSectionDiagnosis(rate: number): string {
+  if (rate >= 85) return 'solide';
+  if (rate >= 70) return 'a consolider';
+  if (rate >= 50) return 'fragile';
+  return 'prioritaire';
+}
+
+function buildExamWeakAxes(sectionReport: ReturnType<typeof buildExamSectionReport>): string[] {
+  const weakSections = [...sectionReport].sort((a, b) => a.rate - b.rate).slice(0, 2);
+  if (weakSections.length === 0) return ['Faire une annale complete pour generer une analyse fiable.'];
+  return weakSections.map((section) => {
+    const label = getExamSectionLabel(section.section);
+    if (section.section === 'vocabulary') return `${label} : reprendre lectures kanji, mots proches et reconnaissance rapide.`;
+    if (section.section === 'grammar') return `${label} : retravailler particules, ordre de phrase et formes polies.`;
+    if (section.section === 'reading') return `${label} : lire la question avant le texte, puis chercher la preuve exacte.`;
+    return `${label} : refaire les questions manquees et noter la cause de chaque erreur.`;
+  });
+}
+
+function buildExamRecommendations(sectionReport: ReturnType<typeof buildExamSectionReport>, rate: number): string[] {
+  const weakest = [...sectionReport].sort((a, b) => a.rate - b.rate)[0];
+  const recommendations = [
+    'Refaire toutes les erreurs sans regarder le corrige, puis relire seulement apres la deuxieme tentative.',
+    'Ajouter les mots inconnus au SRS depuis le panneau de lecture pour les revoir demain.',
+  ];
+  if (weakest?.section === 'vocabulary') {
+    recommendations.push('Faire une session vocabulaire + kanji avant la prochaine annale.');
+  } else if (weakest?.section === 'grammar') {
+    recommendations.push('Faire 10 questions grammaire a trou et relire les explications de particules.');
+  } else if (weakest?.section === 'reading') {
+    recommendations.push('Faire une lecture lente : souligner mentalement sujet, temps, lieu et action.');
+  }
+  if (rate >= 75) {
+    recommendations.push('Prochaine annale : viser le meme score avec moins de temps.');
+  } else {
+    recommendations.push('Prochaine annale : viser +10 points avant de chercher la vitesse.');
+  }
+  return recommendations;
 }
 
 function renderExamKanjiHighlight(text: string): ReactNode[] {

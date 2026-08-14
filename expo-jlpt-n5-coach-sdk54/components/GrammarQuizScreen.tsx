@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { styles } from '../appStyles';
@@ -17,6 +17,7 @@ import type {
   GrammarQuizQuestion,
   GrammarQuizSession,
   KnowledgeQuizScope,
+  LearningPreferences,
   MainQuizMode,
   WordLookupEntry,
 } from '../models';
@@ -39,8 +40,10 @@ import {
   isGrammarAnswerCorrect,
 } from '../services/grammarPedagogy';
 import { ALL_GRAMMAR_LESSONS, getGrammarMainMenu, humanizeGrammarPattern } from '../services/grammarCourse';
-import { normalizeAnswer } from '../services/text';
+import { hasJapaneseText, normalizeAnswer } from '../services/text';
 import { recordGrammarExerciseAttempt } from '../services/grammarProgress';
+import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../services/preferences';
+import { saveErrorFlashcard } from '../services/errorFlashcards';
 
 type GrammarQuizScreenProps = {
   vocabularyLookupEntries: WordLookupEntry[];
@@ -60,6 +63,18 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
   const [grammarQuizKanaOnly, setGrammarQuizKanaOnly] = useState(false);
   const [selectedWordLookup, setSelectedWordLookup] = useState<WordLookupEntry | null>(null);
   const [selectedWordLookupAnchorId, setSelectedWordLookupAnchorId] = useState<string | null>(null);
+  const [preferences, setPreferences] = useState<LearningPreferences>(DEFAULT_LEARNING_PREFERENCES);
+  const [grammarErrorCardAdded, setGrammarErrorCardAdded] = useState(false);
+
+  useEffect(() => {
+    loadLearningPreferences(db)
+      .then((loadedPreferences) => {
+        setPreferences(loadedPreferences);
+        setGrammarQuizRomajiVisible(loadedPreferences.showRomaji);
+        setGrammarQuizFrenchVisible(loadedPreferences.showTranslationFirst);
+      })
+      .catch((error) => console.error('Unable to load grammar quiz preferences', error));
+  }, [db]);
 
   const startGrammarQuiz = () => {
     if (grammarQuizMode === 'matching') {
@@ -75,22 +90,24 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
       setGrammarQuizSession(createGrammarSession(questions));
     }
     setGrammarDirectInput('');
-    setGrammarQuizRomajiVisible(false);
-    setGrammarQuizFrenchVisible(false);
+    setGrammarQuizRomajiVisible(preferences.showRomaji);
+    setGrammarQuizFrenchVisible(preferences.showTranslationFirst);
     setGrammarQuizKanaOnly(false);
     setSelectedWordLookup(null);
     setSelectedWordLookupAnchorId(null);
+    setGrammarErrorCardAdded(false);
   };
 
   const restartGrammarQuizMistakes = () => {
     if (!grammarQuizSession?.mistakes.length) return;
     setGrammarQuizSession(createGrammarSession(grammarQuizSession.mistakes.map((mistake) => mistake.question)));
     setGrammarDirectInput('');
-    setGrammarQuizRomajiVisible(false);
-    setGrammarQuizFrenchVisible(false);
+    setGrammarQuizRomajiVisible(preferences.showRomaji);
+    setGrammarQuizFrenchVisible(preferences.showTranslationFirst);
     setGrammarQuizKanaOnly(false);
     setSelectedWordLookup(null);
     setSelectedWordLookupAnchorId(null);
+    setGrammarErrorCardAdded(false);
   };
 
   const answerGrammarQuiz = async (choice: string) => {
@@ -130,11 +147,12 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
       selected: null,
       finished,
     });
-    setGrammarQuizRomajiVisible(false);
-    setGrammarQuizFrenchVisible(false);
+    setGrammarQuizRomajiVisible(preferences.showRomaji);
+    setGrammarQuizFrenchVisible(preferences.showTranslationFirst);
     setGrammarQuizKanaOnly(false);
     setSelectedWordLookup(null);
     setSelectedWordLookupAnchorId(null);
+    setGrammarErrorCardAdded(false);
   };
 
   const quitGrammarQuiz = () => {
@@ -147,6 +165,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
     setGrammarQuizKanaOnly(false);
     setSelectedWordLookup(null);
     setSelectedWordLookupAnchorId(null);
+    setGrammarErrorCardAdded(false);
   };
 
   const selectGrammarMatchLeft = (pairId: string) => {
@@ -387,6 +406,15 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
             </View>
             <Text style={styles.questionTitle}>Relie chaque phrase à son sens</Text>
             <Text style={styles.feedbackMnemonic}>{grammarMatchMessage}</Text>
+            {selectedWordLookupAnchorId === 'quiz-grammar-matching' && (
+              <WordLookupPanel
+                entry={selectedWordLookup}
+                onClose={() => {
+                  setSelectedWordLookup(null);
+                  setSelectedWordLookupAnchorId(null);
+                }}
+              />
+            )}
             <View style={styles.grammarMatchingBoard}>
               <View style={styles.grammarMatchingColumn}>
                 <Text style={styles.grammarMatchingColumnTitle}>Japonais</Text>
@@ -404,7 +432,15 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
                         matched && styles.grammarMatchCardMatched,
                       ]}
                     >
-                      <Text style={styles.grammarMatchJapanese}>{pair.japanese}</Text>
+                      <JapaneseLookupText
+                        text={pair.japanese}
+                        entries={vocabularyLookupEntries}
+                        onSelect={(entry) => {
+                          setSelectedWordLookup(entry);
+                          setSelectedWordLookupAnchorId('quiz-grammar-matching');
+                        }}
+                        style={styles.grammarMatchJapanese}
+                      />
                     </Pressable>
                   );
                 })}
@@ -543,7 +579,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
               </>
             )}
             <View style={styles.grammarExampleActions}>
-              {!!safeGrammarQuizRomaji && (
+              {preferences.showRomaji && !!safeGrammarQuizRomaji && (
                 <Pressable
                   onPress={() => setGrammarQuizRomajiVisible((visible) => !visible)}
                   style={styles.grammarExampleActionButton}
@@ -564,7 +600,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
                 </Pressable>
               )}
             </View>
-            {grammarQuizRomajiVisible && !!safeGrammarQuizRomaji && (
+            {preferences.showRomaji && grammarQuizRomajiVisible && !!safeGrammarQuizRomaji && (
               <Text style={styles.grammarExampleRomaji}>{safeGrammarQuizRomaji}</Text>
             )}
             {grammarQuizFrenchVisible && !!safeGrammarQuizFrench && (
@@ -575,6 +611,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
             <Text style={styles.feedbackMnemonic}>{getGrammarExerciseInstruction(currentGrammarQuestion.kind)}</Text>
             <Text style={styles.feedbackText}>{currentGrammarQuestion.helper}</Text>
             {currentGrammarQuestion.choices.length > 0 ? (
+              <>
               <View style={styles.choiceList}>
                 {currentGrammarQuestion.choices.map((choice) => {
                   const isCorrect = isGrammarAnswerCorrect(choice, currentGrammarQuestion.correctAnswer);
@@ -590,13 +627,35 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
                       ]}
                       onPress={() => answerGrammarQuiz(choice)}
                     >
-                      <Text style={styles.choiceText}>{choice}</Text>
+                      {grammarQuizSession.selected !== null && hasJapaneseText(choice) ? (
+                        <JapaneseLookupText
+                          text={choice}
+                          entries={vocabularyLookupEntries}
+                          onSelect={(entry) => {
+                            setSelectedWordLookup(entry);
+                            setSelectedWordLookupAnchorId('quiz-grammar-choice');
+                          }}
+                          style={styles.choiceText}
+                        />
+                      ) : (
+                        <Text style={styles.choiceText}>{choice}</Text>
+                      )}
                       {grammarQuizSession.selected && isCorrect && <Text style={styles.choiceIcon}>✓</Text>}
                       {grammarQuizSession.selected && isSelected && !isCorrect && <Text style={styles.choiceIcon}>×</Text>}
                     </Pressable>
                   );
                 })}
               </View>
+              {selectedWordLookupAnchorId === 'quiz-grammar-choice' && (
+                <WordLookupPanel
+                  entry={selectedWordLookup}
+                  onClose={() => {
+                    setSelectedWordLookup(null);
+                    setSelectedWordLookupAnchorId(null);
+                  }}
+                />
+              )}
+              </>
             ) : (
               <View style={styles.directAnswerBox}>
                 <TextInput
@@ -628,12 +687,83 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
                     : 'À revoir'}
                 </Text>
                 <Text style={styles.feedbackText}>Réponse : {currentGrammarQuestion.correctAnswer}</Text>
+                {hasJapaneseText(currentGrammarQuestion.correctAnswer) && (
+                  <JapaneseLookupText
+                    text={currentGrammarQuestion.correctAnswer}
+                    entries={vocabularyLookupEntries}
+                    onSelect={(entry) => {
+                      setSelectedWordLookup(entry);
+                      setSelectedWordLookupAnchorId('quiz-grammar-feedback');
+                    }}
+                    style={styles.feedbackText}
+                  />
+                )}
+                {!!currentGrammarQuestion.japanese && (
+                  <View style={styles.grammarCourseBlock}>
+                    <Text style={styles.grammarCourseTitle}>Sens de la phrase</Text>
+                    <JapaneseLookupText
+                      text={currentGrammarQuestion.japanese}
+                      entries={vocabularyLookupEntries}
+                      onSelect={(entry) => {
+                        setSelectedWordLookup(entry);
+                        setSelectedWordLookupAnchorId('quiz-grammar-feedback');
+                      }}
+                      style={styles.japanese}
+                    />
+                    {!!currentGrammarQuestion.kanaJapanese &&
+                      currentGrammarQuestion.kanaJapanese !== currentGrammarQuestion.japanese && (
+                        <Text style={styles.grammarCourseText}>Hiragana : {currentGrammarQuestion.kanaJapanese}</Text>
+                      )}
+                    {preferences.showRomaji && !!currentGrammarQuestion.romaji && (
+                      <Text style={styles.grammarCourseText}>Romaji : {currentGrammarQuestion.romaji}</Text>
+                    )}
+                    {!!currentGrammarQuestion.french && (
+                      <Text style={styles.grammarCourseText}>Traduction : {currentGrammarQuestion.french}</Text>
+                    )}
+                    {selectedWordLookupAnchorId === 'quiz-grammar-feedback' && (
+                      <WordLookupPanel
+                        entry={selectedWordLookup}
+                        onClose={() => {
+                          setSelectedWordLookup(null);
+                          setSelectedWordLookupAnchorId(null);
+                        }}
+                      />
+                    )}
+                  </View>
+                )}
                 {buildGrammarCorrectionDetails(currentGrammarQuestion).map((detail) => (
                   <View key={`${currentGrammarQuestion.id}-${detail.title}`} style={styles.grammarCourseBlock}>
                     <Text style={styles.grammarCourseTitle}>{detail.title}</Text>
                     <Text style={styles.grammarCourseText}>{detail.text}</Text>
                   </View>
                 ))}
+                <Pressable
+                  style={[styles.wordLookupActionButton, grammarErrorCardAdded && styles.wordLookupActionButtonDone]}
+                  onPress={async () => {
+                    try {
+                      await saveErrorFlashcard(db, {
+                        sourceQuestionId: currentGrammarQuestion.id,
+                        sourceMode: 'grammar_quiz',
+                        itemType: 'grammar',
+                        prompt: currentGrammarQuestion.prompt,
+                        japanese: currentGrammarQuestion.japanese,
+                        translation: currentGrammarQuestion.french,
+                        expectedAnswer: currentGrammarQuestion.correctAnswer,
+                        selectedAnswer: grammarQuizSession.selected,
+                        explanation: buildGrammarCorrectionDetails(currentGrammarQuestion)
+                          .map((detail) => `${detail.title}: ${detail.text}`)
+                          .join(' '),
+                      });
+                      setGrammarErrorCardAdded(true);
+                    } catch (error) {
+                      console.error('Unable to create grammar error flashcard', error);
+                    }
+                  }}
+                >
+                  <Text style={styles.wordLookupActionText}>
+                    {grammarErrorCardAdded ? 'Ajoute aux revisions' : 'Ajouter cette erreur a mes revisions'}
+                  </Text>
+                </Pressable>
                 <Pressable style={styles.primaryButton} onPress={advanceGrammarQuiz}>
                   <Text style={styles.primaryButtonText}>
                     {grammarQuizSession.currentIndex + 1 >= grammarQuizSession.questions.length
