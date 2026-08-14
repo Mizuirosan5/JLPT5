@@ -927,7 +927,7 @@ Lecteur de textes N5 prepares, entierement locaux.
 
 - [x] Creer type `ImmersionText`.
 - [x] Creer `data/immersionTexts.ts`.
-- [ ] Ajouter 10 textes N5 tokenises.
+- [x] Ajouter 10 textes N5 tokenises.
 - [x] Creer `ImmersionReaderScreen`.
 - [x] Utiliser `JapaneseLookupText`.
 - [x] Ajouter traduction masquable.
