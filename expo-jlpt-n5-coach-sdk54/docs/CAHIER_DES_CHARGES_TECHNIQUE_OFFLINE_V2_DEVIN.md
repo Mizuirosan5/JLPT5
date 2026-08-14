@@ -1111,7 +1111,7 @@ Journal d'ecriture avec prompts N5 et controles locaux.
 
 - [x] Creer table journal locale.
 - [x] Creer type `WritingPrompt`.
-- [ ] Ajouter 100 prompts N5.
+- [x] Ajouter 100 prompts N5.
 - [x] Creer `WritingJournalScreen`.
 - [x] Sauvegarder phrase utilisateur.
 - [x] Ajouter detection mots inconnus.
