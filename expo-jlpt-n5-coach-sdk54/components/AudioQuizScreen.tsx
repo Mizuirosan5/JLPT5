@@ -47,6 +47,7 @@ export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate }: AudioQu
       return acc;
     }, {});
   }, [pack]);
+  const embeddedFileCount = useMemo(() => pack.filter((item) => hasEmbeddedAudioAsset(item.id)).length, [pack]);
 
   useEffect(() => {
     let mounted = true;
@@ -205,6 +206,9 @@ export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate }: AudioQu
                 {canPlayAudio
                   ? 'Le quiz lit les fichiers embarques quand ils existent, puis utilise la voix japonaise locale en secours.'
                   : 'Le quiz reste utilisable en fallback texte si la voix japonaise locale est absente ou désactivée.'}
+              </Text>
+              <Text style={styles.quizConfigText}>
+                Fichiers embarques actifs : {embeddedFileCount}/{pack.length}. Le reste passe en TTS ou en texte.
               </Text>
               <Text style={styles.quizConfigText}>Chaque réponse alimente la mémoire SRS audio.</Text>
             </View>

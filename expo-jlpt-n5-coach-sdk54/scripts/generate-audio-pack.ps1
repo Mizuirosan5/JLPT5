@@ -37,8 +37,6 @@ $synth.Volume = 100
 
 $manifest = Get-Content -Path $manifestPath -Raw | ConvertFrom-Json
 $generated = 0
-$registryLines = New-Object System.Collections.Generic.List[string]
-$registryLines.Add("export const AUDIO_ASSET_REGISTRY: Record<string, number> = {")
 
 foreach ($item in $manifest.items) {
   $fileName = "$($item.id).wav"
@@ -46,14 +44,16 @@ foreach ($item in $manifest.items) {
   $synth.SetOutputToWaveFile($outPath)
   $synth.Speak([string]$item.japanese)
   $synth.SetOutputToNull()
-  $registryLines.Add("  '$($item.id)': require('./../assets/audio/n5_core/$fileName'),")
   $generated++
   Write-Host "Generated $fileName"
 }
 
 $synth.Dispose()
-$registryLines.Add("};")
-$registryPath = Join-Path $project "data/audioAssetRegistry.ts"
-Set-Content -Path $registryPath -Value ($registryLines -join [Environment]::NewLine) -Encoding UTF8
+Push-Location $project
+try {
+  node scripts/sync-audio-registry.mjs
+} finally {
+  Pop-Location
+}
 Write-Host "Generated $generated audio files in $targetDir with voice $($voice.VoiceInfo.Name)."
 Write-Host "Updated data/audioAssetRegistry.ts."
