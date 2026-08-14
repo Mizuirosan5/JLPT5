@@ -906,6 +906,8 @@ Audio embarque ou TTS local uniquement.
 - [x] Ajouter `audio:sync` pour brancher automatiquement les WAV presents au registre Expo.
 - [x] Ajouter `audio:check` pour auditer les WAV manquants et les fichiers non lies.
 - [x] Afficher dans le quiz audio le nombre de fichiers embarques actifs.
+- [x] Ajouter `audio:check:strict` pour bloquer un build final si le pack WAV est incomplet.
+- [x] Ajouter `docs/AUDIO_PACK_OFFLINE.md` pour documenter le workflow audio offline.
 
 ### Note implementation pack massif
 

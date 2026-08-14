@@ -41,6 +41,7 @@ const requiredFiles = [
   'assets/audio/audio-pack-manifest.json',
   'scripts/sync-audio-registry.mjs',
   'scripts/validate-audio-pack.mjs',
+  'docs/AUDIO_PACK_OFFLINE.md',
   'data/kanaTables.ts',
   'dist/index.html',
   'dist/metadata.json',

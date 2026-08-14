@@ -15,7 +15,8 @@
     "preview:iphone": "expo start --web --port 8083 --clear",
     "audio:generate": "powershell -ExecutionPolicy Bypass -File scripts/generate-audio-pack.ps1",
     "audio:sync": "node scripts/sync-audio-registry.mjs",
-    "audio:check": "node scripts/validate-audio-pack.mjs"
+    "audio:check": "node scripts/validate-audio-pack.mjs",
+    "audio:check:strict": "node scripts/validate-audio-pack.mjs --strict"
   },
   "dependencies": {
     "expo": "~54.0.35",
