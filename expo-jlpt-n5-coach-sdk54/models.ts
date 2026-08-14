@@ -52,6 +52,7 @@ export type GlobalQuizFormat =
   | 'kanji_meaning'
   | 'kanji_reading'
   | 'kanji_japanese_word'
+  | 'kanji_components'
   | 'grammar_blank'
   | 'grammar_rule'
   | 'grammar_translation'
@@ -408,6 +409,8 @@ export type GlobalQuizQuestion = {
   correctAnswer: string;
   choices: string[];
   explanation: string;
+  srsItemId?: string;
+  srsItemType?: 'kana' | 'vocabulary' | 'kanji' | 'grammar' | 'skill';
 };
 
 export type GlobalQuizSession = {

@@ -158,6 +158,8 @@ export function GlobalQuizScreen({
         skillId: `global:${current.domain}`,
         sourceMode: 'global_quiz',
         isCorrect,
+        itemId: current.srsItemId,
+        itemType: current.srsItemType,
       });
     } catch (error) {
       console.error('Unable to save global quiz answer', error);
@@ -361,14 +363,19 @@ export function GlobalQuizScreen({
                   {knowledgeQuizScope === 'kanji' && (
                     <View style={styles.segmented}>
                       <SegmentButton
-                        label="Kanji -> francais"
+                        label="Sens FR"
                         active={kanjiAnswerTarget === 'french'}
                         onPress={() => setKanjiAnswerTarget('french')}
                       />
                       <SegmentButton
-                        label="Kanji -> japonais"
+                        label="Lecture JP"
                         active={kanjiAnswerTarget === 'japanese'}
                         onPress={() => setKanjiAnswerTarget('japanese')}
+                      />
+                      <SegmentButton
+                        label="Composants"
+                        active={kanjiAnswerTarget === 'components'}
+                        onPress={() => setKanjiAnswerTarget('components')}
                       />
                     </View>
                   )}

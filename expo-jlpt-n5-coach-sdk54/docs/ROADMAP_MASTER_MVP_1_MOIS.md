@@ -433,7 +433,7 @@ Adapter les objectifs a la maniere d'apprendre de l'utilisateur.
 
 - Audio local complet.
 - Journal d'ecriture avance.
-- Quiz composants kanji.
+- Ecran detail kanji dedie.
 - Toutes les lecons grammaire ultra structurees.
 - Stories nombreuses.
 - Immersion massive.

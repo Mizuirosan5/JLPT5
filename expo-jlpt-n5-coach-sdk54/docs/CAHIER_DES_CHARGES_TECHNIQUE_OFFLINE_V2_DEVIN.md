@@ -841,9 +841,9 @@ Fiche kanji detaillee avec composants, histoires et mots lies.
 - [ ] Creer `KanjiDetailScreen`.
 - [x] Ajouter acces depuis cartes vocab/kanji.
 - [x] Lier kanji -> mots vocabulaire.
-- [ ] Ajouter quiz composants.
-- [ ] Ajouter quiz lecture kanji.
-- [ ] Connecter SRS kanji.
+- [x] Ajouter quiz composants.
+- [x] Ajouter quiz lecture kanji.
+- [x] Connecter SRS kanji.
 - [ ] Lancer validations obligatoires.
 
 ### Tests

@@ -16,9 +16,10 @@ import type {
 import { ALL_GRAMMAR_LESSONS } from './grammarCourse';
 import { GRAMMAR_KEY_TOKENS, buildGrammarWhy, getGrammarKeyword } from './grammarPedagogy';
 import { maskGrammarKeyword, uniqueChoices } from './grammarQuizFactory';
+import { getKanjiComponentDetail } from './kanjiComponents';
 import { shuffle } from './random';
 
-export type KanjiAnswerTarget = 'french' | 'japanese';
+export type KanjiAnswerTarget = 'french' | 'japanese' | 'components';
 type GlobalQuizBuildOptions = Pick<LearningPreferences, 'japaneseAnswerMode' | 'quizDifficulty'>;
 
 export function getGlobalDomainLabel(domain: GlobalQuizDomain): string {
@@ -53,6 +54,7 @@ function getGlobalFormatLabel(format: GlobalQuizFormat): string {
   if (format === 'kanji_meaning') return 'Sens du kanji';
   if (format === 'kanji_reading') return 'Lecture du kanji';
   if (format === 'kanji_japanese_word') return 'Kanji vers japonais';
+  if (format === 'kanji_components') return 'Composants du kanji';
   if (format === 'grammar_blank') return 'Forme manquante';
   if (format === 'grammar_rule') return 'Regle grammaticale';
   if (format === 'grammar_translation') return 'Comprehension';
@@ -68,6 +70,7 @@ function getMeasuredSkill(format: GlobalQuizFormat): string {
   if (format === 'kanji_meaning') return 'Associer un kanji a son sens principal.';
   if (format === 'kanji_reading') return 'Retrouver une lecture N5 utile du kanji.';
   if (format === 'kanji_japanese_word') return 'Repondre en japonais a partir du kanji.';
+  if (format === 'kanji_components') return 'Identifier les composants visuels qui aident a memoriser le kanji.';
   if (format === 'grammar_blank') return 'Choisir la particule ou forme manquante.';
   if (format === 'grammar_rule') return 'Identifier la regle adaptee a une intention.';
   if (format === 'grammar_translation') return 'Comprendre le sens global de la phrase.';
@@ -225,14 +228,27 @@ export function buildGlobalQuizQuestions(
     }
     const item = kanjiPool[index % kanjiPool.length];
     const japaneseAnswer = getKanjiJapaneseReading(item);
+    const detail = getKanjiComponentDetail(item.character);
+    const componentAnswer = detail?.components.join(' + ') || item.meaning_fr;
     const formatCycle: GlobalQuizFormat[] =
-      kanjiAnswerTarget === 'japanese' || options.japaneseAnswerMode
-        ? ['kanji_reading', 'kanji_japanese_word']
-        : ['kanji_meaning', 'kanji_reading'];
+      kanjiAnswerTarget === 'components'
+        ? ['kanji_components']
+        : kanjiAnswerTarget === 'japanese' || options.japaneseAnswerMode
+          ? ['kanji_reading', 'kanji_japanese_word']
+          : ['kanji_meaning', 'kanji_reading'];
     const format = pickCycleItem(formatCycle, index);
-    const answer = format === 'kanji_meaning' ? item.meaning_fr : japaneseAnswer;
+    const answer =
+      format === 'kanji_meaning'
+        ? item.meaning_fr
+        : format === 'kanji_components'
+          ? componentAnswer
+          : japaneseAnswer;
     const alternatives = kanjiPool.map((candidate) =>
-      format === 'kanji_meaning' ? candidate.meaning_fr : getKanjiJapaneseReading(candidate)
+      format === 'kanji_meaning'
+        ? candidate.meaning_fr
+        : format === 'kanji_components'
+          ? getKanjiComponentDetail(candidate.character)?.components.join(' + ') || candidate.meaning_fr
+          : getKanjiJapaneseReading(candidate)
     );
     return withFormat({
       id: `global-kanji-${index}-${item.id}`,
@@ -241,13 +257,20 @@ export function buildGlobalQuizQuestions(
       prompt:
         format === 'kanji_meaning'
           ? 'Quel est le sens principal de ce kanji ?'
-          : format === 'kanji_japanese_word'
-            ? 'Reponds en japonais : quelle lecture utile correspond ?'
-            : 'Quelle lecture japonaise correspond a ce kanji ?',
+          : format === 'kanji_components'
+            ? 'Quels composants aident a retenir ce kanji ?'
+            : format === 'kanji_japanese_word'
+              ? 'Reponds en japonais : quelle lecture utile correspond ?'
+              : 'Quelle lecture japonaise correspond a ce kanji ?',
       display: item.character,
       correctAnswer: answer,
       choices: direct ? [] : uniqueChoices([answer, ...shuffle(alternatives)], alternatives),
-      explanation: `${item.character} signifie Â« ${item.meaning_fr} Â». Lectures : ${item.n5_readings || item.onyomi || item.kunyomi || 'Ã  rÃ©viser'}.`,
+      explanation:
+        format === 'kanji_components'
+          ? `${item.character} : ${detail?.mnemonicFr ?? `Associe ce kanji a ${item.meaning_fr}.`}`
+          : `${item.character} signifie Â« ${item.meaning_fr} Â». Lectures : ${item.n5_readings || item.onyomi || item.kunyomi || 'Ã  rÃ©viser'}.`,
+      srsItemId: item.id,
+      srsItemType: 'kanji',
     });
   });
 }
