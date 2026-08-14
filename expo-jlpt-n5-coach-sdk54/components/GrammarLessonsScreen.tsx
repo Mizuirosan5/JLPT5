@@ -4,6 +4,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { styles } from '../appStyles';
 import { SegmentButton } from './formControls';
 import { JapaneseLookupText, WordLookupPanel, useVocabularyLookupIndex } from './JapaneseLookup';
+import { OfflineAudioButton } from './OfflineAudioButton';
 import { EmptyState, EmptyText, LoadingView, Metric, ProgressRow, Section } from './sharedUi';
 import { GRAMMAR_QUIZ_MODES } from '../models';
 import type {
@@ -440,6 +441,7 @@ export function GrammarLessonsScreen() {
                           {translationRevealed ? 'Masquer français' : 'Voir traduction'}
                         </Text>
                       </Pressable>
+                      <OfflineAudioButton text={example.kanji || example.kana} slow />
                     </View>
                     {translationRevealed && (
                       <View style={styles.grammarTranslationBox}>

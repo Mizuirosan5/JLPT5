@@ -93,6 +93,13 @@ export function LearningPreferencesScreen() {
           disabled={savingKey === 'japaneseAnswerMode'}
           onPress={() => updatePreference('japaneseAnswerMode', !preferences.japaneseAnswerMode)}
         />
+        <PreferenceSwitch
+          label="Audio local"
+          detail="Utilise la voix japonaise du telephone si elle est disponible, sans service internet."
+          active={preferences.audioEnabled}
+          disabled={savingKey === 'audioEnabled'}
+          onPress={() => updatePreference('audioEnabled', !preferences.audioEnabled)}
+        />
       </Section>
 
       <Section title="Difficulte">

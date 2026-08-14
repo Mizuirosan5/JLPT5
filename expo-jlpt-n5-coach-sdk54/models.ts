@@ -28,6 +28,7 @@ export type LearningPreferences = {
   preferredSessionLength: 5 | 10 | 20;
   japaneseAnswerMode: boolean;
   learningPlanMode: LearningPlanMode;
+  audioEnabled: boolean;
 };
 export type KanaTab = 'hiragana' | 'katakana' | 'combined';
 export type KanaMode = 'learn' | 'exercise';

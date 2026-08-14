@@ -7,6 +7,7 @@ import { loadStoryLessons, loadStoryProgress, recordStoryOpened, recordStoryResu
 import type { ImmersionProgress } from '../services/immersion';
 import { recordSrsReviewForQuestionAttempt } from '../services/srs';
 import { JapaneseLookupText, useVocabularyLookupIndex, WordLookupPanel } from './JapaneseLookup';
+import { OfflineAudioButton } from './OfflineAudioButton';
 import { Metric, Section } from './sharedUi';
 
 export function StoryLessonScreen() {
@@ -123,6 +124,7 @@ export function StoryLessonScreen() {
               <Text style={styles.pathRequirementIndex}>{line.speaker.slice(0, 2)}</Text>
               <View style={styles.vocabularyThemeTextBlock}>
                 <JapaneseLookupText text={line.japanese} entries={entries} onSelect={setSelectedLookup} style={styles.correctionInsightJapanese} />
+                <OfflineAudioButton text={line.japanese} label="Ecouter" slow />
                 <Text style={styles.correctionInsightText}>{line.kana}</Text>
                 <Text style={styles.quickCorrectionText}>{line.translationFr}</Text>
               </View>

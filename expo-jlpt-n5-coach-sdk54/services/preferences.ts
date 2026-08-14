@@ -13,12 +13,14 @@ export const DEFAULT_LEARNING_PREFERENCES: LearningPreferences = {
   preferredSessionLength: 5,
   japaneseAnswerMode: false,
   learningPlanMode: 'balanced',
+  audioEnabled: true,
 };
 
 const BOOLEAN_KEYS = new Set<keyof LearningPreferences>([
   'showRomaji',
   'showTranslationFirst',
   'japaneseAnswerMode',
+  'audioEnabled',
 ]);
 
 function parseBoolean(value: string | undefined, fallback: boolean): boolean {
@@ -48,6 +50,10 @@ function serializePreferenceValue<K extends keyof LearningPreferences>(key: K, v
   return String(value);
 }
 
+function getPreferenceStorageKey(key: keyof LearningPreferences): string {
+  return key === 'audioEnabled' ? 'audio_enabled' : key;
+}
+
 export async function loadLearningPreferences(db: SQLiteDatabase): Promise<LearningPreferences> {
   const rows = await db.getAllAsync<PreferenceRow>(
     `
@@ -64,6 +70,7 @@ export async function loadLearningPreferences(db: SQLiteDatabase): Promise<Learn
     preferredSessionLength: parseSessionLength(values.get('preferredSessionLength')),
     japaneseAnswerMode: parseBoolean(values.get('japaneseAnswerMode'), DEFAULT_LEARNING_PREFERENCES.japaneseAnswerMode),
     learningPlanMode: parseLearningPlanMode(values.get('learningPlanMode')),
+    audioEnabled: parseBoolean(values.get('audio_enabled') ?? values.get('audioEnabled'), DEFAULT_LEARNING_PREFERENCES.audioEnabled),
   };
 }
 
@@ -81,7 +88,7 @@ export async function saveLearningPreference<K extends keyof LearningPreferences
       value = excluded.value,
       updated_at = datetime('now')
     `,
-    key,
+    getPreferenceStorageKey(key),
     serializePreferenceValue(key, value)
   );
 }

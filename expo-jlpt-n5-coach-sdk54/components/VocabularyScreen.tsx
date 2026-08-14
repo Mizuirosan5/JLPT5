@@ -21,6 +21,7 @@ import { buildKanjiDetail, type KanjiDetail } from '../services/kanjiComponents'
 import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../services/preferences';
 import { EmptyState, Metric, Section } from './sharedUi';
 import { SegmentButton } from './formControls';
+import { OfflineAudioButton } from './OfflineAudioButton';
 
 function getCompactReading(value: string | null | undefined) {
   if (!value?.trim()) return '-';
@@ -330,6 +331,7 @@ export function VocabularyScreen() {
                     onToggleFavorite={() => toggleCardFlag(item.id, 'favorite')}
                     onToggleReview={() => toggleCardFlag(item.id, 'review')}
                     onOpenDetail={item.kanji ? () => setSelectedKanjiDetail(buildKanjiDetail(item.kanji!, scopedItems)) : undefined}
+                    audioText={item.root}
                   >
                     <VocabularyFlashCard
                       card={item}
@@ -348,6 +350,7 @@ export function VocabularyScreen() {
                     seenCount={cardStates[item.id]?.seen_count ?? 0}
                     onToggleFavorite={() => toggleCardFlag(item.id, 'favorite')}
                     onToggleReview={() => toggleCardFlag(item.id, 'review')}
+                    audioText={item.kanji || item.japanese}
                   >
                     <GenericVocabularyFlashCard
                       item={item}
@@ -457,6 +460,7 @@ function VocabularySmartCardShell({
   seenCount,
   onToggleFavorite,
   onToggleReview,
+  audioText,
 }: {
   children: ReactNode;
   favorite: boolean;
@@ -465,6 +469,7 @@ function VocabularySmartCardShell({
   seenCount: number;
   onToggleFavorite: () => void;
   onToggleReview: () => void;
+  audioText?: string;
 }) {
   return (
     <View style={styles.vocabSmartCardShell}>
@@ -491,6 +496,7 @@ function VocabularySmartCardShell({
             <Text style={styles.vocabSmartActionText}>Detail</Text>
           </Pressable>
         )}
+        {!!audioText && <OfflineAudioButton text={audioText} label="Audio" />}
       </View>
       <Text style={styles.vocabSmartSeenText}>{seenCount} vue{seenCount > 1 ? 's' : ''}</Text>
     </View>

@@ -5,6 +5,7 @@ import { styles } from '../appStyles';
 import { SegmentButton } from './formControls';
 import { JapaneseLookupText, WordLookupPanel } from './JapaneseLookup';
 import { EmptyState, Section } from './sharedUi';
+import { OfflineAudioButton } from './OfflineAudioButton';
 import { GRAMMAR_QUIZ_MODES } from '../models';
 import type {
   GrammarExerciseKind,
@@ -599,6 +600,9 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
                     {grammarQuizFrenchVisible ? 'Masquer français' : 'Voir français'}
                   </Text>
                 </Pressable>
+              )}
+              {!!currentGrammarQuestion.japanese && (
+                <OfflineAudioButton text={currentGrammarQuestion.japanese} slow />
               )}
             </View>
             {preferences.showRomaji && grammarQuizRomajiVisible && !!safeGrammarQuizRomaji && (

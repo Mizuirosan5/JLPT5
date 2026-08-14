@@ -11,6 +11,7 @@ import {
   type ImmersionProgress,
 } from '../services/immersion';
 import { JapaneseLookupText, useVocabularyLookupIndex, WordLookupPanel } from './JapaneseLookup';
+import { OfflineAudioButton } from './OfflineAudioButton';
 import { Metric, Section } from './sharedUi';
 
 export function ImmersionReaderScreen() {
@@ -132,6 +133,7 @@ export function ImmersionReaderScreen() {
           <Pressable style={styles.secondaryFullButton} onPress={() => setShowTranslation((value) => !value)}>
             <Text style={styles.secondaryFullButtonText}>{showTranslation ? 'Masquer la traduction' : 'Afficher la traduction'}</Text>
           </Pressable>
+          <OfflineAudioButton text={selectedText.japanese} slow />
           {showTranslation && <Text style={styles.correctionInsightText}>{selectedText.translationFr}</Text>}
         </View>
         <WordLookupPanel entry={selectedLookup} onClose={() => setSelectedLookup(null)} />

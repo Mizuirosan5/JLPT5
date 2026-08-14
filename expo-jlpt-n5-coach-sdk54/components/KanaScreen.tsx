@@ -1,4 +1,3 @@
-import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -14,6 +13,7 @@ import { buildDailyKanaDeck, buildSmartKanaDeck, getKanaPriority } from '../serv
 import { shuffle } from '../services/random';
 import { normalizeAnswer } from '../services/text';
 import { recordSrsReviewForQuestionAttempt } from '../services/srs';
+import { detectOfflineAudio, speakJapanese as speakOfflineJapanese, stopOfflineAudio, type OfflineAudioState } from '../services/audio';
 import type {
   KanaCard,
   KanaDisplayStyle,
@@ -66,20 +66,11 @@ export function KanaScreen() {
   const [directInput, setDirectInput] = useState('');
   const [matchingKanaId, setMatchingKanaId] = useState<string | null>(null);
   const [matchingRomaji, setMatchingRomaji] = useState<string | null>(null);
-  const [japaneseVoiceId, setJapaneseVoiceId] = useState<string | null>(null);
+  const [audio, setAudio] = useState<OfflineAudioState>({ available: false, japaneseVoiceId: null });
 
   useEffect(() => {
     let mounted = true;
-    Speech.getAvailableVoicesAsync()
-      .then((voices) => {
-        if (!mounted) return;
-        const japaneseVoices = voices.filter((voice) => voice.language?.toLowerCase().startsWith('ja'));
-        const preferredVoice =
-          japaneseVoices.find((voice) => /ja-jp|japanese|kyoko|otoya|siri/i.test(`${voice.identifier} ${voice.name}`)) ??
-          japaneseVoices[0];
-        setJapaneseVoiceId(preferredVoice?.identifier ?? null);
-      })
-      .catch(() => setJapaneseVoiceId(null));
+    detectOfflineAudio().then((state) => mounted && setAudio(state)).catch(() => setAudio({ available: false, japaneseVoiceId: null }));
     return () => {
       mounted = false;
     };
@@ -361,19 +352,13 @@ export function KanaScreen() {
 
   const speakJapanese = useCallback(
     (text: string, slow = false) => {
-      Speech.stop();
-      Speech.speak(text, {
-        language: 'ja-JP',
-        voice: japaneseVoiceId ?? undefined,
-        rate: slow ? 0.62 : 0.72,
-        pitch: 1,
-      });
+      speakOfflineJapanese(text, audio, slow);
     },
-    [japaneseVoiceId]
+    [audio]
   );
 
   const speakKanaCard = (card: KanaCard) => {
-    Speech.stop();
+    stopOfflineAudio();
     speakJapanese(buildKanaSpeechText(card), true);
   };
 

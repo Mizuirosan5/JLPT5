@@ -879,17 +879,17 @@ Audio embarque ou TTS local uniquement.
 
 ### Implementation
 
-- [ ] Creer `services/audio.ts`.
-- [ ] Definir strategie : TTS local ou fichiers embarques.
-- [ ] Ajouter detection disponibilite audio.
-- [ ] Creer `OfflineAudioButton`.
-- [ ] Ajouter bouton vocabulaire.
-- [ ] Ajouter bouton grammaire.
-- [ ] Ajouter bouton stories/immersion si disponible.
-- [ ] Ajouter fallback muet.
-- [ ] Respecter preference `audio_enabled`.
-- [ ] Verifier que l'app ne casse pas sans audio.
-- [ ] Lancer validations obligatoires.
+- [x] Creer `services/audio.ts`.
+- [x] Definir strategie : TTS local ou fichiers embarques.
+- [x] Ajouter detection disponibilite audio.
+- [x] Creer `OfflineAudioButton`.
+- [x] Ajouter bouton vocabulaire.
+- [x] Ajouter bouton grammaire.
+- [x] Ajouter bouton stories/immersion si disponible.
+- [x] Ajouter fallback muet.
+- [x] Respecter preference `audio_enabled`.
+- [x] Verifier que l'app ne casse pas sans audio.
+- [x] Lancer validations obligatoires.
 
 ### Tests
 
