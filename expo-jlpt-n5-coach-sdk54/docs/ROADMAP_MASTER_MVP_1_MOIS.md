@@ -37,7 +37,7 @@ Cette roadmap 1 mois est une version priorisee du cahier technique V2. Elle ne s
 | 1. File SRS centrale | Inclus semaine 2 | MVP obligatoire |
 | 2. Corrections intelligentes | Inclus semaine 3 | MVP obligatoire |
 | 3. Lecons grammaire structurees | Reporte apres 1 mois | Trop consommateur en contenu |
-| 4. Kanji composants | Bonus si quota restant | Petit lot 20 kanji |
+| 4. Kanji composants | Bonus si quota restant | 80 kanji N5 |
 | 5. Audio local | Reporte apres 1 mois | Risque taille/assets/TTS |
 | 6. Immersion texte cliquable | Bonus si quota restant | Petit lot 5 textes |
 | 7. Diagnostic adaptatif | Inclus semaine 4 | MVP obligatoire |
@@ -405,10 +405,10 @@ Adapter les objectifs a la maniere d'apprendre de l'utilisateur.
 - [x] Kanji vers kana.
 - [x] Phrase a trou.
 
-## Bonus B - Kanji composants petit lot
+## Bonus B - Kanji composants N5
 
 - [x] Structure `kanjiComponents.ts`.
-- [x] 20 kanji prioritaires.
+- [x] 80 kanji N5 enrichis.
 - [x] Mnemonique FR.
 - [x] Mots lies.
 - [x] Detail kanji.
@@ -433,7 +433,7 @@ Adapter les objectifs a la maniere d'apprendre de l'utilisateur.
 
 - Audio local complet.
 - Journal d'ecriture avance.
-- 80 kanji enrichis.
+- Quiz composants kanji.
 - Toutes les lecons grammaire ultra structurees.
 - Stories nombreuses.
 - Immersion massive.

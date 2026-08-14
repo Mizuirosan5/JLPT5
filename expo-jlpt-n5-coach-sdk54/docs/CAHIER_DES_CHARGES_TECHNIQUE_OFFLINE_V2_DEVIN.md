@@ -834,7 +834,7 @@ Fiche kanji detaillee avec composants, histoires et mots lies.
 ### Implementation
 
 - [x] Creer `data/kanjiComponents.ts`.
-- [ ] Ajouter composants pour les 80 kanji N5 prioritaires.
+- [x] Ajouter composants pour les 80 kanji N5 prioritaires.
 - [x] Ajouter mnemoniques FR.
 - [x] Ajouter confusions proches.
 - [x] Creer `services/kanjiComponents.ts`.
