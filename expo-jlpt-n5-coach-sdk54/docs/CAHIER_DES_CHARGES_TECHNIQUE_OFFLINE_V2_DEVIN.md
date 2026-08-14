@@ -1063,18 +1063,18 @@ Une factory locale genere plusieurs formats pour chaque contenu.
 
 ### Implementation
 
-- [ ] Creer type `ExerciseFormat`.
-- [ ] Creer `services/exerciseFactory.ts`.
-- [ ] Implementer QCM standard.
-- [ ] Implementer sens inverse.
-- [ ] Implementer association.
-- [ ] Implementer phrase a trou.
-- [ ] Implementer ordre des mots si possible MVP+.
-- [ ] Brancher global quiz.
+- [x] Creer type `ExerciseFormat`.
+- [x] Creer `services/exerciseFactory.ts`.
+- [x] Implementer QCM standard.
+- [x] Implementer sens inverse.
+- [x] Implementer association.
+- [x] Implementer phrase a trou.
+- [x] Implementer ordre des mots si possible MVP+.
+- [x] Brancher global quiz.
 - [ ] Brancher grammaire quiz.
-- [ ] Brancher SRS.
-- [ ] Respecter preferences.
-- [ ] Lancer validations obligatoires.
+- [x] Brancher SRS.
+- [x] Respecter preferences.
+- [x] Lancer validations obligatoires.
 
 ### Tests
 

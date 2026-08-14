@@ -46,6 +46,7 @@ export type MainQuizMode = 'global' | 'kana_arcade' | 'adaptive' | 'grammar';
 export type GrammarQuizMode = 'direct_input' | 'blank_qcm' | 'matching' | 'question_answer' | 'arcade';
 export type GlobalQuizMode = GrammarQuizMode;
 export type GlobalQuizDomain = 'kana' | 'vocabulary' | 'grammar' | 'kanji';
+export type ExerciseFormat = 'qcm' | 'reverse' | 'matching' | 'blank' | 'word_order' | 'direct_input';
 export type GlobalQuizFormat =
   | 'kana_reading'
   | 'kana_recognition'
@@ -407,6 +408,7 @@ export type GlobalQuizQuestion = {
   format: GlobalQuizFormat;
   formatLabel: string;
   measuredSkill: string;
+  exerciseFormat: ExerciseFormat;
   prompt: string;
   display: string;
   correctAnswer: string;

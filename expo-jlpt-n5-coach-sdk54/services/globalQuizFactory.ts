@@ -14,8 +14,9 @@ import type {
   WordLookupEntry,
 } from '../models';
 import { ALL_GRAMMAR_LESSONS } from './grammarCourse';
+import { buildExerciseChoices, buildWordOrderDisplay, getExerciseFormat, getExerciseInstruction } from './exerciseFactory';
 import { GRAMMAR_KEY_TOKENS, buildGrammarWhy, getGrammarKeyword } from './grammarPedagogy';
-import { maskGrammarKeyword, uniqueChoices } from './grammarQuizFactory';
+import { maskGrammarKeyword } from './grammarQuizFactory';
 import { getKanjiComponentDetail } from './kanjiComponents';
 import { shuffle } from './random';
 
@@ -78,12 +79,15 @@ function getMeasuredSkill(format: GlobalQuizFormat): string {
 }
 
 function withFormat(
-  question: Omit<GlobalQuizQuestion, 'formatLabel' | 'measuredSkill'>,
+  question: Omit<GlobalQuizQuestion, 'formatLabel' | 'measuredSkill' | 'exerciseFormat'>,
+  mode: GlobalQuizMode = 'blank_qcm',
 ): GlobalQuizQuestion {
+  const exerciseFormat = getExerciseFormat(mode, question.format);
   return {
     ...question,
+    exerciseFormat,
     formatLabel: getGlobalFormatLabel(question.format),
-    measuredSkill: getMeasuredSkill(question.format),
+    measuredSkill: `${getMeasuredSkill(question.format)} ${getExerciseInstruction(exerciseFormat)}`,
   };
 }
 
@@ -133,9 +137,9 @@ export function buildGlobalQuizQuestions(
         prompt: reverse ? 'Quel kana correspond Ã  ce romaji ?' : 'Quelle est la lecture en romaji ?',
         display: reverse ? item.romaji : item.character,
         correctAnswer: answer,
-        choices: direct ? [] : uniqueChoices([answer, ...shuffle(alternatives)], alternatives),
+        choices: buildExerciseChoices({ correctAnswer: answer, alternatives, direct }),
         explanation: `${item.character} se lit ${item.romaji}.`,
-      });
+      }, mode);
     }
     if (domain === 'vocabulary') {
       const item = vocabularyPool[index % vocabularyPool.length];
@@ -174,9 +178,9 @@ export function buildGlobalQuizQuestions(
               : 'Quelle est la lecture de ce mot ?',
         display: format === 'vocabulary_japanese' ? item.meaning_fr : japaneseWord,
         correctAnswer: answer,
-        choices: direct ? [] : uniqueChoices([answer, ...shuffle(alternatives)], alternatives),
+        choices: buildExerciseChoices({ correctAnswer: answer, alternatives, direct }),
         explanation: `${item.japanese}${item.romaji ? ` (${item.romaji})` : ''} signifie Â« ${item.meaning_fr} Â».` ,
-      });
+      }, mode);
     }
     if (domain === 'grammar') {
       const lesson = grammarPool[index % grammarPool.length];
@@ -220,11 +224,13 @@ export function buildGlobalQuizQuestions(
             ? lesson.goal
             : format === 'grammar_blank'
               ? maskGrammarKeyword(example.kanji || example.kana, keyword)
+              : format === 'grammar_translation'
+                ? buildWordOrderDisplay(example.kanji || example.kana)
               : example.kanji || example.kana,
         correctAnswer: answer,
-        choices: direct ? [] : uniqueChoices([answer, ...shuffle(alternatives)], alternatives),
+        choices: buildExerciseChoices({ correctAnswer: answer, alternatives, direct }),
         explanation: `${lesson.title} : ${buildGrammarWhy(lesson)}`,
-      });
+      }, mode);
     }
     const item = kanjiPool[index % kanjiPool.length];
     const japaneseAnswer = getKanjiJapaneseReading(item);
@@ -264,14 +270,14 @@ export function buildGlobalQuizQuestions(
               : 'Quelle lecture japonaise correspond a ce kanji ?',
       display: item.character,
       correctAnswer: answer,
-      choices: direct ? [] : uniqueChoices([answer, ...shuffle(alternatives)], alternatives),
+      choices: buildExerciseChoices({ correctAnswer: answer, alternatives, direct }),
       explanation:
         format === 'kanji_components'
           ? `${item.character} : ${detail?.mnemonicFr ?? `Associe ce kanji a ${item.meaning_fr}.`}`
           : `${item.character} signifie Â« ${item.meaning_fr} Â». Lectures : ${item.n5_readings || item.onyomi || item.kunyomi || 'Ã  rÃ©viser'}.`,
       srsItemId: item.id,
       srsItemType: 'kanji',
-    });
+    }, mode);
   });
 }
 
