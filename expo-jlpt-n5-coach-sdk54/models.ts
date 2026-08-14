@@ -12,6 +12,7 @@ export type Screen =
   | 'vocabulary'
   | 'grammar'
   | 'immersion'
+  | 'stories'
   | 'writing'
   | 'quiz'
   | 'exam'

@@ -19,6 +19,7 @@ import { LearningPreferencesScreen } from './components/LearningPreferencesScree
 import { QuickSessionScreen } from './components/QuickSessionScreen';
 import { QuizScreen } from './components/QuizScreen';
 import { ReviewQueueScreen } from './components/ReviewQueueScreen';
+import { StoryLessonScreen } from './components/StoryLessonScreen';
 import { VocabularyScreen } from './components/VocabularyScreen';
 import { WritingJournalScreen } from './components/WritingJournalScreen';
 import { HeaderJapanScene } from './components/shellUi';
@@ -94,14 +95,13 @@ function MainApp() {
         {screen === 'path' && <LearningPathScreen onNavigate={navigateTo} />}
         {screen === 'aptitudeTest' && <AptitudeTestScreen onNavigate={navigateTo} />}
         {screen === 'aptitudeReport' && <AptitudeReportScreen onNavigate={navigateTo} />}
-        {screen === 'review' && <ReviewQueueScreen />}
-        {screen === 'errors' && <ErrorFlashcardsScreen />}
+        {screen === 'review' && <ReviewQueueScreen />}{screen === 'errors' && <ErrorFlashcardsScreen />}
         {screen === 'kana' && <KanaScreen />}
         {screen === 'kanjiDetail' && <KanjiDetailScreen onNavigate={navigateTo} />}
         {screen === 'vocabulary' && <VocabularyScreen />}
         {screen === 'grammar' && <GrammarLessonsScreen />}
         {screen === 'immersion' && <ImmersionReaderScreen />}
-        {screen === 'writing' && <WritingJournalScreen />}{screen === 'preferences' && <LearningPreferencesScreen />}{screen === 'quick' && <QuickSessionScreen />}
+        {screen === 'stories' && <StoryLessonScreen />}{screen === 'writing' && <WritingJournalScreen />}{screen === 'preferences' && <LearningPreferencesScreen />}{screen === 'quick' && <QuickSessionScreen />}
         {screen === 'quiz' && <QuizScreen backSignal={childBackSignal} onBackStateChange={setChildCanGoBack} />}
         {screen === 'exam' && <ExamScreen />}
       </View>
