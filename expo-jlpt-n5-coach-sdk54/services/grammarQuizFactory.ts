@@ -8,6 +8,7 @@ import type {
   GrammarQuizQuestion,
 } from '../models';
 import { ALL_GRAMMAR_LESSONS, humanizeGrammarPattern } from './grammarCourse';
+import { buildExerciseChoices, buildWordOrderDisplay, getGrammarExerciseFormat } from './exerciseFactory';
 import { GRAMMAR_KEY_TOKENS, buildGrammarMnemonic, getGrammarKeyword } from './grammarPedagogy';
 import { shuffle } from './random';
 
@@ -384,10 +385,8 @@ export function maskGrammarKeyword(text: string, keyword: string): string {
 }
 
 export function uniqueChoices(values: string[], fallback: string[]): string[] {
-  const unique = values.filter((value, index, list) => value.trim().length > 0 && list.indexOf(value) === index);
-  const correct = unique[0] ?? fallback[0] ?? '';
-  const distractors = [...unique.slice(1), ...fallback.filter((value) => value !== correct && !unique.includes(value))].slice(0, 12);
-  return shuffle([correct, ...shuffle(distractors).slice(0, 3)]).filter(Boolean);
+  const correctAnswer = values.find((value) => value.trim().length > 0) ?? fallback[0] ?? '';
+  return buildExerciseChoices({ correctAnswer, alternatives: [...values.slice(1), ...fallback] });
 }
 
 export function buildGrammarQuizQuestions(
@@ -413,6 +412,7 @@ export function buildGrammarQuizQuestions(
     const example = getGrammarExample(lesson);
     const keyword = getGrammarKeyword(lesson, example);
     const kind = exerciseCycle[index % exerciseCycle.length];
+    const exerciseFormat = getGrammarExerciseFormat(mode, kind);
     const formula = humanizeGrammarPattern(lesson);
     const formulaChoices = uniqueChoices(
       [
@@ -425,9 +425,10 @@ export function buildGrammarQuizQuestions(
       return {
         id: `${lesson.id}-translation-${index}`,
         kind,
+        exerciseFormat,
         lesson,
         prompt: 'Choisis la bonne traduction française.',
-        japanese: example.kanji || example.kana,
+        japanese: buildWordOrderDisplay(example.kanji || example.kana),
         kanaJapanese: example.kana,
         romaji: example.romaji,
         french: example.fr,
@@ -443,6 +444,7 @@ export function buildGrammarQuizQuestions(
       return {
         id: `${lesson.id}-blank-${index}`,
         kind,
+        exerciseFormat,
         lesson,
         prompt: kind === 'blank_choice' ? 'Complète le trou avec la bonne réponse.' : 'Tape la réponse qui manque.',
         japanese: maskGrammarKeyword(example.kanji || example.kana, keyword),
@@ -451,13 +453,16 @@ export function buildGrammarQuizQuestions(
         french: example.fr,
         helper: `Objectif : ${lesson.goal}`,
         correctAnswer: keyword,
-        choices: kind === 'blank_choice' ? uniqueChoices([keyword, ...GRAMMAR_KEY_TOKENS], GRAMMAR_KEY_TOKENS) : [],
+        choices: kind === 'blank_choice'
+          ? buildExerciseChoices({ correctAnswer: keyword, alternatives: GRAMMAR_KEY_TOKENS })
+          : [],
       };
     }
     if (kind === 'keyword_input') {
       return {
         id: `${lesson.id}-keyword-${index}`,
         kind,
+        exerciseFormat,
         lesson,
         prompt: `Tape le marqueur ou la forme clé pour : ${lesson.title}`,
         japanese: example.kanji || example.kana,
@@ -473,6 +478,7 @@ export function buildGrammarQuizQuestions(
       return {
         id: `${lesson.id}-situation-${index}`,
         kind,
+        exerciseFormat,
         lesson,
         prompt: `Quelle règle utiliserais-tu pour cette intention : ${lesson.goal}`,
         japanese: example.kanji || example.kana,
@@ -492,6 +498,7 @@ export function buildGrammarQuizQuestions(
       return {
         id: `${lesson.id}-dialogue-${index}`,
         kind,
+        exerciseFormat,
         lesson,
         prompt: `Quelle est la meilleure réponse ? ${dialogue.situation}`,
         japanese: dialogue.cue,
@@ -506,6 +513,7 @@ export function buildGrammarQuizQuestions(
     return {
       id: `${lesson.id}-rule-${index}`,
       kind: 'rule_qcm',
+      exerciseFormat: getGrammarExerciseFormat(mode, 'rule_qcm'),
       lesson,
       prompt: `${lesson.title} — quelle formule correspond ?`,
       japanese: example.kanji || example.kana,
@@ -529,6 +537,7 @@ export function buildGrammarQuestionAnswerQuiz(size: 10 | 20): GrammarQuizQuesti
     return {
       id: `grammar-response-${index}-${dialogue.answer}`,
       kind: 'dialogue_response_qcm' as const,
+      exerciseFormat: getGrammarExerciseFormat('question_answer', 'dialogue_response_qcm'),
       lesson: responseLesson,
       prompt: `Choisis la réponse la plus naturelle. ${dialogue.situation}`,
       japanese: dialogue.cue,

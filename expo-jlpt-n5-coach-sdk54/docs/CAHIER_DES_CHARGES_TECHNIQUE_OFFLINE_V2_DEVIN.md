@@ -1071,7 +1071,7 @@ Une factory locale genere plusieurs formats pour chaque contenu.
 - [x] Implementer phrase a trou.
 - [x] Implementer ordre des mots si possible MVP+.
 - [x] Brancher global quiz.
-- [ ] Brancher grammaire quiz.
+- [x] Brancher grammaire quiz.
 - [x] Brancher SRS.
 - [x] Respecter preferences.
 - [x] Lancer validations obligatoires.

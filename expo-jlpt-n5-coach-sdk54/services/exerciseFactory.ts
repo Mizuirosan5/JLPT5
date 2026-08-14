@@ -1,4 +1,4 @@
-import type { ExerciseFormat, GlobalQuizFormat, GlobalQuizMode } from '../models';
+import type { ExerciseFormat, GlobalQuizFormat, GlobalQuizMode, GrammarExerciseKind, GrammarQuizMode } from '../models';
 import { shuffle } from './random';
 
 export type ExerciseChoiceOptions = {
@@ -43,4 +43,13 @@ export function getExerciseInstruction(format: ExerciseFormat): string {
   if (format === 'blank') return 'Complete le trou avec la forme correcte.';
   if (format === 'word_order') return 'Remets mentalement les elements dans le bon ordre.';
   return 'Choisis la bonne reponse.';
+}
+
+export function getGrammarExerciseFormat(mode: GrammarQuizMode, kind: GrammarExerciseKind): ExerciseFormat {
+  if (mode === 'direct_input' || kind === 'blank_input' || kind === 'keyword_input') return 'direct_input';
+  if (mode === 'matching') return 'matching';
+  if (mode === 'question_answer' || kind === 'dialogue_response_qcm') return 'reverse';
+  if (kind === 'blank_choice') return 'blank';
+  if (kind === 'translation_qcm') return 'word_order';
+  return 'qcm';
 }

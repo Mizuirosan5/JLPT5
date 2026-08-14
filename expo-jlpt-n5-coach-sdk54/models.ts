@@ -348,6 +348,7 @@ export type QuizChoice = {
 export type GrammarQuizQuestion = {
   id: string;
   kind: GrammarExerciseKind;
+  exerciseFormat: ExerciseFormat;
   lesson: GrammarLesson;
   prompt: string;
   japanese?: string;

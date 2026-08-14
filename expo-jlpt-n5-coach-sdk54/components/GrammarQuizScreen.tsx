@@ -41,6 +41,7 @@ import {
 } from '../services/grammarPedagogy';
 import { ALL_GRAMMAR_LESSONS, getGrammarMainMenu, humanizeGrammarPattern } from '../services/grammarCourse';
 import { hasJapaneseText, normalizeAnswer } from '../services/text';
+import { getExerciseInstruction } from '../services/exerciseFactory';
 import { recordGrammarExerciseAttempt } from '../services/grammarProgress';
 import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../services/preferences';
 import { saveErrorFlashcard } from '../services/errorFlashcards';
@@ -608,7 +609,9 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
                 <Text style={styles.grammarTranslation}>{safeGrammarQuizFrench}</Text>
               </View>
             )}
-            <Text style={styles.feedbackMnemonic}>{getGrammarExerciseInstruction(currentGrammarQuestion.kind)}</Text>
+            <Text style={styles.feedbackMnemonic}>
+              {getExerciseInstruction(currentGrammarQuestion.exerciseFormat)} {getGrammarExerciseInstruction(currentGrammarQuestion.kind)}
+            </Text>
             <Text style={styles.feedbackText}>{currentGrammarQuestion.helper}</Text>
             {currentGrammarQuestion.choices.length > 0 ? (
               <>
