@@ -1202,13 +1202,13 @@ Mini dialogues N5 locaux avec comprehension.
 
 - [x] Creer type `StoryLesson`.
 - [x] Creer `data/storyLessons.ts`.
-- [x] Ajouter 10 dialogues MVP.
+- [x] Ajouter 54 dialogues N5 locaux.
 - [x] Creer `StoryLessonScreen`.
 - [x] Connecter lookup mot/kanji.
 - [x] Ajouter questions comprehension.
 - [x] Ajouter progression locale.
 - [x] Ajouter acces menu Apprendre.
-- [ ] Connecter SRS.
+- [x] Connecter SRS.
 - [x] Lancer validations obligatoires.
 
 ### Tests

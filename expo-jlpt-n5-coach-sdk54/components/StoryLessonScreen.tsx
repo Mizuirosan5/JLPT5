@@ -5,6 +5,7 @@ import { styles } from '../appStyles';
 import type { WordLookupEntry } from '../models';
 import { loadStoryLessons, loadStoryProgress, recordStoryOpened, recordStoryResult } from '../services/stories';
 import type { ImmersionProgress } from '../services/immersion';
+import { recordSrsReviewForQuestionAttempt } from '../services/srs';
 import { JapaneseLookupText, useVocabularyLookupIndex, WordLookupPanel } from './JapaneseLookup';
 import { Metric, Section } from './sharedUi';
 
@@ -45,9 +46,20 @@ export function StoryLessonScreen() {
 
   const answerQuestion = async (prompt: string, choice: string) => {
     const nextAnswers = { ...answers, [prompt]: choice };
+    const questionIndex = selectedStory.questions.findIndex((question) => question.prompt === prompt);
+    const question = selectedStory.questions[questionIndex];
+    const isCorrect = question?.answer === choice;
     setAnswers(nextAnswers);
     const nextCorrect = selectedStory.questions.filter((question) => nextAnswers[question.prompt] === question.answer).length;
     const nextAnswered = selectedStory.questions.filter((question) => nextAnswers[question.prompt]).length;
+    await recordSrsReviewForQuestionAttempt(db, {
+      itemId: `${selectedStory.id}:q${questionIndex + 1}`,
+      itemType: 'skill',
+      skillId: `story:${selectedStory.theme}`,
+      questionId: `${selectedStory.id}:${prompt}`,
+      sourceMode: 'story_dialogue',
+      isCorrect,
+    });
     if (nextAnswered >= selectedStory.questions.length) {
       await recordStoryResult(db, selectedStory.id, nextCorrect, selectedStory.questions.length);
       await loadProgress();
