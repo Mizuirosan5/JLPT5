@@ -8,6 +8,7 @@ export type Screen =
   | 'review'
   | 'errors'
   | 'kana'
+  | 'kanjiDetail'
   | 'vocabulary'
   | 'grammar'
   | 'immersion'

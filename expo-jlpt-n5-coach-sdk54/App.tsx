@@ -13,6 +13,7 @@ import { ErrorFlashcardsScreen } from './components/ErrorFlashcardsScreen';
 import { GrammarLessonsScreen } from './components/GrammarLessonsScreen';
 import { ImmersionReaderScreen } from './components/ImmersionReaderScreen';
 import { KanaScreen } from './components/KanaScreen';
+import { KanjiDetailScreen } from './components/KanjiDetailScreen';
 import { LearningPathScreen } from './components/LearningPathScreen';
 import { LearningPreferencesScreen } from './components/LearningPreferencesScreen';
 import { QuickSessionScreen } from './components/QuickSessionScreen';
@@ -95,6 +96,7 @@ function MainApp() {
         {screen === 'review' && <ReviewQueueScreen />}
         {screen === 'errors' && <ErrorFlashcardsScreen />}
         {screen === 'kana' && <KanaScreen />}
+        {screen === 'kanjiDetail' && <KanjiDetailScreen onNavigate={navigateTo} />}
         {screen === 'vocabulary' && <VocabularyScreen />}
         {screen === 'grammar' && <GrammarLessonsScreen />}
         {screen === 'immersion' && <ImmersionReaderScreen />}

@@ -838,7 +838,7 @@ Fiche kanji detaillee avec composants, histoires et mots lies.
 - [x] Ajouter mnemoniques FR.
 - [x] Ajouter confusions proches.
 - [x] Creer `services/kanjiComponents.ts`.
-- [ ] Creer `KanjiDetailScreen`.
+- [x] Creer `KanjiDetailScreen`.
 - [x] Ajouter acces depuis cartes vocab/kanji.
 - [x] Lier kanji -> mots vocabulaire.
 - [x] Ajouter quiz composants.

@@ -107,7 +107,7 @@ Cette roadmap 1 mois est une version priorisee du cahier technique V2. Elle ne s
 
 ### Bonus si quota restant
 
-- [ ] `KanjiDetailScreen`
+- [x] `KanjiDetailScreen`
 - [x] `ImmersionReaderScreen`
 - [x] `LocalLeagueCard`
 - [ ] `ExerciseFormatSwitcher`
@@ -433,7 +433,7 @@ Adapter les objectifs a la maniere d'apprendre de l'utilisateur.
 
 - Audio local complet.
 - Journal d'ecriture avance.
-- Ecran detail kanji dedie.
+- Quiz composants kanji avance.
 - Toutes les lecons grammaire ultra structurees.
 - Stories nombreuses.
 - Immersion massive.
