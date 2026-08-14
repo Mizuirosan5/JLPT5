@@ -294,10 +294,16 @@ CREATE TABLE IF NOT EXISTS app_error_flashcard (
 ```sql
 CREATE TABLE IF NOT EXISTS app_aptitude_result (
   id TEXT PRIMARY KEY,
-  created_at TEXT NOT NULL,
-  total_score INTEGER NOT NULL,
-  recommended_level TEXT NOT NULL,
-  report_json TEXT NOT NULL
+  score INTEGER NOT NULL,
+  level3_rate INTEGER NOT NULL,
+  estimated_level TEXT NOT NULL,
+  global_label TEXT NOT NULL,
+  recommended_module TEXT,
+  weakest_domain TEXT,
+  strongest_domain TEXT,
+  answers_json TEXT NOT NULL,
+  report_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
 );
 ```
 
@@ -969,19 +975,19 @@ Test unique avec 3 niveaux de difficulte et rapport local.
 
 ### Implementation
 
-- [ ] Creer banque diagnostic taguee.
-- [ ] Couvrir kana, vocabulaire, kanji, grammaire, comprehension.
-- [ ] Ajouter 3 niveaux de difficulte.
-- [ ] Creer `services/aptitudeTest.ts`.
-- [ ] Creer moteur de scoring.
-- [ ] Creer rapport local.
+- [x] Creer banque diagnostic taguee.
+- [x] Couvrir kana, vocabulaire, kanji, grammaire, comprehension.
+- [x] Ajouter 3 niveaux de difficulte.
+- [x] Creer `services/aptitudeTest.ts`.
+- [x] Creer moteur de scoring.
+- [x] Creer rapport local.
 - [ ] Creer `AptitudeTestScreen`.
 - [ ] Creer `AptitudeReportScreen`.
-- [ ] Stocker resultat dans SQLite.
+- [x] Stocker resultat dans SQLite.
 - [ ] Connecter recommandations au parcours.
-- [ ] Ajouter bouton refaire test.
+- [x] Ajouter bouton refaire test.
 - [ ] Verifier rapport mobile.
-- [ ] Lancer validations obligatoires.
+- [x] Lancer validations obligatoires.
 
 ### Tests
 

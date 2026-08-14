@@ -120,6 +120,20 @@ export async function initializeDatabase(db: SQLiteDatabase) {
       UNIQUE(source_question_id, expected_answer)
     );
 
+    CREATE TABLE IF NOT EXISTS app_aptitude_result (
+      id TEXT PRIMARY KEY,
+      score INTEGER NOT NULL,
+      level3_rate INTEGER NOT NULL,
+      estimated_level TEXT NOT NULL,
+      global_label TEXT NOT NULL,
+      recommended_module TEXT,
+      weakest_domain TEXT,
+      strongest_domain TEXT,
+      answers_json TEXT NOT NULL,
+      report_json TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS app_grammar_lesson_state (
       lesson_id TEXT PRIMARY KEY,
       opened_count INTEGER NOT NULL DEFAULT 0,

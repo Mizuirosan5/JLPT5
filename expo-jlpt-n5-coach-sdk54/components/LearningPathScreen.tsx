@@ -11,6 +11,7 @@ import {
   loadGrammarProgressSummary,
 } from '../services/grammarProgress';
 import { buildLearningPathStages } from '../services/learningPath';
+import { saveAptitudeResult } from '../services/aptitudeTest';
 import {
   ensureDailyGoalPlan,
   loadDashboardGoalData,
@@ -286,6 +287,143 @@ const APTITUDE_QUESTIONS: AptitudeQuestion[] = [
     answer: 'Cause + consequence',
     skill: 'comprehension:because_sentence',
     explanation: 'から indique la cause : comme il pleut, je ne vais pas dehors.',
+  },
+  {
+    id: 'apt-1-kana-b',
+    level: 1,
+    domain: 'kana',
+    prompt: 'Lecture de base : comment se lit ce kana ?',
+    display: 'ぬ',
+    choices: ['nu', 'ne', 'me', 'mu'],
+    answer: 'nu',
+    skill: 'kana:hiragana:nu',
+    explanation: 'ぬ se lit nu. Il faut le distinguer de ね et め.',
+  },
+  {
+    id: 'apt-1-vocab-b',
+    level: 1,
+    domain: 'vocabulaire',
+    prompt: 'Que signifie ce mot courant ?',
+    display: 'ねこ',
+    choices: ['chat', 'chien', 'poisson', 'oiseau'],
+    answer: 'chat',
+    skill: 'vocabulary:n5:animal',
+    explanation: 'ねこ signifie chat. C est un mot simple utile pour verifier la lecture kana.',
+  },
+  {
+    id: 'apt-1-kanji-b',
+    level: 1,
+    domain: 'kanji',
+    prompt: 'Quel est le sens de ce kanji ?',
+    display: '山',
+    choices: ['montagne', 'riviere', 'pluie', 'main'],
+    answer: 'montagne',
+    skill: 'kanji:n5:yama',
+    explanation: '山 signifie montagne et se lit souvent やま seul.',
+  },
+  {
+    id: 'apt-1-grammar-b',
+    level: 1,
+    domain: 'grammaire',
+    prompt: 'Quelle particule marque le complement direct ?',
+    display: 'ごはん ___ たべます。',
+    choices: ['を', 'は', 'に', 'と'],
+    answer: 'を',
+    skill: 'grammar:particle:o',
+    explanation: 'を marque ce que l action touche directement : manger du riz / un repas.',
+  },
+  {
+    id: 'apt-2-kana-b',
+    level: 2,
+    domain: 'kana',
+    prompt: 'Quelle lecture correspond au katakana ?',
+    display: 'チョ',
+    choices: ['cho', 'cha', 'sho', 'jo'],
+    answer: 'cho',
+    skill: 'kana:katakana:cho',
+    explanation: 'チョ se lit cho : petit ョ transforme la syllabe.',
+  },
+  {
+    id: 'apt-2-orth-b',
+    level: 2,
+    domain: 'orthographe',
+    prompt: 'Choisis l ecriture correcte de "ryokou".',
+    display: 'ryokou',
+    choices: ['りょこう', 'りよこう', 'りょこお', 'りおこう'],
+    answer: 'りょこう',
+    skill: 'orthographe:kana:ryokou',
+    explanation: 'ryo demande un petit ょ : りょ. La fin longue est こう.',
+  },
+  {
+    id: 'apt-2-kanji-b',
+    level: 2,
+    domain: 'kanji',
+    prompt: 'Quel mot japonais correspond au kanji ?',
+    display: '水',
+    choices: ['みず', 'ひ', 'あめ', 'かね'],
+    answer: 'みず',
+    skill: 'kanji:n5:mizu',
+    explanation: '水 signifie eau et se lit みず dans le mot courant.',
+  },
+  {
+    id: 'apt-2-grammar-b',
+    level: 2,
+    domain: 'grammaire',
+    prompt: 'Choisis la forme negative polie correcte.',
+    display: 'いきます -> ?',
+    choices: ['いきません', 'いきました', 'いって', 'いくないです'],
+    answer: 'いきません',
+    skill: 'grammar:polite_negative',
+    explanation: 'La forme negative polie de いきます est いきません.',
+  },
+  {
+    id: 'apt-3-vocab-b',
+    level: 3,
+    domain: 'vocabulaire',
+    prompt: 'Quel choix correspond au sens inverse de "preter" ?',
+    display: 'preter',
+    choices: ['借りる', '貸す', '聞く', '出る'],
+    answer: '借りる',
+    skill: 'vocabulary:n5:borrow_lend_contrast',
+    explanation: 'Face a 貸す = preter, le mouvement inverse est 借りる = emprunter.',
+  },
+  {
+    id: 'apt-3-kanji-b',
+    level: 3,
+    domain: 'kanji',
+    prompt: 'Dans ce mot, quel sens porte le kanji 新 ?',
+    display: '新しい',
+    choices: ['nouveau', 'ancien', 'grand', 'rapide'],
+    answer: 'nouveau',
+    skill: 'kanji:n5:atarashii',
+    explanation: '新しい signifie nouveau. Le kanji 新 porte l idee de nouveaute.',
+  },
+  {
+    id: 'apt-3-grammar-b',
+    level: 3,
+    domain: 'grammaire',
+    prompt: 'Quelle nuance exprime la structure ?',
+    display: 'コーヒーをのみながら、べんきょうします。',
+    choices: ['deux actions en meme temps', 'interdiction', 'ordre', 'comparaison'],
+    answer: 'deux actions en meme temps',
+    skill: 'grammar:nagara',
+    explanation: 'ながら indique deux actions simultanees : etudier en buvant un cafe.',
+  },
+  {
+    id: 'apt-3-comp-b',
+    level: 3,
+    domain: 'comprehension',
+    prompt: 'Quel sens global est le plus precis ?',
+    display: 'この本はすこし難しいですが、おもしろいです。',
+    choices: [
+      'Ce livre est un peu difficile, mais interessant.',
+      'Ce livre est facile et court.',
+      'Je n aime pas ce livre.',
+      'Je vais acheter ce livre demain.',
+    ],
+    answer: 'Ce livre est un peu difficile, mais interessant.',
+    skill: 'comprehension:contrast_sentence',
+    explanation: 'が relie ici deux idees opposees : difficile, mais interessant.',
   },
 ];
 
@@ -1027,12 +1165,21 @@ function AptitudeTestPanel({ db }: { db: SQLiteDatabase }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [finished, setFinished] = useState(false);
+  const [resultSaved, setResultSaved] = useState(false);
   const questions = APTITUDE_QUESTIONS;
   const current = questions[currentIndex];
   const answeredCount = Object.keys(answers).length;
   const progress = Math.round((answeredCount / questions.length) * 100);
 
   const report = useMemo(() => buildAptitudeReport(questions, answers), [answers, questions]);
+
+  useEffect(() => {
+    if (!finished || resultSaved || answeredCount < questions.length) return;
+    setResultSaved(true);
+    saveAptitudeResult(db, answers, report).catch((error) => {
+      console.error('Unable to save aptitude result', error);
+    });
+  }, [answeredCount, answers, db, finished, questions.length, report, resultSaved]);
 
   const answer = async (choice: string) => {
     if (!current || answers[current.id]) return;
@@ -1077,6 +1224,7 @@ function AptitudeTestPanel({ db }: { db: SQLiteDatabase }) {
     setCurrentIndex(0);
     setAnswers({});
     setFinished(false);
+    setResultSaved(false);
   };
 
   if (!started) {

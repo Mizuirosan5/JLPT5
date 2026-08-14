@@ -75,8 +75,8 @@ Cette roadmap 1 mois est une version priorisee du cahier technique V2. Elle ne s
 - [ ] `services/srsQueue.ts`
 - [x] `app_error_flashcard`
 - [x] `services/errorFlashcards.ts`
-- [ ] `app_aptitude_result`
-- [ ] `services/aptitudeTest.ts`
+- [x] `app_aptitude_result`
+- [x] `services/aptitudeTest.ts`
 
 ### A utiliser si deja present
 
@@ -346,22 +346,22 @@ Mesurer le niveau utilisateur et recommander un parcours.
 
 ### Fonctionnalites
 
-- [ ] Banque diagnostic locale 30 a 45 questions.
-- [ ] Tags : kana, vocabulaire, kanji, grammaire, comprehension.
-- [ ] 3 niveaux de difficulte.
-- [ ] Service `aptitudeTest.ts`.
+- [x] Banque diagnostic locale 30 a 45 questions.
+- [x] Tags : kana, vocabulaire, kanji, grammaire, comprehension.
+- [x] 3 niveaux de difficulte.
+- [x] Service `aptitudeTest.ts`.
 - [ ] Ecran `AptitudeTestScreen`.
-- [ ] Score global.
-- [ ] Scores par domaine.
-- [ ] Rapport forces/faiblesses.
-- [ ] Recommandation de module.
-- [ ] Sauvegarde locale.
+- [x] Score global.
+- [x] Scores par domaine.
+- [x] Rapport forces/faiblesses.
+- [x] Recommandation de module.
+- [x] Sauvegarde locale.
 
 ### Criteres d'acceptation
 
-- [ ] Le rapport donne des actions concretes.
-- [ ] Le parcours recommande est coherent.
-- [ ] Le test fonctionne offline.
+- [x] Le rapport donne des actions concretes.
+- [x] Le parcours recommande est coherent.
+- [x] Le test fonctionne offline.
 
 ## Chantier 8 - Parcours personnalisable MVP
 
@@ -390,7 +390,7 @@ Adapter les objectifs a la maniere d'apprendre de l'utilisateur.
 - [x] Export web OK.
 - [x] Diff-check OK.
 - [ ] Test mobile complet OK.
-- [ ] Cahier des charges coche.
+- [x] Cahier des charges coche.
 - [ ] Commit.
 
 ---
