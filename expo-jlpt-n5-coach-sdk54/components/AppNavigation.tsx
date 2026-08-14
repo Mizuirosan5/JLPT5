@@ -21,6 +21,8 @@ const NAV_GROUPS: Array<{
     items: [
       { screen: 'dashboard', icon: '数', label: 'Stats', description: 'Scores, progression et points faibles.' },
       { screen: 'path', icon: '道', label: 'Parcours guide', description: 'Etapes conseillees pour avancer.' },
+      { screen: 'aptitudeTest', icon: 'DIA', label: 'Diagnostic', description: 'Test initial en trois niveaux.' },
+      { screen: 'aptitudeReport', icon: 'REP', label: 'Rapport', description: 'Forces, faiblesses et modules recommandes.' },
       { screen: 'review', icon: '記', label: 'Revisions', description: 'File SRS du jour et notions a revoir.' },
       { screen: 'errors', icon: 'ERR', label: 'Mes erreurs', description: 'Cartes creees depuis les mauvaises reponses.' },
     ],
@@ -67,7 +69,14 @@ const ALL_MENU_GROUP: {
 };
 
 function getActiveGroup(screen: Screen): NavGroupId {
-  if (screen === 'dashboard' || screen === 'path' || screen === 'review' || screen === 'errors') return 'path';
+  if (
+    screen === 'dashboard' ||
+    screen === 'path' ||
+    screen === 'aptitudeTest' ||
+    screen === 'aptitudeReport' ||
+    screen === 'review' ||
+    screen === 'errors'
+  ) return 'path';
   if (screen === 'kana' || screen === 'vocabulary' || screen === 'grammar') return 'learn';
   if (screen === 'quiz' || screen === 'exam' || screen === 'quick') return 'quiz';
   return 'path';

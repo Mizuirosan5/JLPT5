@@ -11,7 +11,7 @@ import {
   loadGrammarProgressSummary,
 } from '../services/grammarProgress';
 import { buildLearningPathStages } from '../services/learningPath';
-import { saveAptitudeResult } from '../services/aptitudeTest';
+import { loadLatestAptitudeResult, saveAptitudeResult, type AptitudeResultSnapshot } from '../services/aptitudeTest';
 import {
   ensureDailyGoalPlan,
   loadDashboardGoalData,
@@ -72,6 +72,7 @@ type RewardPathState = {
   streakDays: number;
   unlockedBadgeCount: number;
   srsOverview: SrsOverview;
+  aptitudeResult: AptitudeResultSnapshot | null;
 };
 
 type PathPanel = 'progress' | 'rewards';
@@ -645,6 +646,7 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
           .slice()
           .sort((a, b) => b.review - a.review || b.unseen - a.unseen || b.total - b.mastered - (a.total - a.mastered))[0] ??
         null;
+      const aptitudeResult = await loadLatestAptitudeResult(db);
       setRewardState({
         quizSummary: quizData.summary,
         quests: buildQuests(goalData.today, goalData.todayDefinitions),
@@ -658,6 +660,7 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
         rewardSummary: goalData.rewardSummary,
         badges,
         recommendedDomain,
+        aptitudeResult,
         srsOverview: await loadSrsOverview(db),
         ...levelProgress,
         streakDays,
@@ -889,6 +892,28 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
             <Text style={styles.pathStageCount}>
               Sous-etapes validees : {doneSubStepCount}/{totalSubStepCount}
             </Text>
+          </View>
+        </View>
+      )}
+
+      {pathPanel === 'progress' && rewardState?.aptitudeResult && (
+        <View style={styles.pathNextCard}>
+          <Text style={styles.pathNextLabel}>Priorite diagnostic</Text>
+          <Text style={styles.pathNextTitle}>
+            {formatAptitudeDomainLabel(rewardState.aptitudeResult.weakestDomain)}
+          </Text>
+          <Text style={styles.pathNextText}>
+            Dernier test : {rewardState.aptitudeResult.globalLabel}. Le domaine le plus fragile est conseille en
+            premier pour rendre le parcours plus efficace.
+          </Text>
+          <View style={styles.pathProgressTrack}>
+            <View style={[styles.pathProgressFill, { width: `${Math.max(0, 100 - rewardState.aptitudeResult.score)}%` }]} />
+          </View>
+          <View style={styles.pathNextFooter}>
+            <Text style={styles.pathReward}>Module : {rewardState.aptitudeResult.recommendedModule || 'Reviser les bases'}</Text>
+            <Pressable style={styles.pathActionButton} onPress={() => onNavigate(getAptitudeDomainScreen(rewardState.aptitudeResult?.weakestDomain))}>
+              <Text style={styles.pathActionText}>Ouvrir</Text>
+            </Pressable>
           </View>
         </View>
       )}
@@ -1160,7 +1185,7 @@ function getPathStatusStyle(status: LearningPathStage['status']) {
   return styles.pathStageStatus_locked;
 }
 
-function AptitudeTestPanel({ db }: { db: SQLiteDatabase }) {
+export function AptitudeTestPanel({ db, onFinished }: { db: SQLiteDatabase; onFinished?: () => void }) {
   const [started, setStarted] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -1176,10 +1201,12 @@ function AptitudeTestPanel({ db }: { db: SQLiteDatabase }) {
   useEffect(() => {
     if (!finished || resultSaved || answeredCount < questions.length) return;
     setResultSaved(true);
-    saveAptitudeResult(db, answers, report).catch((error) => {
-      console.error('Unable to save aptitude result', error);
-    });
-  }, [answeredCount, answers, db, finished, questions.length, report, resultSaved]);
+    saveAptitudeResult(db, answers, report)
+      .then(() => onFinished?.())
+      .catch((error) => {
+        console.error('Unable to save aptitude result', error);
+      });
+  }, [answeredCount, answers, db, finished, onFinished, questions.length, report, resultSaved]);
 
   const answer = async (choice: string) => {
     if (!current || answers[current.id]) return;
@@ -1487,6 +1514,23 @@ function buildAptitudeReport(questions: AptitudeQuestion[], answers: Record<stri
     sevenDayPlan,
     thirtyDayPlan,
   };
+}
+
+function formatAptitudeDomainLabel(domain: string | undefined): string {
+  if (domain === 'kana') return 'Kana';
+  if (domain === 'orthographe') return 'Orthographe kana';
+  if (domain === 'vocabulaire') return 'Vocabulaire';
+  if (domain === 'kanji') return 'Kanji';
+  if (domain === 'grammaire') return 'Grammaire';
+  if (domain === 'comprehension') return 'Comprehension';
+  return 'Diagnostic';
+}
+
+function getAptitudeDomainScreen(domain: string | undefined): Screen {
+  if (domain === 'kana' || domain === 'orthographe') return 'kana';
+  if (domain === 'vocabulaire' || domain === 'kanji') return 'vocabulary';
+  if (domain === 'grammaire' || domain === 'comprehension') return 'grammar';
+  return 'aptitudeReport';
 }
 
 function formatAptitudeDomain(domain: AptitudeDomain): string {

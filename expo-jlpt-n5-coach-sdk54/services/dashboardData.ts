@@ -12,6 +12,7 @@ import type {
   RewardSummary,
   RewardToast,
   SkillProgress,
+  LearningPlanMode,
 } from '../models';
 import {
   addDays,
@@ -25,6 +26,7 @@ import {
   type GoalDefinition,
 } from './goals';
 import { buildGrammarMasteryDomain } from './grammarProgress';
+import { loadLearningPreferences } from './preferences';
 
 export type DashboardOverviewData = {
   stats: DashboardStats;
@@ -123,9 +125,11 @@ type DailyGoalProfile = {
   totalAttempts: number;
   activeDays: number;
   weakDomain: string;
+  learningPlanMode: LearningPlanMode;
 };
 
 async function loadDailyGoalProfile(db: SQLiteDatabase): Promise<DailyGoalProfile> {
+  const preferences = await loadLearningPreferences(db);
   const stats = await db.getFirstAsync<{
     attempts: number;
     correct: number | null;
@@ -162,6 +166,7 @@ async function loadDailyGoalProfile(db: SQLiteDatabase): Promise<DailyGoalProfil
     totalAttempts,
     activeDays,
     weakDomain: inferWeakDomain(weakSkill?.skill_id),
+    learningPlanMode: preferences.learningPlanMode,
   };
 }
 
@@ -223,7 +228,7 @@ function buildAdaptiveDailyGoals(day: string, dayIndex: number, profile: DailyGo
   const difficulty = Math.max(1, Math.min(5, Math.floor((profile.level - 1) / 12) + 1));
   const wave = dayIndex % 7;
   const longWave = dayIndex % 30;
-  const domain = pickDailyDomain(profile.weakDomain, dayIndex);
+  const domain = pickDailyDomain(profile.weakDomain, profile.learningPlanMode, dayIndex);
   const questionTarget = 10 + difficulty * 4 + (wave % 3) * 2 + Math.floor(dayIndex / 30);
   const precisionTarget = Math.min(94, 68 + difficulty * 4 + (profile.accuracy >= 80 ? 4 : 0) + (longWave % 4));
   const minimumPrecisionAnswers = 8 + difficulty * 2;
@@ -283,8 +288,14 @@ function buildAdaptiveDailyGoals(day: string, dayIndex: number, profile: DailyGo
   ];
 }
 
-function pickDailyDomain(weakDomain: string, dayIndex: number): string {
-  const rotation = [weakDomain, 'kana', 'vocabulaire', 'grammaire', 'kanji', 'comprehension', 'JLPT mixte'];
+function pickDailyDomain(weakDomain: string, learningPlanMode: LearningPlanMode, dayIndex: number): string {
+  const rotations: Record<LearningPlanMode, string[]> = {
+    balanced: [weakDomain, 'kana', 'vocabulaire', 'grammaire', 'kanji', 'comprehension', 'JLPT mixte'],
+    kana_first: ['kana', 'orthographe kana', weakDomain, 'kana', 'vocabulaire', 'kana', 'comprehension'],
+    grammar_intensive: ['grammaire', weakDomain, 'particules', 'phrases N5', 'grammaire', 'comprehension', 'vocabulaire'],
+    exam_revision: ['JLPT mixte', 'comprehension', weakDomain, 'kanji', 'grammaire', 'vocabulaire', 'test blanc'],
+  };
+  const rotation = rotations[learningPlanMode];
   return rotation[dayIndex % rotation.length] ?? weakDomain;
 }
 

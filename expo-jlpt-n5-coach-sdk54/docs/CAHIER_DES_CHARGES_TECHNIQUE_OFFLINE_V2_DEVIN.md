@@ -981,10 +981,10 @@ Test unique avec 3 niveaux de difficulte et rapport local.
 - [x] Creer `services/aptitudeTest.ts`.
 - [x] Creer moteur de scoring.
 - [x] Creer rapport local.
-- [ ] Creer `AptitudeTestScreen`.
-- [ ] Creer `AptitudeReportScreen`.
+- [x] Creer `AptitudeTestScreen`.
+- [x] Creer `AptitudeReportScreen`.
 - [x] Stocker resultat dans SQLite.
-- [ ] Connecter recommandations au parcours.
+- [x] Connecter recommandations au parcours.
 - [x] Ajouter bouton refaire test.
 - [ ] Verifier rapport mobile.
 - [x] Lancer validations obligatoires.
@@ -1022,15 +1022,15 @@ Parcours locaux selon objectif utilisateur.
 
 ### Implementation
 
-- [ ] Ajouter preference `learning_plan_mode`.
-- [ ] Creer modes de parcours.
-- [ ] Modifier generation objectifs quotidiens.
-- [ ] Modifier recommandations learning path.
-- [ ] Ajouter explication "pourquoi ce module".
-- [ ] Ajouter ecran choix de parcours.
-- [ ] Garantir que la progression existante reste conservee.
-- [ ] Tester changement de mode.
-- [ ] Lancer validations obligatoires.
+- [x] Ajouter preference `learning_plan_mode`.
+- [x] Creer modes de parcours.
+- [x] Modifier generation objectifs quotidiens.
+- [x] Modifier recommandations learning path.
+- [x] Ajouter explication "pourquoi ce module".
+- [x] Ajouter ecran choix de parcours.
+- [x] Garantir que la progression existante reste conservee.
+- [x] Tester changement de mode.
+- [x] Lancer validations obligatoires.
 
 ### Tests
 

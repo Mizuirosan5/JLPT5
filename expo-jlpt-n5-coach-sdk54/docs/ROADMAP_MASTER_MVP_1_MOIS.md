@@ -102,8 +102,8 @@ Cette roadmap 1 mois est une version priorisee du cahier technique V2. Elle ne s
 - [x] `SmartCorrectionPanel`
 - [x] `FlashcardFromErrorButton`
 - [x] vue "Mes erreurs"
-- [ ] `AptitudeTestScreen`
-- [ ] `AptitudeReportScreen`
+- [x] `AptitudeTestScreen`
+- [x] `AptitudeReportScreen`
 
 ### Bonus si quota restant
 
@@ -350,7 +350,7 @@ Mesurer le niveau utilisateur et recommander un parcours.
 - [x] Tags : kana, vocabulaire, kanji, grammaire, comprehension.
 - [x] 3 niveaux de difficulte.
 - [x] Service `aptitudeTest.ts`.
-- [ ] Ecran `AptitudeTestScreen`.
+- [x] Ecran `AptitudeTestScreen`.
 - [x] Score global.
 - [x] Scores par domaine.
 - [x] Rapport forces/faiblesses.
@@ -371,17 +371,17 @@ Adapter les objectifs a la maniere d'apprendre de l'utilisateur.
 
 ### Fonctionnalites
 
-- [ ] Modes : equilibre, kana d'abord, grammaire intensive, revision examen.
-- [ ] Preference `learning_plan_mode`.
-- [ ] Objectifs quotidiens adaptes.
-- [ ] Module recommande affiche.
-- [ ] Explication "pourquoi ce module".
+- [x] Modes : equilibre, kana d'abord, grammaire intensive, revision examen.
+- [x] Preference `learning_plan_mode`.
+- [x] Objectifs quotidiens adaptes.
+- [x] Module recommande affiche.
+- [x] Explication "pourquoi ce module".
 
 ### Criteres d'acceptation
 
-- [ ] Changer de mode modifie les objectifs futurs.
-- [ ] La progression existante n'est pas perdue.
-- [ ] L'utilisateur comprend pourquoi ce parcours est propose.
+- [x] Changer de mode modifie les objectifs futurs.
+- [x] La progression existante n'est pas perdue.
+- [x] L'utilisateur comprend pourquoi ce parcours est propose.
 
 ## Validation semaine 4
 
@@ -391,7 +391,7 @@ Adapter les objectifs a la maniere d'apprendre de l'utilisateur.
 - [x] Diff-check OK.
 - [ ] Test mobile complet OK.
 - [x] Cahier des charges coche.
-- [ ] Commit.
+- [x] Commit.
 
 ---
 

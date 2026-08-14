@@ -5,6 +5,8 @@ import { SafeAreaView, Text, View } from 'react-native';
 import { styles } from './appStyles';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { AppNavigation } from './components/AppNavigation';
+import { AptitudeReportScreen } from './components/AptitudeReportScreen';
+import { AptitudeTestScreen } from './components/AptitudeTestScreen';
 import { DashboardScreen } from './components/DashboardScreen';
 import { ExamScreen } from './components/ExamScreen';
 import { ErrorFlashcardsScreen } from './components/ErrorFlashcardsScreen';
@@ -20,7 +22,6 @@ import { HeaderJapanScene } from './components/shellUi';
 import { initializeDatabase } from './services/database';
 import type { Screen } from './models';
 type NavGroupId = 'all' | 'path' | 'learn' | 'quiz' | 'settings';
-
 export default function App() {
   return (
     <AppErrorBoundary>
@@ -43,7 +44,6 @@ function MainApp() {
   const [drawerGroup, setDrawerGroup] = useState<NavGroupId | null>(null);
   const [childCanGoBack, setChildCanGoBack] = useState(false);
   const [childBackSignal, setChildBackSignal] = useState(0);
-
   function navigateTo(nextScreen: Screen) {
     setScreen((currentScreen) => {
       if (currentScreen === nextScreen) return currentScreen;
@@ -52,11 +52,9 @@ function MainApp() {
     });
     setDrawerGroup(null);
   }
-
   useEffect(() => {
     if (screen !== 'quiz') setChildCanGoBack(false);
   }, [screen]);
-
   function goBack() {
     if (drawerGroup) {
       setDrawerGroup(null);
@@ -72,9 +70,7 @@ function MainApp() {
       return history.slice(0, -1);
     });
   }
-
   const canGoBack = !!drawerGroup || childCanGoBack || screenHistory.length > 0 || screen !== 'dashboard';
-
   return (
     <SafeAreaView style={styles.app}>
       <StatusBar style="dark" />
@@ -90,10 +86,11 @@ function MainApp() {
           <Text style={styles.headerBadgeCaption}>mobile</Text>
         </View>
       </View>
-
       <View style={styles.screenStage}>
         {screen === 'dashboard' && <DashboardScreen onNavigate={navigateTo} />}
         {screen === 'path' && <LearningPathScreen onNavigate={navigateTo} />}
+        {screen === 'aptitudeTest' && <AptitudeTestScreen onNavigate={navigateTo} />}
+        {screen === 'aptitudeReport' && <AptitudeReportScreen onNavigate={navigateTo} />}
         {screen === 'review' && <ReviewQueueScreen />}
         {screen === 'errors' && <ErrorFlashcardsScreen />}
         {screen === 'kana' && <KanaScreen />}
@@ -104,7 +101,6 @@ function MainApp() {
         {screen === 'quiz' && <QuizScreen backSignal={childBackSignal} onBackStateChange={setChildCanGoBack} />}
         {screen === 'exam' && <ExamScreen />}
       </View>
-
       <AppNavigation
         drawerGroup={drawerGroup}
         canGoBack={canGoBack}

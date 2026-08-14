@@ -3,6 +3,8 @@
 export type Screen =
   | 'dashboard'
   | 'path'
+  | 'aptitudeTest'
+  | 'aptitudeReport'
   | 'review'
   | 'errors'
   | 'kana'
