@@ -197,14 +197,16 @@ export async function initializeDatabase(db: SQLiteDatabase) {
       `
       INSERT OR IGNORE INTO app_audio_asset (
         id, category, japanese, kana, romaji, meaning_fr, asset_kind, asset_path, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, 'tts_local', NULL, datetime('now'))
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       `,
       item.id,
       item.category,
       item.japanese,
       item.kana,
       item.romaji ?? null,
-      item.meaningFr
+      item.meaningFr,
+      item.assetKind ?? 'tts_local',
+      item.assetPath ?? null
     );
   }
 }

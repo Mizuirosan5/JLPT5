@@ -470,6 +470,8 @@ export type AudioPackItem = {
   romaji?: string | null;
   meaningFr: string;
   promptFr: string;
+  assetPath?: string | null;
+  assetKind?: 'embedded_file' | 'tts_local';
 };
 
 export type AudioQuizMode = 'listen_meaning' | 'listen_japanese';

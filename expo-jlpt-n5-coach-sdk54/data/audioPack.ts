@@ -1,6 +1,12 @@
 import type { AudioPackItem } from '../models';
 
-export const CORE_AUDIO_PACK: AudioPackItem[] = [
+const withCoreAsset = (item: Omit<AudioPackItem, 'assetKind' | 'assetPath'>): AudioPackItem => ({
+  ...item,
+  assetKind: 'embedded_file',
+  assetPath: `assets/audio/n5_core/${item.id}.wav`,
+});
+
+const CORE_AUDIO_PACK_SOURCE: Array<Omit<AudioPackItem, 'assetKind' | 'assetPath'>> = [
   { id: 'greeting-ohayou', category: 'greeting', japanese: 'おはようございます。', kana: 'おはようございます。', romaji: 'ohayou gozaimasu', meaningFr: 'Bonjour le matin.', promptFr: 'Salutation du matin' },
   { id: 'greeting-konnichiwa', category: 'greeting', japanese: 'こんにちは。', kana: 'こんにちは。', romaji: 'konnichiwa', meaningFr: 'Bonjour.', promptFr: 'Salutation de jour' },
   { id: 'greeting-konbanwa', category: 'greeting', japanese: 'こんばんは。', kana: 'こんばんは。', romaji: 'konbanwa', meaningFr: 'Bonsoir.', promptFr: 'Salutation du soir' },
@@ -46,3 +52,5 @@ export const CORE_AUDIO_PACK: AudioPackItem[] = [
   { id: 'daily-price', category: 'daily', japanese: '五百円です。', kana: 'ごひゃくえんです。', romaji: 'gohyaku en desu', meaningFr: 'C’est 500 yens.', promptFr: 'Prix' },
   { id: 'daily-request', category: 'daily', japanese: 'これをください。', kana: 'これをください。', romaji: 'kore o kudasai', meaningFr: 'Je prends ceci, s’il vous plaît.', promptFr: 'Demander un objet' },
 ];
+
+export const CORE_AUDIO_PACK: AudioPackItem[] = CORE_AUDIO_PACK_SOURCE.map(withCoreAsset);

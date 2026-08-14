@@ -26,6 +26,7 @@ export function buildEmbeddedAudioPack(vocabulary: WordLookupEntry[] = []): Audi
       romaji: item.romaji,
       meaningFr: item.meaning_fr,
       promptFr: `Mot N5 : ${item.meaning_fr}`,
+      assetKind: 'tts_local',
     }));
 
   const grammarItems = ALL_GRAMMAR_LESSONS.flatMap((lesson) =>
@@ -37,6 +38,7 @@ export function buildEmbeddedAudioPack(vocabulary: WordLookupEntry[] = []): Audi
       romaji: example.romaji,
       meaningFr: example.fr,
       promptFr: `Phrase de grammaire : ${lesson.title}`,
+      assetKind: 'tts_local',
     }))
   ).slice(0, MAX_DYNAMIC_GRAMMAR);
 
@@ -48,6 +50,7 @@ export function buildEmbeddedAudioPack(vocabulary: WordLookupEntry[] = []): Audi
       kana: line.kana,
       meaningFr: line.translationFr,
       promptFr: `Dialogue : ${story.title}`,
+      assetKind: 'tts_local',
     }))
   ).slice(0, MAX_DYNAMIC_STORIES);
 
@@ -58,6 +61,7 @@ export function buildEmbeddedAudioPack(vocabulary: WordLookupEntry[] = []): Audi
     kana: text.kana,
     meaningFr: text.translationFr,
     promptFr: `Ecoute en contexte : ${text.title}`,
+    assetKind: 'tts_local',
   })).slice(0, MAX_DYNAMIC_IMMERSION);
 
   return dedupeAudioItems([
