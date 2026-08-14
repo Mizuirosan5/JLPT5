@@ -1109,16 +1109,16 @@ Journal d'ecriture avec prompts N5 et controles locaux.
 
 ### Implementation
 
-- [ ] Creer table journal locale.
-- [ ] Creer type `WritingPrompt`.
+- [x] Creer table journal locale.
+- [x] Creer type `WritingPrompt`.
 - [ ] Ajouter 100 prompts N5.
-- [ ] Creer `WritingJournalScreen`.
-- [ ] Sauvegarder phrase utilisateur.
-- [ ] Ajouter detection mots inconnus.
-- [ ] Ajouter detection particules simples.
-- [ ] Ajouter suggestions locales.
-- [ ] Ajouter historique.
-- [ ] Ajouter acces menu Apprendre ou Parcours.
+- [x] Creer `WritingJournalScreen`.
+- [x] Sauvegarder phrase utilisateur.
+- [x] Ajouter detection mots inconnus.
+- [x] Ajouter detection particules simples.
+- [x] Ajouter suggestions locales.
+- [x] Ajouter historique.
+- [x] Ajouter acces menu Apprendre ou Parcours.
 - [ ] Lancer validations obligatoires.
 
 ### Tests

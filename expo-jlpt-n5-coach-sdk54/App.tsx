@@ -20,6 +20,7 @@ import { QuickSessionScreen } from './components/QuickSessionScreen';
 import { QuizScreen } from './components/QuizScreen';
 import { ReviewQueueScreen } from './components/ReviewQueueScreen';
 import { VocabularyScreen } from './components/VocabularyScreen';
+import { WritingJournalScreen } from './components/WritingJournalScreen';
 import { HeaderJapanScene } from './components/shellUi';
 import { initializeDatabase } from './services/database';
 import type { Screen } from './models';
@@ -100,8 +101,7 @@ function MainApp() {
         {screen === 'vocabulary' && <VocabularyScreen />}
         {screen === 'grammar' && <GrammarLessonsScreen />}
         {screen === 'immersion' && <ImmersionReaderScreen />}
-        {screen === 'preferences' && <LearningPreferencesScreen />}
-        {screen === 'quick' && <QuickSessionScreen />}
+        {screen === 'writing' && <WritingJournalScreen />}{screen === 'preferences' && <LearningPreferencesScreen />}{screen === 'quick' && <QuickSessionScreen />}
         {screen === 'quiz' && <QuizScreen backSignal={childBackSignal} onBackStateChange={setChildCanGoBack} />}
         {screen === 'exam' && <ExamScreen />}
       </View>

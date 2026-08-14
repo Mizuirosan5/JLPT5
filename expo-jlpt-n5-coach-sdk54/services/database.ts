@@ -165,5 +165,17 @@ export async function initializeDatabase(db: SQLiteDatabase) {
       exercise_correct INTEGER NOT NULL DEFAULT 0,
       updated_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS app_writing_journal_entry (
+      id TEXT PRIMARY KEY,
+      prompt_id TEXT NOT NULL,
+      prompt_title TEXT NOT NULL,
+      prompt_fr TEXT NOT NULL,
+      user_text TEXT NOT NULL,
+      detected_words_json TEXT NOT NULL,
+      suggestions_json TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
   `);
 }

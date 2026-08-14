@@ -115,7 +115,7 @@ Cette roadmap 1 mois est une version priorisee du cahier technique V2. Elle ne s
 ### Reporte apres 1 mois
 
 - [ ] `StoryLessonScreen`
-- [ ] `WritingJournalScreen`
+- [x] `WritingJournalScreen`
 - [ ] `OfflineAudioButton`
 - [ ] `GrammarLessonDetailScreen` complet
 
