@@ -925,18 +925,18 @@ Lecteur de textes N5 prepares, entierement locaux.
 
 ### Implementation
 
-- [ ] Creer type `ImmersionText`.
-- [ ] Creer `data/immersionTexts.ts`.
+- [x] Creer type `ImmersionText`.
+- [x] Creer `data/immersionTexts.ts`.
 - [ ] Ajouter 10 textes N5 tokenises.
-- [ ] Creer `ImmersionReaderScreen`.
-- [ ] Utiliser `JapaneseLookupText`.
-- [ ] Ajouter traduction masquable.
-- [ ] Ajouter questions comprehension.
-- [ ] Ajouter progression locale.
-- [ ] Ajouter bouton ajout SRS.
-- [ ] Ajouter acces menu Apprendre.
+- [x] Creer `ImmersionReaderScreen`.
+- [x] Utiliser `JapaneseLookupText`.
+- [x] Ajouter traduction masquable.
+- [x] Ajouter questions comprehension.
+- [x] Ajouter progression locale.
+- [x] Ajouter bouton ajout SRS.
+- [x] Ajouter acces menu Apprendre.
 - [ ] Verifier tous les tokens MVP.
-- [ ] Lancer validations obligatoires.
+- [x] Lancer validations obligatoires.
 
 ### Tests
 

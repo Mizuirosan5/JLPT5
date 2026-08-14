@@ -87,7 +87,7 @@ Cette roadmap 1 mois est une version priorisee du cahier technique V2. Elle ne s
 
 ### Reporte ou bonus
 
-- [ ] `app_content_progress` pour immersion/stories si bonus.
+- [x] `app_content_progress` pour immersion/stories si bonus.
 - [ ] `app_local_league_season` si ligues locales bonus.
 - [ ] service audio local reporte.
 - [ ] journal d'ecriture reporte.
@@ -108,7 +108,7 @@ Cette roadmap 1 mois est une version priorisee du cahier technique V2. Elle ne s
 ### Bonus si quota restant
 
 - [ ] `KanjiDetailScreen`
-- [ ] `ImmersionReaderScreen`
+- [x] `ImmersionReaderScreen`
 - [ ] `LocalLeagueCard`
 - [ ] `ExerciseFormatSwitcher`
 
@@ -415,10 +415,10 @@ Adapter les objectifs a la maniere d'apprendre de l'utilisateur.
 
 ## Bonus C - Immersion texte petit lot
 
-- [ ] 5 textes N5 courts.
-- [ ] Tokens cliquables.
-- [ ] Traduction masquable.
-- [ ] Questions comprehension.
+- [x] 5 textes N5 courts.
+- [x] Tokens cliquables.
+- [x] Traduction masquable.
+- [x] Questions comprehension.
 
 ## Bonus D - Ligues locales simples
 

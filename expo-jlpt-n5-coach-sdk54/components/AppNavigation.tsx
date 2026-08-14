@@ -36,6 +36,7 @@ const NAV_GROUPS: Array<{
       { screen: 'kana', icon: '仮', label: 'Kana', description: 'Hiragana, katakana, cartes et trace.' },
       { screen: 'vocabulary', icon: '語', label: 'Vocabulaire', description: 'Mots, kanji et lectures utiles.' },
       { screen: 'grammar', icon: '文', label: 'Grammaire', description: 'Lecons, exemples et exercices.' },
+      { screen: 'immersion', icon: '読', label: 'Immersion', description: 'Textes N5 cliquables et comprehension.' },
     ],
   },
   {
@@ -77,7 +78,7 @@ function getActiveGroup(screen: Screen): NavGroupId {
     screen === 'review' ||
     screen === 'errors'
   ) return 'path';
-  if (screen === 'kana' || screen === 'vocabulary' || screen === 'grammar') return 'learn';
+  if (screen === 'kana' || screen === 'vocabulary' || screen === 'grammar' || screen === 'immersion') return 'learn';
   if (screen === 'quiz' || screen === 'exam' || screen === 'quick') return 'quiz';
   return 'path';
 }

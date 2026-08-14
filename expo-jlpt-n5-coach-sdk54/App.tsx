@@ -11,6 +11,7 @@ import { DashboardScreen } from './components/DashboardScreen';
 import { ExamScreen } from './components/ExamScreen';
 import { ErrorFlashcardsScreen } from './components/ErrorFlashcardsScreen';
 import { GrammarLessonsScreen } from './components/GrammarLessonsScreen';
+import { ImmersionReaderScreen } from './components/ImmersionReaderScreen';
 import { KanaScreen } from './components/KanaScreen';
 import { LearningPathScreen } from './components/LearningPathScreen';
 import { LearningPreferencesScreen } from './components/LearningPreferencesScreen';
@@ -96,6 +97,7 @@ function MainApp() {
         {screen === 'kana' && <KanaScreen />}
         {screen === 'vocabulary' && <VocabularyScreen />}
         {screen === 'grammar' && <GrammarLessonsScreen />}
+        {screen === 'immersion' && <ImmersionReaderScreen />}
         {screen === 'preferences' && <LearningPreferencesScreen />}
         {screen === 'quick' && <QuickSessionScreen />}
         {screen === 'quiz' && <QuizScreen backSignal={childBackSignal} onBackStateChange={setChildCanGoBack} />}

@@ -10,6 +10,7 @@ export type Screen =
   | 'kana'
   | 'vocabulary'
   | 'grammar'
+  | 'immersion'
   | 'quiz'
   | 'exam'
   | 'quick'

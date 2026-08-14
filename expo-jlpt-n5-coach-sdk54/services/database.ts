@@ -134,6 +134,17 @@ export async function initializeDatabase(db: SQLiteDatabase) {
       created_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS app_content_progress (
+      content_id TEXT NOT NULL,
+      content_type TEXT NOT NULL,
+      opened_count INTEGER NOT NULL DEFAULT 0,
+      completed INTEGER NOT NULL DEFAULT 0,
+      correct_count INTEGER NOT NULL DEFAULT 0,
+      total_count INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL,
+      PRIMARY KEY (content_id, content_type)
+    );
+
     CREATE TABLE IF NOT EXISTS app_grammar_lesson_state (
       lesson_id TEXT PRIMARY KEY,
       opened_count INTEGER NOT NULL DEFAULT 0,
