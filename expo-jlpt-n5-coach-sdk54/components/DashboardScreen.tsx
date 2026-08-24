@@ -501,7 +501,7 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
                 points={quizDailyProgress.map((day) => ({ label: day.day.slice(5), detail: day.day, value: day.rate }))}
                 suffix="%"
                 maxValue={100}
-                color="#186B63"
+                color="#152B3A"
                 xAxisLabel="Date"
                 yAxisLabel="Réussite"
               />
@@ -605,7 +605,7 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
                 points={dailyProgress.map((day) => ({ label: day.day.slice(5), detail: day.day, value: day.rate }))}
                 suffix="%"
                 maxValue={100}
-                color="#186B63"
+                color="#152B3A"
                 xAxisLabel="Date"
                 yAxisLabel="Réussite"
               />

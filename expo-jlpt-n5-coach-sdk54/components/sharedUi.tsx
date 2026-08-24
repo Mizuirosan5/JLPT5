@@ -467,7 +467,7 @@ export function MasteryDomainCard({ domain }: { domain: MasteryDomainStats }) {
       </View>
 
       <View style={styles.masteryLegend}>
-        <MasteryLegendItem color="#186B63" label="Maîtrisé" value={domain.mastered} />
+        <MasteryLegendItem color="#2A7A68" label="Maîtrisé" value={domain.mastered} />
         <MasteryLegendItem color="#5A8DCC" label="Connu" value={domain.known} />
         <MasteryLegendItem color="#B45A46" label="À revoir" value={domain.review} />
         <MasteryLegendItem color="#B7B1A8" label="Jamais vu" value={domain.unseen} />
@@ -608,7 +608,7 @@ export function StatsLineChart({
 export function LoadingView() {
   return (
     <View style={styles.centered}>
-      <ActivityIndicator size="large" color="#186B63" />
+      <ActivityIndicator size="large" color="#152B3A" />
       <Text style={styles.centerText}>Chargement de la base JLPT N5</Text>
     </View>
   );

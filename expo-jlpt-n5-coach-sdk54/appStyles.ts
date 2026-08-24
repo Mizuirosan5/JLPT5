@@ -3,16 +3,16 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   app: {
     flex: 1,
-    backgroundColor: '#FFF6EA',
+    backgroundColor: '#FFF8EF',
     maxWidth: '100%',
     overflow: 'hidden',
     width: '100%',
   },
   header: {
     alignItems: 'center',
-    backgroundColor: '#FFF6EA',
-    borderBottomColor: '#F2C2A3',
-    borderBottomWidth: 1,
+    backgroundColor: '#FFF8EF',
+    borderBottomColor: '#F6C85F',
+    borderBottomWidth: 2,
     flexDirection: 'row',
     justifyContent: 'space-between',
     minHeight: 112,
@@ -24,13 +24,14 @@ export const styles = StyleSheet.create({
   headerScene: {
     bottom: 0,
     left: 0,
-    opacity: 0.42,
+    opacity: 0.34,
     position: 'absolute',
     right: 0,
     top: 0,
   },
   headerTextBlock: {
     flex: 1,
+    paddingRight: 8,
     zIndex: 2,
   },
   kicker: {
@@ -46,12 +47,12 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 0,
     lineHeight: 32,
-    textShadowColor: 'rgba(255, 255, 255, 0.95)',
+    textShadowColor: 'rgba(255, 248, 239, 0.98)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 6,
   },
   headerSubtitle: {
-    color: '#325B67',
+    color: '#405D68',
     fontSize: 12,
     fontWeight: '900',
     marginTop: 3,
@@ -86,18 +87,18 @@ export const styles = StyleSheet.create({
   },
   screenStage: {
     flex: 1,
-    backgroundColor: '#FFF6EA',
+    backgroundColor: '#FFF8EF',
     maxWidth: '100%',
     overflow: 'hidden',
     width: '100%',
   },
   tabs: {
     alignSelf: 'stretch',
-    backgroundColor: '#FFFDFC',
-    borderColor: '#F0D8C4',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E9CFB5',
     bottom: 0,
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
     borderWidth: 1,
     elevation: 10,
     flexDirection: 'row',
@@ -121,8 +122,8 @@ export const styles = StyleSheet.create({
   navGroupButton: {
     alignItems: 'center',
     backgroundColor: '#FFF8EF',
-    borderColor: '#F2E4D4',
-    borderRadius: 12,
+    borderColor: '#E9CFB5',
+    borderRadius: 8,
     borderWidth: 1,
     flexBasis: 0,
     flexGrow: 1,
@@ -165,7 +166,7 @@ export const styles = StyleSheet.create({
   },
   globalBackButton: {
     alignItems: 'center',
-    backgroundColor: '#FFFDFC',
+    backgroundColor: '#FFFDF8',
     borderColor: '#F6C85F',
     borderRadius: 10,
     borderWidth: 1,
@@ -253,7 +254,7 @@ export const styles = StyleSheet.create({
     top: 0,
   },
   sideDrawer: {
-    backgroundColor: '#FFFDFC',
+    backgroundColor: '#FFFDF8',
     borderRightColor: '#E8D1BE',
     borderRightWidth: 1,
     elevation: 18,
@@ -319,7 +320,7 @@ export const styles = StyleSheet.create({
   drawerItem: {
     alignItems: 'center',
     backgroundColor: '#FFF8EF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -419,10 +420,10 @@ export const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   rubricButtonActive: {
-    backgroundColor: '#186B63',
+    backgroundColor: '#152B3A',
   },
   rubricButtonText: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 13,
     fontWeight: '900',
     textAlign: 'center',
@@ -432,7 +433,7 @@ export const styles = StyleSheet.create({
   },
   segmented: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E0D9CD',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -446,10 +447,10 @@ export const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   segmentButtonActive: {
-    backgroundColor: '#186B63',
+    backgroundColor: '#152B3A',
   },
   segmentText: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 13,
     fontWeight: '800',
   },
@@ -461,7 +462,7 @@ export const styles = StyleSheet.create({
     gap: 16,
     padding: 12,
     paddingBottom: 206,
-    backgroundColor: '#FFF6EA',
+    backgroundColor: '#FFF8EF',
     width: '100%',
   },
   vocabularyDeckGrid: {
@@ -484,8 +485,8 @@ export const styles = StyleSheet.create({
   },
   vocabSmartActionButton: {
     alignItems: 'center',
-    backgroundColor: '#FFFDFC',
-    borderColor: '#E5DED3',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flex: 1,
@@ -495,7 +496,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   vocabSmartActionButtonActive: {
-    backgroundColor: '#123B36',
+    backgroundColor: '#152B3A',
     borderColor: '#F6C85F',
   },
   vocabSmartActionButtonReview: {
@@ -528,7 +529,7 @@ export const styles = StyleSheet.create({
   vocabularyThemeCard: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E0D9CD',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexBasis: '48%',
@@ -571,10 +572,10 @@ export const styles = StyleSheet.create({
   },
   vocabularySearchInput: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 16,
     fontWeight: '800',
     minHeight: 52,
@@ -930,7 +931,7 @@ export const styles = StyleSheet.create({
   pathHeroBadge: {
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: '#FFF6EA',
+    backgroundColor: '#FFF8EF',
     borderColor: '#F6C85F',
     borderRadius: 8,
     borderWidth: 2,
@@ -957,7 +958,7 @@ export const styles = StyleSheet.create({
   },
   pathEvaluationCard: {
     alignItems: 'stretch',
-    backgroundColor: '#FFFDFC',
+    backgroundColor: '#FFFDF8',
     borderColor: '#F6C85F',
     borderRadius: 8,
     borderWidth: 1,
@@ -1007,8 +1008,8 @@ export const styles = StyleSheet.create({
   },
   pathPanelSwitchButton: {
     alignItems: 'center',
-    backgroundColor: '#FFFDFC',
-    borderColor: '#F0D8C4',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     flex: 1,
@@ -1032,7 +1033,7 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   pathModuleDetailHero: {
-    backgroundColor: '#FFFDFC',
+    backgroundColor: '#FFFDF8',
     borderColor: '#F6C85F',
     borderRadius: 8,
     borderWidth: 1,
@@ -1046,7 +1047,7 @@ export const styles = StyleSheet.create({
     lineHeight: 29,
   },
   pathModuleDetailText: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 14,
     fontWeight: '800',
     lineHeight: 20,
@@ -1060,7 +1061,7 @@ export const styles = StyleSheet.create({
     padding: 10,
   },
   pathGuidanceLabel: {
-    color: '#186B63',
+    color: '#152B3A',
     fontSize: 10,
     fontWeight: '900',
     textTransform: 'uppercase',
@@ -1085,15 +1086,15 @@ export const styles = StyleSheet.create({
     lineHeight: 17,
   },
   aptitudeIntroCard: {
-    backgroundColor: '#FFFDFC',
-    borderColor: '#E5DED3',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     gap: 12,
     padding: 14,
   },
   aptitudeQuestionCard: {
-    backgroundColor: '#FFFDFC',
+    backgroundColor: '#FFFDF8',
     borderColor: '#F6C85F',
     borderRadius: 8,
     borderWidth: 1,
@@ -1108,7 +1109,7 @@ export const styles = StyleSheet.create({
   },
   aptitudeQuestionDisplay: {
     backgroundColor: '#F7F1E8',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     color: '#152B3A',
@@ -1121,7 +1122,7 @@ export const styles = StyleSheet.create({
     textAlignVertical: 'center',
   },
   aptitudeReportCard: {
-    backgroundColor: '#FFFDFC',
+    backgroundColor: '#FFFDF8',
     borderColor: '#F6C85F',
     borderRadius: 8,
     borderWidth: 1,
@@ -1141,7 +1142,7 @@ export const styles = StyleSheet.create({
   },
   aptitudeInsightCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexBasis: '48%',
@@ -1163,7 +1164,7 @@ export const styles = StyleSheet.create({
   },
   aptitudeDomainCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexBasis: '48%',
@@ -1177,8 +1178,8 @@ export const styles = StyleSheet.create({
   },
   pathRequirementItem: {
     alignItems: 'center',
-    backgroundColor: '#FFFDFC',
-    borderColor: '#E5DED3',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -1207,8 +1208,8 @@ export const styles = StyleSheet.create({
     gap: 10,
   },
   pathDetailSubStep: {
-    backgroundColor: '#FFFDFC',
-    borderColor: '#E5DED3',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     gap: 8,
@@ -1238,14 +1239,14 @@ export const styles = StyleSheet.create({
     lineHeight: 21,
   },
   pathDetailSubStepText: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 13,
     fontWeight: '800',
     lineHeight: 18,
   },
   pathNextCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     gap: 9,
@@ -1263,7 +1264,7 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
   },
   pathNextText: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 19,
@@ -1276,7 +1277,7 @@ export const styles = StyleSheet.create({
     marginTop: 2,
   },
   pathReward: {
-    color: '#186B63',
+    color: '#152B3A',
     flex: 1,
     fontSize: 12,
     fontWeight: '900',
@@ -1296,8 +1297,8 @@ export const styles = StyleSheet.create({
     gap: 0,
   },
   pathStageCard: {
-    backgroundColor: '#FFFDFC',
-    borderColor: '#E5DED3',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -1334,7 +1335,7 @@ export const styles = StyleSheet.create({
     width: 30,
   },
   pathStageDotDone: {
-    backgroundColor: '#186B63',
+    backgroundColor: '#152B3A',
   },
   pathStageDotActive: {
     backgroundColor: '#C83543',
@@ -1377,7 +1378,7 @@ export const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   pathStageStatus_done: {
-    backgroundColor: '#186B63',
+    backgroundColor: '#152B3A',
     color: '#FFFFFF',
   },
   pathStageStatus_active: {
@@ -1389,7 +1390,7 @@ export const styles = StyleSheet.create({
     color: '#6C5B4F',
   },
   pathStageSubtitle: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 18,
@@ -1417,7 +1418,7 @@ export const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   pathProgressFill: {
-    backgroundColor: '#186B63',
+    backgroundColor: '#152B3A',
     borderRadius: 8,
     height: 8,
   },
@@ -1440,8 +1441,8 @@ export const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   pathSubStepDone: {
-    backgroundColor: '#186B63',
-    borderColor: '#186B63',
+    backgroundColor: '#152B3A',
+    borderColor: '#152B3A',
   },
   pathSubStepActive: {
     backgroundColor: '#C83543',
@@ -1469,7 +1470,7 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   grammarHero: {
-    backgroundColor: '#FFFDFC',
+    backgroundColor: '#FFFDF8',
     borderColor: '#E6D1BA',
     borderRadius: 8,
     borderWidth: 1,
@@ -1499,7 +1500,7 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
   },
   grammarSubtitle: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 13,
     fontWeight: '800',
     lineHeight: 19,
@@ -1532,14 +1533,14 @@ export const styles = StyleSheet.create({
   },
   grammarMemoryCard: {
     backgroundColor: '#EEF9F5',
-    borderColor: '#9ADBD2',
+    borderColor: '#E0C36A',
     borderRadius: 8,
     borderWidth: 1,
     gap: 4,
     padding: 12,
   },
   grammarMemoryTitle: {
-    color: '#186B63',
+    color: '#152B3A',
     fontSize: 13,
     fontWeight: '900',
   },
@@ -1554,7 +1555,7 @@ export const styles = StyleSheet.create({
     paddingRight: 12,
   },
   grammarFolderButton: {
-    backgroundColor: '#FFFDFC',
+    backgroundColor: '#FFFDF8',
     borderColor: '#E6D1BA',
     borderRadius: 8,
     borderWidth: 1,
@@ -1582,7 +1583,7 @@ export const styles = StyleSheet.create({
   grammarSubfolderPill: {
     alignItems: 'center',
     backgroundColor: '#FFF8EF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -1591,11 +1592,11 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   grammarSubfolderPillActive: {
-    backgroundColor: '#186B63',
-    borderColor: '#186B63',
+    backgroundColor: '#152B3A',
+    borderColor: '#152B3A',
   },
   grammarSubfolderText: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 11,
     fontWeight: '900',
   },
@@ -1613,7 +1614,7 @@ export const styles = StyleSheet.create({
   grammarLessonRow: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -1625,7 +1626,7 @@ export const styles = StyleSheet.create({
     borderColor: '#F6C85F',
   },
   grammarLessonNumber: {
-    backgroundColor: '#186B63',
+    backgroundColor: '#152B3A',
     borderRadius: 8,
     color: '#FFFFFF',
     fontSize: 12,
@@ -1661,7 +1662,7 @@ export const styles = StyleSheet.create({
   },
   grammarLevel_facile: {
     backgroundColor: '#EAF8F0',
-    color: '#186B63',
+    color: '#152B3A',
   },
   grammarLevel_pratique: {
     backgroundColor: '#FFF0B8',
@@ -1677,7 +1678,7 @@ export const styles = StyleSheet.create({
   },
   grammarBackButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#FFFDFC',
+    backgroundColor: '#FFFDF8',
     borderColor: '#E6D1BA',
     borderRadius: 8,
     borderWidth: 1,
@@ -1691,7 +1692,7 @@ export const styles = StyleSheet.create({
   },
   grammarDetailCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     gap: 12,
@@ -1724,7 +1725,7 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
   },
   grammarDetailPattern: {
-    color: '#186B63',
+    color: '#152B3A',
     fontSize: 13,
     fontWeight: '900',
     marginTop: 2,
@@ -1736,7 +1737,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   lessonStatusBadge_understood: {
-    backgroundColor: '#186B63',
+    backgroundColor: '#152B3A',
   },
   lessonStatusBadge_notUnderstood: {
     backgroundColor: '#C83543',
@@ -1762,8 +1763,8 @@ export const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   lessonStatusButton_understood: {
-    backgroundColor: '#186B63',
-    borderColor: '#186B63',
+    backgroundColor: '#152B3A',
+    borderColor: '#152B3A',
   },
   lessonStatusButton_notUnderstood: {
     backgroundColor: '#C83543',
@@ -1789,7 +1790,7 @@ export const styles = StyleSheet.create({
   },
   grammarInfoCard: {
     backgroundColor: '#FFF8EF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     flex: 1,
@@ -1811,14 +1812,14 @@ export const styles = StyleSheet.create({
   },
   grammarFormulaCard: {
     backgroundColor: '#EEF9F5',
-    borderColor: '#9ADBD2',
+    borderColor: '#E0C36A',
     borderRadius: 8,
     borderWidth: 1,
     gap: 6,
     padding: 12,
   },
   grammarFormulaTitle: {
-    color: '#186B63',
+    color: '#152B3A',
     fontSize: 12,
     fontWeight: '900',
     textTransform: 'uppercase',
@@ -1836,7 +1837,7 @@ export const styles = StyleSheet.create({
     lineHeight: 20,
   },
   grammarExplanation: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 14,
     fontWeight: '700',
     lineHeight: 21,
@@ -1901,7 +1902,7 @@ export const styles = StyleSheet.create({
     lineHeight: 20,
   },
   wordLookupUsage: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 20,
@@ -1921,7 +1922,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   wordLookupActionButtonDone: {
-    backgroundColor: '#186B63',
+    backgroundColor: '#152B3A',
   },
   wordLookupActionText: {
     color: '#FFFFFF',
@@ -1929,7 +1930,7 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
   },
   wordLookupActionMeta: {
-    color: '#63706A',
+    color: '#5E6B70',
     flex: 1,
     fontSize: 11,
     fontWeight: '900',
@@ -1938,7 +1939,7 @@ export const styles = StyleSheet.create({
   },
   correctionInsightCard: {
     backgroundColor: '#FFF8EF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     gap: 10,
@@ -1954,7 +1955,7 @@ export const styles = StyleSheet.create({
     gap: 4,
   },
   correctionInsightLabel: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 11,
     fontWeight: '900',
     textTransform: 'uppercase',
@@ -1985,14 +1986,14 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
   },
   grammarCourseText: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 20,
   },
   grammarHowCard: {
     backgroundColor: '#FFF8EF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     gap: 9,
@@ -2004,7 +2005,7 @@ export const styles = StyleSheet.create({
     gap: 9,
   },
   grammarStepNumber: {
-    backgroundColor: '#186B63',
+    backgroundColor: '#152B3A',
     borderRadius: 8,
     color: '#FFFFFF',
     fontSize: 11,
@@ -2015,7 +2016,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   grammarStepText: {
-    color: '#4F5A55',
+    color: '#52636A',
     flex: 1,
     fontSize: 13,
     fontWeight: '800',
@@ -2099,7 +2100,7 @@ export const styles = StyleSheet.create({
   },
   grammarExampleCardRevealed: {
     backgroundColor: '#EEF9F5',
-    borderColor: '#9ADBD2',
+    borderColor: '#E0C36A',
   },
   grammarExampleKana: {
     color: '#152B3A',
@@ -2143,7 +2144,7 @@ export const styles = StyleSheet.create({
     borderColor: '#152B3A',
   },
   grammarExampleActionText: {
-    color: '#186B63',
+    color: '#152B3A',
     fontSize: 12,
     fontWeight: '900',
     textAlign: 'center',
@@ -2166,7 +2167,7 @@ export const styles = StyleSheet.create({
     padding: 10,
   },
   grammarTranslation: {
-    color: '#186B63',
+    color: '#152B3A',
     fontSize: 14,
     fontWeight: '900',
   },
@@ -2185,7 +2186,7 @@ export const styles = StyleSheet.create({
     marginTop: 3,
   },
   grammarExampleNote: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 17,
@@ -2218,13 +2219,13 @@ export const styles = StyleSheet.create({
     lineHeight: 20,
   },
   kanaIntro: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 14,
     lineHeight: 20,
   },
   kanaToolbar: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     gap: 10,
@@ -2234,12 +2235,12 @@ export const styles = StyleSheet.create({
     gap: 3,
   },
   kanaProgressTitle: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 17,
     fontWeight: '900',
   },
   kanaProgressHint: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -2250,15 +2251,15 @@ export const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   kanaProgressFill: {
-    backgroundColor: '#186B63',
+    backgroundColor: '#152B3A',
     height: 8,
   },
   searchInput: {
     backgroundColor: '#F7F4EE',
-    borderColor: '#E0D9CD',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 15,
     fontWeight: '700',
     paddingHorizontal: 12,
@@ -2271,18 +2272,18 @@ export const styles = StyleSheet.create({
   },
   filterButton: {
     backgroundColor: '#F7F4EE',
-    borderColor: '#E0D9CD',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   filterButtonActive: {
-    backgroundColor: '#192522',
-    borderColor: '#192522',
+    backgroundColor: '#152B3A',
+    borderColor: '#152B3A',
   },
   filterText: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 12,
     fontWeight: '900',
   },
@@ -2297,7 +2298,7 @@ export const styles = StyleSheet.create({
   statusLegendItem: {
     alignItems: 'center',
     backgroundColor: '#F7F4EE',
-    borderColor: '#E0D9CD',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -2313,7 +2314,7 @@ export const styles = StyleSheet.create({
     width: 12,
   },
   statusLegendText: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 11,
     fontWeight: '900',
   },
@@ -2327,19 +2328,19 @@ export const styles = StyleSheet.create({
   },
   kanaQuickButton: {
     backgroundColor: '#F7F4EE',
-    borderColor: '#E0D9CD',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flex: 1,
     padding: 10,
   },
   kanaQuickTitle: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 12,
     fontWeight: '900',
   },
   kanaQuickMeta: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 11,
     fontWeight: '800',
     marginTop: 3,
@@ -2358,7 +2359,7 @@ export const styles = StyleSheet.create({
     borderColor: '#A34B35',
   },
   secondaryButtonText: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 13,
     fontWeight: '900',
   },
@@ -2375,7 +2376,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 11,
   },
   secondaryFullButtonText: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 13,
     fontWeight: '900',
   },
@@ -2388,7 +2389,7 @@ export const styles = StyleSheet.create({
     gap: 10,
   },
   focusCounter: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 13,
     fontWeight: '900',
     minWidth: 58,
@@ -2560,7 +2561,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   viewerCloseText: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 13,
     fontWeight: '900',
   },
@@ -2572,7 +2573,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   viewerRandomButton: {
-    backgroundColor: '#186B63',
+    backgroundColor: '#152B3A',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -2610,12 +2611,12 @@ export const styles = StyleSheet.create({
     backgroundColor: '#E5C856',
   },
   viewerModeText: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 12,
     fontWeight: '900',
   },
   viewerModeTextActive: {
-    color: '#192522',
+    color: '#152B3A',
   },
   viewerMnemonicInput: {
     backgroundColor: '#25302D',
@@ -2664,12 +2665,12 @@ export const styles = StyleSheet.create({
     backgroundColor: '#E5C856',
   },
   viewerNavText: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 15,
     fontWeight: '900',
   },
   viewerNavTextStrong: {
-    color: '#192522',
+    color: '#152B3A',
   },
   viewerHint: {
     color: '#CFC7BA',
@@ -2686,14 +2687,14 @@ export const styles = StyleSheet.create({
     padding: 14,
   },
   traceTitle: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 42,
     fontWeight: '900',
     lineHeight: 48,
     textAlign: 'center',
   },
   traceSubtitle: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 13,
     fontWeight: '800',
     marginBottom: 10,
@@ -2717,7 +2718,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   traceModeButtonActive: {
-    backgroundColor: '#123B36',
+    backgroundColor: '#152B3A',
     borderColor: '#F6C85F',
   },
   traceModeText: {
@@ -2737,7 +2738,7 @@ export const styles = StyleSheet.create({
     marginBottom: 10,
   },
   traceProgressDot: {
-    backgroundColor: '#E5DED3',
+    backgroundColor: '#E8D7C4',
     borderRadius: 6,
     height: 12,
     width: 12,
@@ -2746,7 +2747,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#C83543',
   },
   traceProgressText: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 12,
     fontWeight: '900',
   },
@@ -2797,8 +2798,8 @@ export const styles = StyleSheet.create({
     marginTop: 10,
   },
   traceSelfCheckCard: {
-    backgroundColor: '#FFFDFC',
-    borderColor: '#E5DED3',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     gap: 8,
@@ -2806,12 +2807,12 @@ export const styles = StyleSheet.create({
     padding: 12,
   },
   traceSelfCheckTitle: {
-    color: '#123B36',
+    color: '#152B3A',
     fontSize: 15,
     fontWeight: '900',
   },
   traceSelfCheckText: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 12,
     fontWeight: '800',
     lineHeight: 17,
@@ -2833,7 +2834,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   traceSelfCheckButtonStrong: {
-    backgroundColor: '#123B36',
+    backgroundColor: '#152B3A',
     borderColor: '#F6C85F',
   },
   traceSelfCheckButtonText: {
@@ -3075,7 +3076,7 @@ export const styles = StyleSheet.create({
   },
   referenceTable: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     gap: 6,
@@ -3100,7 +3101,7 @@ export const styles = StyleSheet.create({
   referenceCell: {
     alignItems: 'center',
     backgroundColor: '#F7F4EE',
-    borderColor: '#E0D9CD',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flex: 1,
@@ -3110,7 +3111,7 @@ export const styles = StyleSheet.create({
   },
   referenceCellMastered: {
     backgroundColor: '#DCEFE8',
-    borderColor: '#186B63',
+    borderColor: '#152B3A',
   },
   referenceCellReview: {
     backgroundColor: '#F3D8D2',
@@ -3121,13 +3122,13 @@ export const styles = StyleSheet.create({
     minHeight: 58,
   },
   referenceKana: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 26,
     fontWeight: '900',
     lineHeight: 31,
   },
   referenceRomaji: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 10,
     fontWeight: '900',
   },
@@ -3135,7 +3136,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     aspectRatio: 0.82,
     backgroundColor: '#FFFFFF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     elevation: 3,
@@ -3159,7 +3160,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   kanaCardMastered: {
-    borderColor: '#1F8A83',
+    borderColor: '#2A7A68',
   },
   kanaCardReview: {
     borderColor: '#C83543',
@@ -3178,19 +3179,19 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
   },
   kanaCharacter: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 36,
     fontWeight: '900',
     lineHeight: 42,
   },
   kanaScript: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 10,
     fontWeight: '800',
     marginTop: 5,
   },
   kanaMiniStat: {
-    color: '#186B63',
+    color: '#152B3A',
     fontSize: 8,
     fontWeight: '900',
     marginTop: 3,
@@ -3202,20 +3203,20 @@ export const styles = StyleSheet.create({
     lineHeight: 22,
   },
   kanaBackLabel: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 8,
     fontWeight: '800',
     marginTop: 4,
     textTransform: 'uppercase',
   },
   kanaAssociated: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 14,
     fontWeight: '900',
     marginTop: 1,
   },
   kanaExample: {
-    color: '#4F5A55',
+    color: '#52636A',
     fontSize: 9,
     fontWeight: '700',
     lineHeight: 12,
@@ -3229,18 +3230,18 @@ export const styles = StyleSheet.create({
   },
   kanaActionButton: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E0D9CD',
+    borderColor: '#E8D7C4',
     borderRadius: 6,
     borderWidth: 1,
     paddingHorizontal: 6,
     paddingVertical: 5,
   },
   kanaActionStrong: {
-    backgroundColor: '#186B63',
-    borderColor: '#186B63',
+    backgroundColor: '#152B3A',
+    borderColor: '#152B3A',
   },
   kanaActionText: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 8,
     fontWeight: '900',
   },
@@ -3251,7 +3252,7 @@ export const styles = StyleSheet.create({
     gap: 16,
   },
   arcadeHero: {
-    backgroundColor: '#192522',
+    backgroundColor: '#152B3A',
     borderRadius: 8,
     gap: 8,
     padding: 18,
@@ -3281,7 +3282,7 @@ export const styles = StyleSheet.create({
   arcadeRuleCard: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flex: 1,
@@ -3293,7 +3294,7 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
   },
   arcadeRuleLabel: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 11,
     fontWeight: '900',
     textAlign: 'center',
@@ -3301,7 +3302,7 @@ export const styles = StyleSheet.create({
   arcadeHud: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -3309,12 +3310,12 @@ export const styles = StyleSheet.create({
     padding: 13,
   },
   arcadeHudScore: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 24,
     fontWeight: '900',
   },
   arcadeHudCorrect: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 12,
     fontWeight: '900',
     marginTop: 2,
@@ -3326,8 +3327,8 @@ export const styles = StyleSheet.create({
   arcadeCelebration: {
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: '#E8F3EF',
-    borderColor: '#186B63',
+    backgroundColor: '#FFF2D7',
+    borderColor: '#152B3A',
     borderRadius: 8,
     borderWidth: 1,
     gap: 2,
@@ -3337,19 +3338,19 @@ export const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   arcadeCelebrationTitle: {
-    color: '#186B63',
+    color: '#152B3A',
     fontSize: 12,
     fontWeight: '900',
     textTransform: 'uppercase',
   },
   arcadeCelebrationText: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 14,
     fontWeight: '900',
   },
   arcadeRecordBanner: {
     alignItems: 'center',
-    backgroundColor: '#186B63',
+    backgroundColor: '#152B3A',
     borderColor: '#D5B36A',
     borderRadius: 8,
     borderWidth: 2,
@@ -3408,36 +3409,36 @@ export const styles = StyleSheet.create({
     padding: 14,
   },
   arcadeBestScoreValue: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 24,
     fontWeight: '900',
   },
   arcadeBestScoreMeta: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 13,
     fontWeight: '800',
     lineHeight: 18,
   },
   quizConfigCard: {
     backgroundColor: '#FFF9EF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     gap: 5,
     padding: 13,
   },
   quizConfigTitle: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 16,
     fontWeight: '900',
   },
   quizConfigMode: {
-    color: '#186B63',
+    color: '#152B3A',
     fontSize: 14,
     fontWeight: '900',
   },
   quizConfigText: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 18,
@@ -3448,7 +3449,7 @@ export const styles = StyleSheet.create({
   grammarModeCard: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -3457,8 +3458,8 @@ export const styles = StyleSheet.create({
     padding: 12,
   },
   grammarModeCardActive: {
-    backgroundColor: '#E8F3EF',
-    borderColor: '#186B63',
+    backgroundColor: '#FFF2D7',
+    borderColor: '#152B3A',
     borderWidth: 2,
   },
   grammarModeSymbol: {
@@ -3474,7 +3475,7 @@ export const styles = StyleSheet.create({
     width: 48,
   },
   grammarModeSymbolActive: {
-    backgroundColor: '#186B63',
+    backgroundColor: '#152B3A',
     color: '#FFFFFF',
   },
   grammarModeCopy: {
@@ -3482,7 +3483,7 @@ export const styles = StyleSheet.create({
     gap: 3,
   },
   grammarModeTitle: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 15,
     fontWeight: '900',
   },
@@ -3509,7 +3510,7 @@ export const styles = StyleSheet.create({
     minWidth: 0,
   },
   grammarMatchingColumnTitle: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 12,
     fontWeight: '900',
     textAlign: 'center',
@@ -3518,7 +3519,7 @@ export const styles = StyleSheet.create({
   grammarMatchCard: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     justifyContent: 'center',
@@ -3533,7 +3534,7 @@ export const styles = StyleSheet.create({
   },
   grammarMatchCardMatched: {
     backgroundColor: '#DDF6F0',
-    borderColor: '#1F8A83',
+    borderColor: '#2A7A68',
     opacity: 0.62,
   },
   grammarMatchCardWrong: {
@@ -3569,13 +3570,13 @@ export const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   globalDomainChipText: {
-    color: '#186B63',
+    color: '#152B3A',
     fontSize: 12,
     fontWeight: '900',
   },
   globalQuestionDisplay: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     color: '#152B3A',
@@ -3622,7 +3623,7 @@ export const styles = StyleSheet.create({
   },
   globalResultCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexBasis: '47%',
@@ -3632,18 +3633,18 @@ export const styles = StyleSheet.create({
     padding: 12,
   },
   globalResultDomain: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 12,
     fontWeight: '900',
     textTransform: 'uppercase',
   },
   globalResultValue: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 24,
     fontWeight: '900',
   },
   globalMatchDomain: {
-    color: '#186B63',
+    color: '#152B3A',
     fontSize: 10,
     fontWeight: '900',
     marginBottom: 4,
@@ -3652,7 +3653,7 @@ export const styles = StyleSheet.create({
   timerToggle: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E0D9CD',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -3660,8 +3661,8 @@ export const styles = StyleSheet.create({
     padding: 12,
   },
   timerToggleActive: {
-    backgroundColor: '#E8F3EF',
-    borderColor: '#186B63',
+    backgroundColor: '#FFF2D7',
+    borderColor: '#152B3A',
   },
   timerSwitch: {
     backgroundColor: '#C9D0CC',
@@ -3672,7 +3673,7 @@ export const styles = StyleSheet.create({
     width: 54,
   },
   timerSwitchActive: {
-    backgroundColor: '#186B63',
+    backgroundColor: '#152B3A',
   },
   timerSwitchKnob: {
     backgroundColor: '#FFFFFF',
@@ -3688,12 +3689,12 @@ export const styles = StyleSheet.create({
     gap: 2,
   },
   timerToggleTitle: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 14,
     fontWeight: '900',
   },
   timerToggleText: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 16,
@@ -3721,9 +3722,9 @@ export const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   quizScorePill: {
-    backgroundColor: '#E8F3EF',
+    backgroundColor: '#FFF2D7',
     borderRadius: 8,
-    color: '#186B63',
+    color: '#152B3A',
     fontSize: 12,
     fontWeight: '900',
     overflow: 'hidden',
@@ -3732,10 +3733,10 @@ export const styles = StyleSheet.create({
   },
   kanaExercisePrompt: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 72,
     fontWeight: '900',
     lineHeight: 90,
@@ -3791,7 +3792,7 @@ export const styles = StyleSheet.create({
   matchingCard: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E0D9CD',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 2,
     minHeight: 76,
@@ -3802,8 +3803,8 @@ export const styles = StyleSheet.create({
     backgroundColor: '#FFF9EF',
   },
   matchingCardSelected: {
-    borderColor: '#186B63',
-    backgroundColor: '#E8F3EF',
+    borderColor: '#152B3A',
+    backgroundColor: '#FFF2D7',
   },
   matchingCardMatched: {
     backgroundColor: '#DFF2E9',
@@ -3811,19 +3812,19 @@ export const styles = StyleSheet.create({
     opacity: 0.62,
   },
   matchingKana: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 34,
     fontWeight: '900',
     lineHeight: 40,
   },
   matchingRomaji: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 22,
     fontWeight: '900',
     lineHeight: 28,
   },
   matchingFooter: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 12,
     fontWeight: '800',
     lineHeight: 17,
@@ -3833,10 +3834,10 @@ export const styles = StyleSheet.create({
   },
   directAnswerInput: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 24,
     fontWeight: '900',
     minHeight: 64,
@@ -3845,7 +3846,7 @@ export const styles = StyleSheet.create({
   },
   directAnswerCorrect: {
     backgroundColor: '#DCEFE8',
-    borderColor: '#186B63',
+    borderColor: '#152B3A',
   },
   directAnswerWrong: {
     backgroundColor: '#F3D8D2',
@@ -3853,7 +3854,7 @@ export const styles = StyleSheet.create({
   },
   resultCard: {
     alignItems: 'center',
-    backgroundColor: '#192522',
+    backgroundColor: '#152B3A',
     borderRadius: 8,
     gap: 6,
     padding: 22,
@@ -3870,7 +3871,7 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
   },
   resultPercent: {
-    color: '#E8F3EF',
+    color: '#FFF2D7',
     fontSize: 15,
     fontWeight: '800',
   },
@@ -3881,7 +3882,7 @@ export const styles = StyleSheet.create({
   },
   timeRankingCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     gap: 8,
@@ -3902,20 +3903,20 @@ export const styles = StyleSheet.create({
     width: 32,
   },
   timeRankingTime: {
-    color: '#192522',
+    color: '#152B3A',
     flex: 1,
     fontSize: 15,
     fontWeight: '900',
   },
   timeRankingMeta: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 12,
     fontWeight: '800',
   },
   answerReviewRow: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -3923,13 +3924,13 @@ export const styles = StyleSheet.create({
     padding: 11,
   },
   answerReviewIndex: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 12,
     fontWeight: '900',
     width: 24,
   },
   answerReviewText: {
-    color: '#192522',
+    color: '#152B3A',
     flex: 1,
     fontSize: 12,
     fontWeight: '700',
@@ -3939,15 +3940,15 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
   },
   answerOk: {
-    color: '#186B63',
+    color: '#152B3A',
   },
   answerKo: {
     color: '#A34B35',
   },
   coachPanel: {
     alignSelf: 'stretch',
-    backgroundColor: '#FFFDFC',
-    borderColor: '#F0D8C4',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     elevation: 4,
@@ -4015,7 +4016,7 @@ export const styles = StyleSheet.create({
   },
   coachMiniStat: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     flex: 1,
@@ -4051,7 +4052,7 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
   },
   xpValue: {
-    color: '#1F8A83',
+    color: '#2A7A68',
     fontSize: 12,
     fontWeight: '900',
   },
@@ -4062,7 +4063,7 @@ export const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   xpFill: {
-    backgroundColor: '#1F8A83',
+    backgroundColor: '#2A7A68',
     borderRadius: 999,
     height: '100%',
   },
@@ -4080,7 +4081,7 @@ export const styles = StyleSheet.create({
   },
   dailyTrackingCard: {
     backgroundColor: '#FFF8EF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     gap: 11,
@@ -4129,7 +4130,7 @@ export const styles = StyleSheet.create({
     padding: 10,
   },
   dailyTrackingValue: {
-    color: '#1F8A83',
+    color: '#2A7A68',
     fontSize: 21,
     fontWeight: '900',
   },
@@ -4182,8 +4183,8 @@ export const styles = StyleSheet.create({
     minWidth: 0,
   },
   attendanceDotComplete: {
-    backgroundColor: '#1F8A83',
-    borderColor: '#1F8A83',
+    backgroundColor: '#2A7A68',
+    borderColor: '#2A7A68',
   },
   attendanceDotText: {
     color: '#7A6F63',
@@ -4211,7 +4212,7 @@ export const styles = StyleSheet.create({
   rewardSummaryCard: {
     alignItems: 'center',
     backgroundColor: '#FFF8EF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     flex: 1,
@@ -4236,7 +4237,7 @@ export const styles = StyleSheet.create({
   },
   questGroup: {
     backgroundColor: '#FFF8EF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     gap: 10,
@@ -4264,7 +4265,7 @@ export const styles = StyleSheet.create({
     marginTop: 2,
   },
   questGroupCount: {
-    backgroundColor: '#192522',
+    backgroundColor: '#152B3A',
     borderRadius: 8,
     color: '#FFFFFF',
     fontSize: 13,
@@ -4275,7 +4276,7 @@ export const styles = StyleSheet.create({
   },
   questCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     gap: 8,
@@ -4283,7 +4284,7 @@ export const styles = StyleSheet.create({
   },
   questCardComplete: {
     backgroundColor: '#EEF9F5',
-    borderColor: '#9ADBD2',
+    borderColor: '#E0C36A',
   },
   questHeader: {
     alignItems: 'center',
@@ -4303,7 +4304,7 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
   },
   questRewardComplete: {
-    color: '#1F8A83',
+    color: '#2A7A68',
   },
   questDescription: {
     color: '#647B83',
@@ -4322,7 +4323,7 @@ export const styles = StyleSheet.create({
     height: '100%',
   },
   questFillComplete: {
-    backgroundColor: '#1F8A83',
+    backgroundColor: '#2A7A68',
   },
   questProgress: {
     color: '#647B83',
@@ -4332,7 +4333,7 @@ export const styles = StyleSheet.create({
   },
   rewardToast: {
     alignItems: 'center',
-    backgroundColor: '#192522',
+    backgroundColor: '#152B3A',
     borderColor: '#D5B36A',
     borderRadius: 8,
     borderWidth: 2,
@@ -4397,7 +4398,7 @@ export const styles = StyleSheet.create({
   },
   rewardCelebrationCard: {
     alignItems: 'center',
-    backgroundColor: '#FFFDFC',
+    backgroundColor: '#FFFDF8',
     borderColor: '#F6C85F',
     borderRadius: 8,
     borderWidth: 2,
@@ -4446,7 +4447,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#C83543',
   },
   rewardCelebrationParticleTeal: {
-    backgroundColor: '#1F8A83',
+    backgroundColor: '#2A7A68',
   },
   rewardCelebrationMedal: {
     alignItems: 'center',
@@ -4465,7 +4466,7 @@ export const styles = StyleSheet.create({
   },
   rewardCelebrationMedalEpic: {
     backgroundColor: '#F6C85F',
-    borderColor: '#FFFDFC',
+    borderColor: '#FFFDF8',
     height: 144,
     width: 144,
   },
@@ -4559,8 +4560,8 @@ export const styles = StyleSheet.create({
   },
   preferenceSwitchCard: {
     alignItems: 'center',
-    backgroundColor: '#FFFDFC',
-    borderColor: '#F0D8C4',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -4590,7 +4591,7 @@ export const styles = StyleSheet.create({
   },
   preferenceToggle: {
     alignItems: 'center',
-    backgroundColor: '#E5DED3',
+    backgroundColor: '#E8D7C4',
     borderRadius: 999,
     height: 30,
     justifyContent: 'center',
@@ -4599,7 +4600,7 @@ export const styles = StyleSheet.create({
   },
   preferenceToggleActive: {
     alignItems: 'flex-end',
-    backgroundColor: '#1F8A83',
+    backgroundColor: '#2A7A68',
   },
   preferenceToggleKnob: {
     backgroundColor: '#FFFFFF',
@@ -4651,8 +4652,8 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   preferenceLogRow: {
-    backgroundColor: '#FFFDFC',
-    borderColor: '#F0D8C4',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     gap: 4,
@@ -4666,8 +4667,8 @@ export const styles = StyleSheet.create({
   },
   preferenceOptionCard: {
     alignItems: 'center',
-    backgroundColor: '#FFFDFC',
-    borderColor: '#F0D8C4',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -4758,13 +4759,13 @@ export const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   quickProgressFill: {
-    backgroundColor: '#1F8A83',
+    backgroundColor: '#2A7A68',
     borderRadius: 999,
     height: '100%',
   },
   quickQuestionCard: {
-    backgroundColor: '#FFFDFC',
-    borderColor: '#F0D8C4',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     gap: 12,
@@ -4778,7 +4779,7 @@ export const styles = StyleSheet.create({
   },
   srsReasonBox: {
     backgroundColor: '#F7F1E8',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     gap: 4,
@@ -4802,7 +4803,7 @@ export const styles = StyleSheet.create({
     gap: 8,
   },
   srsKnownButton: {
-    backgroundColor: '#1F8A83',
+    backgroundColor: '#2A7A68',
     borderRadius: 8,
     flexGrow: 1,
     minHeight: 42,
@@ -4818,8 +4819,8 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   srsPostponeButton: {
-    backgroundColor: '#FFFDFC',
-    borderColor: '#E5DED3',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexGrow: 1,
@@ -4853,7 +4854,7 @@ export const styles = StyleSheet.create({
   },
   quickJapanese: {
     backgroundColor: '#F7F1E8',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     color: '#152B3A',
@@ -4868,7 +4869,7 @@ export const styles = StyleSheet.create({
   },
   quickChoiceButton: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     minHeight: 50,
@@ -4877,8 +4878,8 @@ export const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   quickChoiceCorrect: {
-    backgroundColor: '#1F8A83',
-    borderColor: '#1F8A83',
+    backgroundColor: '#2A7A68',
+    borderColor: '#2A7A68',
   },
   quickChoiceWrong: {
     backgroundColor: '#C83543',
@@ -4896,7 +4897,7 @@ export const styles = StyleSheet.create({
   },
   quickCorrectionBox: {
     backgroundColor: '#FFF8EF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     gap: 5,
@@ -4954,7 +4955,7 @@ export const styles = StyleSheet.create({
   },
   goalCalendarCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     elevation: 3,
@@ -4992,7 +4993,7 @@ export const styles = StyleSheet.create({
     gap: 5,
   },
   calendarLegendDot: {
-    borderColor: '#E0D9CD',
+    borderColor: '#E8D7C4',
     borderRadius: 999,
     borderWidth: 1,
     height: 9,
@@ -5019,8 +5020,8 @@ export const styles = StyleSheet.create({
     width: 18,
   },
   goalCalendarDayComplete: {
-    backgroundColor: '#1F8A83',
-    borderColor: '#186B63',
+    backgroundColor: '#2A7A68',
+    borderColor: '#152B3A',
   },
   goalCalendarDayPartial: {
     backgroundColor: '#D5B36A',
@@ -5053,7 +5054,7 @@ export const styles = StyleSheet.create({
   },
   badgeCollectionCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     elevation: 3,
@@ -5087,7 +5088,7 @@ export const styles = StyleSheet.create({
   },
   badgeDifficultyCard: {
     backgroundColor: '#FFF8EF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     flexBasis: '30%',
@@ -5140,7 +5141,7 @@ export const styles = StyleSheet.create({
   },
   badgeCard: {
     backgroundColor: '#F6F2EA',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexBasis: '31%',
@@ -5178,7 +5179,7 @@ export const styles = StyleSheet.create({
   },
   badgeDifficultyPillUnlocked: {
     backgroundColor: '#D5B36A',
-    color: '#192522',
+    color: '#152B3A',
   },
   badgeTitle: {
     color: '#152B3A',
@@ -5187,7 +5188,7 @@ export const styles = StyleSheet.create({
     lineHeight: 14,
   },
   badgeTitleUnlocked: {
-    color: '#192522',
+    color: '#152B3A',
   },
   badgeDescription: {
     color: '#647B83',
@@ -5204,8 +5205,8 @@ export const styles = StyleSheet.create({
     marginTop: 5,
   },
   rewardLeagueCard: {
-    backgroundColor: '#FFFDFC',
-    borderColor: '#F0D8C4',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     gap: 12,
@@ -5261,7 +5262,7 @@ export const styles = StyleSheet.create({
   },
   rewardLeagueMetric: {
     backgroundColor: '#FFF8EF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     flexBasis: '48%',
@@ -5270,7 +5271,7 @@ export const styles = StyleSheet.create({
     padding: 10,
   },
   rewardLeagueMetricValue: {
-    color: '#1F8A83',
+    color: '#2A7A68',
     fontSize: 20,
     fontWeight: '900',
   },
@@ -5294,7 +5295,7 @@ export const styles = StyleSheet.create({
   rewardTargetCard: {
     alignItems: 'center',
     backgroundColor: '#FFF8EF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -5314,7 +5315,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   rewardTargetIconDone: {
-    backgroundColor: '#1F8A83',
+    backgroundColor: '#2A7A68',
     color: '#FFFFFF',
   },
   rewardTargetBody: {
@@ -5349,8 +5350,8 @@ export const styles = StyleSheet.create({
   },
   statsRubrics: {
     alignSelf: 'stretch',
-    backgroundColor: '#FFFDFC',
-    borderColor: '#F0D8C4',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     elevation: 2,
@@ -5389,14 +5390,14 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
   },
   masteryRingLabel: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 10,
     fontWeight: '900',
     textTransform: 'uppercase',
   },
   masteryCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     gap: 10,
@@ -5414,7 +5415,7 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
   },
   masterySubtitle: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 12,
     fontWeight: '700',
     marginTop: 2,
@@ -5428,7 +5429,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   masteryPillValue: {
-    color: '#1F8A83',
+    color: '#2A7A68',
     fontSize: 16,
     fontWeight: '900',
   },
@@ -5440,7 +5441,7 @@ export const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   masteryStackMastered: {
-    backgroundColor: '#1F8A83',
+    backgroundColor: '#2A7A68',
   },
   masteryStackKnown: {
     backgroundColor: '#5A8DCC',
@@ -5471,7 +5472,7 @@ export const styles = StyleSheet.create({
     width: 8,
   },
   masteryLegendText: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 11,
     fontWeight: '800',
   },
@@ -5481,14 +5482,14 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
   },
   masteryAccuracy: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 11,
     fontWeight: '800',
   },
   lineChartCard: {
     alignSelf: 'stretch',
     backgroundColor: '#FFFFFF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     elevation: 3,
@@ -5523,14 +5524,14 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   lineChartLabel: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 10,
     fontWeight: '800',
   },
   lineChartTooltip: {
     alignItems: 'center',
     backgroundColor: '#FFF8EF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -5540,7 +5541,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   lineChartTooltipLabel: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 10,
     fontWeight: '900',
     textTransform: 'uppercase',
@@ -5552,13 +5553,13 @@ export const styles = StyleSheet.create({
     marginTop: 2,
   },
   lineChartTooltipValue: {
-    color: '#1F8A83',
+    color: '#2A7A68',
     fontSize: 20,
     fontWeight: '900',
   },
   quizStatsHero: {
     alignItems: 'center',
-    backgroundColor: '#192522',
+    backgroundColor: '#152B3A',
     borderRadius: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -5593,12 +5594,12 @@ export const styles = StyleSheet.create({
     padding: 11,
   },
   quizStatsBadgeValue: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 24,
     fontWeight: '900',
   },
   quizStatsBadgeLabel: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 10,
     fontWeight: '900',
     textAlign: 'center',
@@ -5607,7 +5608,7 @@ export const styles = StyleSheet.create({
   quizChart: {
     alignItems: 'flex-end',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -5629,19 +5630,19 @@ export const styles = StyleSheet.create({
     width: '100%',
   },
   quizChartBar: {
-    backgroundColor: '#186B63',
+    backgroundColor: '#152B3A',
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
     minHeight: 6,
     width: '100%',
   },
   quizChartRate: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 10,
     fontWeight: '900',
   },
   quizChartLabel: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 9,
     fontWeight: '800',
   },
@@ -5651,7 +5652,7 @@ export const styles = StyleSheet.create({
   scoreTrendRow: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -5676,14 +5677,14 @@ export const styles = StyleSheet.create({
     height: 10,
   },
   scoreTrendValue: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 12,
     fontWeight: '900',
     minWidth: 64,
     textAlign: 'right',
   },
   scoreTrendMeta: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 10,
     fontWeight: '800',
     minWidth: 70,
@@ -5691,7 +5692,7 @@ export const styles = StyleSheet.create({
   },
   metric: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     elevation: 2,
@@ -5726,7 +5727,7 @@ export const styles = StyleSheet.create({
   },
   progressRow: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     elevation: 2,
@@ -5760,7 +5761,7 @@ export const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   progressFill: {
-    backgroundColor: '#1F8A83',
+    backgroundColor: '#2A7A68',
     height: 8,
   },
   progressDetail: {
@@ -5782,7 +5783,7 @@ export const styles = StyleSheet.create({
   },
   japanese: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     color: '#152B3A',
@@ -5797,7 +5798,7 @@ export const styles = StyleSheet.create({
   choice: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     elevation: 2,
@@ -5812,7 +5813,7 @@ export const styles = StyleSheet.create({
   },
   choiceCorrect: {
     backgroundColor: '#DDF6F0',
-    borderColor: '#1F8A83',
+    borderColor: '#2A7A68',
   },
   choiceWrong: {
     backgroundColor: '#FFE0DF',
@@ -5831,7 +5832,7 @@ export const styles = StyleSheet.create({
   },
   feedback: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#F0D8C4',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     gap: 10,
@@ -5849,10 +5850,10 @@ export const styles = StyleSheet.create({
   },
   feedbackMnemonic: {
     backgroundColor: '#FFF9EF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 13,
     fontWeight: '900',
     lineHeight: 18,
@@ -5882,7 +5883,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   examHero: {
-    backgroundColor: '#123B36',
+    backgroundColor: '#152B3A',
     borderRadius: 8,
     padding: 18,
   },
@@ -5905,7 +5906,7 @@ export const styles = StyleSheet.create({
   },
   examSimulationCard: {
     alignItems: 'center',
-    backgroundColor: '#FFFDFC',
+    backgroundColor: '#FFFDF8',
     borderColor: '#F3C75F',
     borderRadius: 8,
     borderWidth: 1,
@@ -5920,7 +5921,7 @@ export const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   examSimulationTitle: {
-    color: '#123B36',
+    color: '#152B3A',
     fontSize: 28,
     fontWeight: '900',
     lineHeight: 34,
@@ -5928,7 +5929,7 @@ export const styles = StyleSheet.create({
   },
   examSimulationMeta: {
     alignItems: 'center',
-    backgroundColor: '#123B36',
+    backgroundColor: '#152B3A',
     borderColor: '#F3C75F',
     borderRadius: 8,
     borderWidth: 1,
@@ -6015,7 +6016,7 @@ export const styles = StyleSheet.create({
     lineHeight: 28,
   },
   examPromptText: {
-    borderTopColor: '#E5DED3',
+    borderTopColor: '#E8D7C4',
     borderTopWidth: 1,
     color: '#102E2A',
     fontSize: 19,
@@ -6043,7 +6044,7 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
   },
   examPageHint: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 12,
     lineHeight: 17,
     textAlign: 'center',
@@ -6051,7 +6052,7 @@ export const styles = StyleSheet.create({
   examResultCard: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     gap: 10,
@@ -6063,7 +6064,7 @@ export const styles = StyleSheet.create({
     fontWeight: '900',
   },
   examResultScore: {
-    color: '#123B36',
+    color: '#152B3A',
     fontSize: 46,
     fontWeight: '900',
   },
@@ -6079,8 +6080,8 @@ export const styles = StyleSheet.create({
     gap: 10,
   },
   examReportSectionCard: {
-    backgroundColor: '#FFFDFC',
-    borderColor: '#E5DED3',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexBasis: '31%',
@@ -6096,7 +6097,7 @@ export const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   examReportSectionScore: {
-    color: '#123B36',
+    color: '#152B3A',
     fontSize: 26,
     fontWeight: '900',
     lineHeight: 31,
@@ -6109,14 +6110,14 @@ export const styles = StyleSheet.create({
   },
   examAnalysisCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     gap: 8,
     padding: 14,
   },
   examAnalysisTitle: {
-    color: '#123B36',
+    color: '#152B3A',
     fontSize: 18,
     fontWeight: '900',
     lineHeight: 22,
@@ -6142,12 +6143,12 @@ export const styles = StyleSheet.create({
     borderColor: '#D78383',
   },
   examCorrectionVerdict: {
-    color: '#123B36',
+    color: '#152B3A',
     fontSize: 14,
     fontWeight: '900',
   },
   examCorrectionAnswer: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 16,
     fontWeight: '900',
     lineHeight: 23,
@@ -6165,18 +6166,18 @@ export const styles = StyleSheet.create({
   },
   examSourceCard: {
     backgroundColor: '#FFF9EF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     padding: 13,
   },
   examSourceTitle: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 12,
     fontWeight: '900',
   },
   examSourceText: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 11,
     lineHeight: 16,
     marginTop: 4,
@@ -6227,7 +6228,7 @@ export const styles = StyleSheet.create({
   },
   examBox: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     minHeight: 230,
@@ -6235,13 +6236,13 @@ export const styles = StyleSheet.create({
     padding: 16,
   },
   examBoxTitle: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 18,
     fontWeight: '900',
     textAlign: 'center',
   },
   examBoxText: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 12,
     lineHeight: 18,
     marginTop: 10,
@@ -6253,7 +6254,7 @@ export const styles = StyleSheet.create({
   examChoice: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5DED3',
+    borderColor: '#E8D7C4',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -6263,7 +6264,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   examChoiceNumber: {
-    backgroundColor: '#123B36',
+    backgroundColor: '#152B3A',
     borderRadius: 6,
     color: '#FFFFFF',
     fontSize: 14,
@@ -6274,7 +6275,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   examChoiceText: {
-    color: '#192522',
+    color: '#152B3A',
     flex: 1,
     fontSize: 16,
     fontWeight: '800',
@@ -6287,18 +6288,18 @@ export const styles = StyleSheet.create({
     padding: 24,
   },
   centerText: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 14,
     fontWeight: '700',
     marginTop: 12,
   },
   emptyTitle: {
-    color: '#192522',
+    color: '#152B3A',
     fontSize: 18,
     fontWeight: '900',
   },
   emptyText: {
-    color: '#63706A',
+    color: '#5E6B70',
     fontSize: 14,
     lineHeight: 20,
   },

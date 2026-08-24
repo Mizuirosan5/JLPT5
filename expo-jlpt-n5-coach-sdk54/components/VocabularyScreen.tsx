@@ -761,7 +761,7 @@ function getVocabularyVisual(item: VocabularyItem): { kind: string; symbol: stri
   if (/grand|petit|nouveau|ancien|cher|haut|long|大|小|新|古|高|長/.test(text)) return { kind: 'description', symbol: '形', colors: ['#A77BD8', '#5C4BB2'] };
   if (/main|pied|tête|œil|oreille|bouche|corps|手|足|頭|目|耳|口|体/.test(text)) return { kind: 'body', symbol: '手', colors: ['#E0A95C', '#B45A3C'] };
   if (/yen|argent|acheter|magasin|円|金|買|店/.test(text)) return { kind: 'money', symbol: '円', colors: ['#E6C84F', '#8F7A17'] };
-  if (/bonjour|merci|pardon|expression|salut|こんにちは|ありがとう|すみません/.test(text)) return { kind: 'expression', symbol: '会', colors: ['#47B8A8', '#186B63'] };
+  if (/bonjour|merci|pardon|expression|salut|こんにちは|ありがとう|すみません/.test(text)) return { kind: 'expression', symbol: '会', colors: ['#C83543', '#152B3A'] };
   if (/verbe|faire|voir|écouter|lire|parler|écrire|見|聞|読|話|書|する/.test(text)) return { kind: 'action', symbol: '動', colors: ['#D86F45', '#A8324B'] };
   return { kind: 'object', symbol: '語', colors: ['#325B67', '#152B3A'] };
 }

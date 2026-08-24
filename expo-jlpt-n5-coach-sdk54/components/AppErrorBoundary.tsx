@@ -46,7 +46,7 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, AppErro
 const styles = StyleSheet.create({
   app: {
     flex: 1,
-    backgroundColor: '#FFF6EA',
+    backgroundColor: '#FFF8EF',
     overflow: 'hidden',
   },
   errorScreen: {
@@ -68,15 +68,15 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   errorText: {
-    color: '#52665F',
+    color: '#52636A',
     fontSize: 15,
     fontWeight: '700',
     lineHeight: 22,
     marginTop: 10,
   },
   errorDetail: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#F2C2A3',
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E9CFB5',
     borderRadius: 8,
     borderWidth: 1,
     color: '#7A3B2D',
