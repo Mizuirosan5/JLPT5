@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { styles } from '../appStyles';
@@ -6,52 +6,22 @@ import { SegmentButton } from './formControls';
 import { JapaneseLookupText, WordLookupPanel } from './JapaneseLookup';
 import { EmptyState, Section } from './sharedUi';
 import { OfflineAudioButton } from './OfflineAudioButton';
+import { SmartCorrectionInsightCard } from './SmartCorrectionInsightCard';
 import { GRAMMAR_QUIZ_MODES } from '../models';
-import type {
-  GrammarExerciseKind,
-  GrammarLesson,
-  GrammarMatchingPair,
-  GrammarMatchingRound,
-  GrammarMatchingSession,
-  GrammarQuizMistake,
-  GrammarQuizMode,
-  GrammarQuizQuestion,
-  GrammarQuizSession,
-  KnowledgeQuizScope,
-  LearningPreferences,
-  MainQuizMode,
-  WordLookupEntry,
-} from '../models';
-import {
-  buildGrammarQuestionAnswerQuiz,
-  buildGrammarQuizQuestions,
-  createGrammarMatchingSession,
-  maskGrammarKeyword,
-  uniqueChoices,
-} from '../services/grammarQuizFactory';
-import {
-  GRAMMAR_KEY_TOKENS,
-  buildGrammarCorrectionDetails,
-  createGrammarSession,
-  getGrammarExerciseInstruction,
-  getGrammarKeyword,
-  getGrammarStreakMultiplier,
-  hideGrammarAnswerInHint,
-  humanizeGrammarFormula,
-  isGrammarAnswerCorrect,
-} from '../services/grammarPedagogy';
+import type { GrammarExerciseKind, GrammarLesson, GrammarMatchingPair, GrammarMatchingRound, GrammarMatchingSession, GrammarQuizMistake, GrammarQuizMode, GrammarQuizQuestion, GrammarQuizSession, LearningPreferences, WordLookupEntry } from '../models';
+import { buildGrammarQuestionAnswerQuiz, buildGrammarQuizQuestions, createGrammarMatchingSession, maskGrammarKeyword, uniqueChoices } from '../services/grammarQuizFactory';
+import { GRAMMAR_KEY_TOKENS, buildGrammarCorrectionDetails, createGrammarSession, getGrammarExerciseInstruction, getGrammarKeyword, getGrammarStreakMultiplier, hideGrammarAnswerInHint, humanizeGrammarFormula, isGrammarAnswerCorrect } from '../services/grammarPedagogy';
 import { ALL_GRAMMAR_LESSONS, getGrammarMainMenu, humanizeGrammarPattern } from '../services/grammarCourse';
 import { hasJapaneseText, normalizeAnswer } from '../services/text';
 import { getExerciseInstruction } from '../services/exerciseFactory';
 import { recordGrammarExerciseAttempt } from '../services/grammarProgress';
 import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../services/preferences';
 import { saveErrorFlashcard } from '../services/errorFlashcards';
-
-type GrammarQuizScreenProps = {
-  vocabularyLookupEntries: WordLookupEntry[];
-  onNavigate: (mode: MainQuizMode, scope?: KnowledgeQuizScope) => void;
-};
-
+import { clearSession, loadSession, saveSession } from '../services/sessionPersistence';
+import { recordTechnicalLog } from '../services/technicalLog';
+import { useManagedTimers } from '../services/useManagedTimers';
+import type { GrammarQuizScreenProps, GrammarQuizSnapshot } from './grammarQuizModels';
+const GRAMMAR_QUIZ_SESSION_KEY = 'quiz:grammar';
 export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: GrammarQuizScreenProps) {
   const db = useSQLiteContext();
   const [grammarQuizSize, setGrammarQuizSize] = useState<10 | 20>(10);
@@ -67,7 +37,9 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
   const [selectedWordLookupAnchorId, setSelectedWordLookupAnchorId] = useState<string | null>(null);
   const [preferences, setPreferences] = useState<LearningPreferences>(DEFAULT_LEARNING_PREFERENCES);
   const [grammarErrorCardAdded, setGrammarErrorCardAdded] = useState(false);
-
+  const [sessionHydrated, setSessionHydrated] = useState(false);
+  const answerInFlight = useRef(false);
+  const schedule = useManagedTimers();
   useEffect(() => {
     loadLearningPreferences(db)
       .then((loadedPreferences) => {
@@ -77,7 +49,31 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
       })
       .catch((error) => console.error('Unable to load grammar quiz preferences', error));
   }, [db]);
-
+  useEffect(() => {
+    loadSession<GrammarQuizSnapshot>(db, GRAMMAR_QUIZ_SESSION_KEY)
+      .then((snapshot) => {
+        if (!snapshot) return;
+        setGrammarQuizMode(snapshot.mode);
+        setGrammarQuizSize(snapshot.size);
+        setGrammarQuizSession(snapshot.quizSession);
+        setGrammarMatchingSession(snapshot.matchingSession);
+      })
+      .catch((error) => recordTechnicalLog(db, 'error', 'grammar_quiz_restore', error instanceof Error ? error.message : String(error)))
+      .finally(() => setSessionHydrated(true));
+  }, [db]);
+  useEffect(() => {
+    if (!sessionHydrated) return;
+    if (!grammarQuizSession && !grammarMatchingSession) {
+      clearSession(db, GRAMMAR_QUIZ_SESSION_KEY).catch(() => undefined);
+      return;
+    }
+    saveSession<GrammarQuizSnapshot>(db, GRAMMAR_QUIZ_SESSION_KEY, {
+      mode: grammarQuizMode,
+      size: grammarQuizSize,
+      quizSession: grammarQuizSession,
+      matchingSession: grammarMatchingSession,
+    }).catch((error) => recordTechnicalLog(db, 'error', 'grammar_quiz_save', error instanceof Error ? error.message : String(error)));
+  }, [db, grammarMatchingSession, grammarQuizMode, grammarQuizSession, grammarQuizSize, sessionHydrated]);
   const startGrammarQuiz = () => {
     if (grammarQuizMode === 'matching') {
       setGrammarQuizSession(null);
@@ -99,7 +95,6 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
     setSelectedWordLookupAnchorId(null);
     setGrammarErrorCardAdded(false);
   };
-
   const restartGrammarQuizMistakes = () => {
     if (!grammarQuizSession?.mistakes.length) return;
     setGrammarQuizSession(createGrammarSession(grammarQuizSession.mistakes.map((mistake) => mistake.question)));
@@ -113,9 +108,10 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
   };
 
   const answerGrammarQuiz = async (choice: string) => {
-    if (!grammarQuizSession || grammarQuizSession.selected || grammarQuizSession.finished) return;
+    if (!grammarQuizSession || grammarQuizSession.selected || grammarQuizSession.finished || answerInFlight.current) return;
     const current = grammarQuizSession.questions[grammarQuizSession.currentIndex];
     if (!current) return;
+    answerInFlight.current = true;
     const isCorrect = isGrammarAnswerCorrect(choice, current.correctAnswer);
     const nextStreak = isCorrect ? grammarQuizSession.streak + 1 : 0;
     const points = isCorrect ? 100 * getGrammarStreakMultiplier(nextStreak) : 0;
@@ -123,6 +119,8 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
       await recordGrammarExerciseAttempt(db, current.lesson, choice, current.correctAnswer, isCorrect, 'grammar_quiz', getGrammarMainMenu);
     } catch (error) {
       console.error('Unable to save grammar quiz answer', error);
+    } finally {
+      answerInFlight.current = false;
     }
     setGrammarQuizSession({
       ...grammarQuizSession,
@@ -195,6 +193,8 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
     const selectedPair = round?.pairs.find((pair) => pair.id === grammarMatchingSession.selectedLeftId);
     const chosenPair = round?.pairs.find((pair) => pair.id === pairId);
     if (!selectedPair || !chosenPair) return;
+    if (answerInFlight.current) return;
+    answerInFlight.current = true;
     const isCorrect = selectedPair.id === chosenPair.id;
     const answeredSession = {
       ...grammarMatchingSession,
@@ -217,8 +217,10 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
       );
     } catch (error) {
       console.error('Unable to save grammar matching answer', error);
+    } finally {
+      answerInFlight.current = false;
     }
-    setTimeout(() => {
+    schedule(() => {
       setGrammarMatchingSession((current) => {
         if (!current) return current;
         if (!isCorrect) {
@@ -697,6 +699,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
                     : 'À revoir'}
                 </Text>
                 <Text style={styles.feedbackText}>Réponse : {currentGrammarQuestion.correctAnswer}</Text>
+                <SmartCorrectionInsightCard selectedAnswer={grammarQuizSession.selected} expectedAnswer={currentGrammarQuestion.correctAnswer} explanation={currentGrammarQuestion.lesson.explanation} japanese={currentGrammarQuestion.japanese} translation={currentGrammarQuestion.french} wrongAnswerExplanations={currentGrammarQuestion.wrongAnswerExplanations} />
                 {hasJapaneseText(currentGrammarQuestion.correctAnswer) && (
                   <JapaneseLookupText
                     text={currentGrammarQuestion.correctAnswer}

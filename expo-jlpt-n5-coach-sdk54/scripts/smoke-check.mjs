@@ -25,6 +25,7 @@ const requiredFiles = [
   'components/KanaScreen.tsx',
   'components/LearningPathScreen.tsx',
   'components/QuizScreen.tsx',
+  'components/SmartCorrectionInsightCard.tsx',
   'components/VocabularyScreen.tsx',
   'services/database.ts',
   'services/embeddedAudio.ts',
@@ -35,6 +36,7 @@ const requiredFiles = [
   'services/grammarQuizFactory.ts',
   'services/kanaArcade.ts',
   'services/kanaVisual.ts',
+  'services/srsQueue.ts',
   'services/vocabulary.ts',
   'data/grammarLessons.ts',
   'data/audioAssetRegistry.ts',
@@ -79,7 +81,9 @@ for (const [file, maxLines] of Object.entries(lineBudgets)) {
 
 const databasePath = path.join(root, 'assets/database/jlpt_n5_mobile.db');
 const databaseSize = fs.statSync(databasePath).size;
-if (databaseSize < 50_000_000) fail(`Database asset looks too small: ${databaseSize} bytes`);
+if (databaseSize < 10_000_000 || databaseSize > 25_000_000) {
+  fail(`Database asset should be compact mobile DB around 10-25 MB: ${databaseSize} bytes`);
+}
 
 const examAssetDir = path.join(root, 'assets/exams/official_2012_questions');
 const examPngCount = fs.readdirSync(examAssetDir).filter((name) => name.endsWith('.png')).length;
@@ -118,6 +122,15 @@ const walk = (directory) => {
   });
 };
 
+for (const directory of sourceDirs) {
+  for (const file of walk(path.join(root, directory))) {
+    const source = fs.readFileSync(file, 'utf8');
+    if (/https?:\/\//.test(source) || /\bfetch\s*\(/.test(source)) {
+      fail(`Runtime network dependency detected in ${path.relative(root, file)}`);
+    }
+  }
+}
+
 for (const sourceDir of sourceDirs) {
   for (const file of walk(path.join(root, sourceDir))) {
     const content = fs.readFileSync(file, 'utf8');
@@ -127,6 +140,51 @@ for (const sourceDir of sourceDirs) {
       }
     }
   }
+}
+
+const srsQueueSource = read('services/srsQueue.ts');
+for (const requiredSrsToken of [
+  'calculateSrsRiskScore',
+  'getSrsReviewReason',
+  'markSrsQueueItemKnown',
+  'postponeSrsQueueItem',
+  'reviewReason',
+  'riskScore',
+]) {
+  if (!srsQueueSource.includes(requiredSrsToken)) fail(`SRS V2 token missing: ${requiredSrsToken}`);
+}
+
+const reviewScreenSource = read('components/ReviewQueueScreen.tsx');
+for (const requiredReviewToken of [
+  'Risque memoire',
+  'Je connais deja',
+  'Revoir plus tard',
+  'srsReasonBox',
+]) {
+  if (!reviewScreenSource.includes(requiredReviewToken)) fail(`SRS V2 UI token missing: ${requiredReviewToken}`);
+}
+
+const quizFeedbackSource = read('services/quizFeedback.ts');
+for (const requiredFeedbackToken of [
+  'wrongAnswerExplanations',
+  'Piege detecte',
+  'detectKnownTrap',
+  'Pourquoi ce choix bloque',
+]) {
+  if (!quizFeedbackSource.includes(requiredFeedbackToken)) fail(`Feedback V2 token missing: ${requiredFeedbackToken}`);
+}
+
+const grammarQuizSource = read('services/grammarQuizFactory.ts');
+for (const requiredGrammarFeedbackToken of [
+  'addGrammarWrongAnswerExplanations',
+  'buildGrammarWrongAnswerExplanations',
+]) {
+  if (!grammarQuizSource.includes(requiredGrammarFeedbackToken)) fail(`Grammar feedback V2 token missing: ${requiredGrammarFeedbackToken}`);
+}
+
+const quickSessionSource = read('services/quickSession.ts');
+if (!quickSessionSource.includes("q.question_origin != 'exam'")) {
+  fail('Quick sessions must exclude image-dependent exam questions');
 }
 
 console.log('Smoke check passed.');

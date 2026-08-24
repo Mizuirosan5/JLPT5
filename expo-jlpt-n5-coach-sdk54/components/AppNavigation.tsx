@@ -1,4 +1,4 @@
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { styles } from '../appStyles';
 import type { Screen } from '../models';
 
@@ -52,7 +52,7 @@ const NAV_GROUPS: Array<{
       { screen: 'quiz', icon: '問', label: 'Quiz', description: 'Questions melangees et entrainement.' },
       { screen: 'exam', icon: '試', label: 'Test JLPT', description: 'Mode examen N5 complet.' },
     ],
-  }
+  },
 ];
 
 const ALL_MENU_GROUP: {
@@ -62,7 +62,7 @@ const ALL_MENU_GROUP: {
   subtitle: string;
   items: NavigationItem[];
 } = {
-  id: 'all' as const,
+  id: 'all',
   label: 'Tous les menus',
   icon: '☰',
   subtitle: 'Acces direct a toutes les zones de l app.',
@@ -81,7 +81,15 @@ function getActiveGroup(screen: Screen): NavGroupId {
     screen === 'review' ||
     screen === 'errors'
   ) return 'path';
-  if (screen === 'kana' || screen === 'kanjiDetail' || screen === 'vocabulary' || screen === 'grammar' || screen === 'immersion' || screen === 'stories' || screen === 'writing') return 'learn';
+  if (
+    screen === 'kana' ||
+    screen === 'kanjiDetail' ||
+    screen === 'vocabulary' ||
+    screen === 'grammar' ||
+    screen === 'immersion' ||
+    screen === 'stories' ||
+    screen === 'writing'
+  ) return 'learn';
   if (screen === 'quiz' || screen === 'exam' || screen === 'quick') return 'quiz';
   return 'path';
 }
@@ -109,6 +117,9 @@ export function AppNavigation({
   return (
     <>
       <Pressable
+        accessibilityLabel="Retour"
+        accessibilityRole="button"
+        accessibilityState={{ disabled: !canGoBack }}
         disabled={!canGoBack}
         onPress={onBack}
         style={[styles.globalBackButton, !canGoBack && styles.globalBackButtonDisabled]}
@@ -116,7 +127,12 @@ export function AppNavigation({
         <Text style={styles.globalBackIcon}>{'<'}</Text>
       </Pressable>
 
-      <Pressable onPress={() => onOpen('all')} style={styles.fullMenuButton}>
+      <Pressable
+        accessibilityLabel="Ouvrir tous les menus"
+        accessibilityRole="button"
+        onPress={() => onOpen('all')}
+        style={styles.fullMenuButton}
+      >
         <Text style={styles.fullMenuIcon}>☰</Text>
       </Pressable>
 
@@ -124,6 +140,9 @@ export function AppNavigation({
         {NAV_GROUPS.map((group) => (
           <Pressable
             key={group.id}
+            accessibilityLabel={`Ouvrir ${group.label}`}
+            accessibilityRole="button"
+            accessibilityState={{ selected: activeGroup === group.id }}
             onPress={() => onOpen(group.id)}
             style={[styles.navGroupButton, activeGroup === group.id && styles.navGroupButtonActive]}
           >
@@ -135,7 +154,7 @@ export function AppNavigation({
 
       <Modal transparent visible={!!selectedGroup} animationType="fade" onRequestClose={onClose}>
         <View style={styles.drawerOverlay}>
-          <Pressable style={styles.drawerBackdrop} onPress={onClose} />
+          <Pressable accessibilityLabel="Fermer le menu" style={styles.drawerBackdrop} onPress={onClose} />
           {!!selectedGroup && (
             <View style={styles.sideDrawer}>
               <View style={styles.drawerHeader}>
@@ -143,15 +162,18 @@ export function AppNavigation({
                   <Text style={styles.drawerKicker}>Menu</Text>
                   <Text style={styles.drawerTitle}>{selectedGroup.label}</Text>
                 </View>
-                <Pressable style={styles.drawerCloseButton} onPress={onClose}>
+                <Pressable accessibilityLabel="Fermer le menu" accessibilityRole="button" style={styles.drawerCloseButton} onPress={onClose}>
                   <Text style={styles.drawerCloseText}>x</Text>
                 </Pressable>
               </View>
               <Text style={styles.drawerSubtitle}>{selectedGroup.subtitle}</Text>
-              <View style={styles.drawerItemList}>
+              <ScrollView style={styles.drawerItemScroller} contentContainerStyle={styles.drawerItemList} showsVerticalScrollIndicator={false}>
                 {selectedGroup.items.map((item) => (
                   <Pressable
                     key={item.screen}
+                    accessibilityLabel={`Aller vers ${item.label}`}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: screen === item.screen }}
                     onPress={() => onNavigate(item.screen)}
                     style={[styles.drawerItem, screen === item.screen && styles.drawerItemActive]}
                   >
@@ -164,7 +186,7 @@ export function AppNavigation({
                     </View>
                   </Pressable>
                 ))}
-              </View>
+              </ScrollView>
             </View>
           )}
         </View>

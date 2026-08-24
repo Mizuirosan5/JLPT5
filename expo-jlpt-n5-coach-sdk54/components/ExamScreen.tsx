@@ -6,6 +6,8 @@ import { OFFICIAL_EXAM_QUESTION_ASSETS } from '../examQuestionAssets';
 import type { ExamSegment, WordLookupEntry } from '../models';
 import { hasJapaneseText } from '../services/text';
 import { recordSrsReviewForQuestionAttempt } from '../services/srs';
+import { clearSession, loadSession, saveSession } from '../services/sessionPersistence';
+import { recordTechnicalLog } from '../services/technicalLog';
 import { SegmentButton } from './formControls';
 import { JapaneseLookupText, SmartCorrectionPanel, WordLookupPanel, useVocabularyLookupIndex } from './JapaneseLookup';
 import { EmptyState, LoadingView } from './sharedUi';
@@ -19,6 +21,16 @@ type ExamAnswerRecord = {
   correctChoice: number;
   isCorrect: boolean;
 };
+
+type ExamSessionSnapshot = {
+  index: number;
+  selected: number | null;
+  correctCount: number;
+  elapsedMs: number;
+  answerHistory: ExamAnswerRecord[];
+};
+
+const getExamSessionKey = (edition: '2012' | '2018') => `exam:${edition}`;
 
 export function ExamScreen() {
   const db = useSQLiteContext();
@@ -35,6 +47,10 @@ export function ExamScreen() {
   const [examStartedAt, setExamStartedAt] = useState<number | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [answerHistory, setAnswerHistory] = useState<ExamAnswerRecord[]>([]);
+  const [loadError, setLoadError] = useState('');
+  const [saveError, setSaveError] = useState('');
+  const [reloadToken, setReloadToken] = useState(0);
+  const [savingAnswer, setSavingAnswer] = useState(false);
 
   const segment = useMemo(() => segments[index] ?? null, [segments, index]);
   const questionAsset = segment ? OFFICIAL_EXAM_QUESTION_ASSETS[segment.question_id] : undefined;
@@ -78,7 +94,9 @@ export function ExamScreen() {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const rows = await db.getAllAsync<ExamSegment>(`
+      setLoadError('');
+      try {
+        const rows = await db.getAllAsync<ExamSegment>(`
         SELECT s.question_id, q.source_id, s.section, q.skill_id,
                s.linked_question_source_file, s.problem_number, s.question_number,
                s.page_number, s.image_path, q.correct_choice,
@@ -92,28 +110,37 @@ export function ExamScreen() {
           WHEN 'reading' THEN 3
           ELSE 4 END,
           s.problem_number, s.question_number
-      `, edition === '2018' ? 'src_jlpt_official_practice_2018' : 'src_jlpt_n5_test_answer_key');
-      setSegments(rows);
-      setIndex(0);
-      setSelected(null);
-      setSelectedWordLookup(null);
-      setCorrectCount(0);
-      setElapsedMs(0);
-      setExamStartedAt(Date.now());
-      setAnswerHistory([]);
-      setFinished(false);
-      setLoading(false);
+        `, edition === '2018' ? 'src_jlpt_official_practice_2018' : 'src_jlpt_n5_test_answer_key');
+        const snapshot = await loadSession<ExamSessionSnapshot>(db, getExamSessionKey(edition));
+        const canResume = !!snapshot && snapshot.index >= 0 && snapshot.index < rows.length;
+        setSegments(rows);
+        setIndex(canResume ? snapshot.index : 0);
+        setSelected(canResume ? snapshot.selected : null);
+        setSelectedWordLookup(null);
+        setCorrectCount(canResume ? snapshot.correctCount : 0);
+        setElapsedMs(canResume ? snapshot.elapsedMs : 0);
+        setExamStartedAt(Date.now() - (canResume ? snapshot.elapsedMs : 0));
+        setAnswerHistory(canResume ? snapshot.answerHistory : []);
+        setFinished(false);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        setLoadError('Impossible de charger cette annale. Réessaie dans un instant.');
+        await recordTechnicalLog(db, 'error', 'exam_load', message);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
-  }, [db, edition]);
+  }, [db, edition, reloadToken]);
 
   const answer = async (value: number) => {
-    if (!segment || selected !== null) return;
+    if (!segment || selected !== null || savingAnswer) return;
+    setSavingAnswer(true);
+    setSaveError('');
     const isCorrect = value === segment.correct_choice;
-    setSelected(value);
-    if (isCorrect) setCorrectCount((count) => count + 1);
-    setAnswerHistory((history) => [
-      ...history,
+    const nextCorrectCount = correctCount + (isCorrect ? 1 : 0);
+    const nextHistory = [
+      ...answerHistory,
       {
         questionId: segment.question_id,
         section: segment.section,
@@ -123,8 +150,12 @@ export function ExamScreen() {
         correctChoice: segment.correct_choice,
         isCorrect,
       },
-    ]);
-    await db.runAsync(
+    ];
+    setSelected(value);
+    setCorrectCount(nextCorrectCount);
+    setAnswerHistory(nextHistory);
+    try {
+      await db.runAsync(
       `
       INSERT INTO app_question_attempt_local (
         id, question_id, source_mode, selected_answer, correct_answer,
@@ -138,27 +169,68 @@ export function ExamScreen() {
       isCorrect ? 1 : 0,
       segment.section
     );
-    await recordSrsReviewForQuestionAttempt(db, {
-      questionId: segment.question_id,
-      skillId: segment.section,
-      sourceMode: 'exam_mode',
-      isCorrect,
-    });
+      await recordSrsReviewForQuestionAttempt(db, {
+        questionId: segment.question_id,
+        skillId: segment.section,
+        sourceMode: 'exam_mode',
+        isCorrect,
+      });
+      await saveSession<ExamSessionSnapshot>(db, getExamSessionKey(edition), {
+        index,
+        selected: value,
+        correctCount: nextCorrectCount,
+        elapsedMs: examStartedAt ? Date.now() - examStartedAt : elapsedMs,
+        answerHistory: nextHistory,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setSaveError('La réponse reste visible, mais sa sauvegarde locale a échoué. Tu peux continuer; le journal technique conserve le diagnostic.');
+      await recordTechnicalLog(db, 'error', 'exam_answer', message);
+    } finally {
+      setSavingAnswer(false);
+    }
   };
 
-  const next = () => {
-    if (index >= segments.length - 1) {
-      if (examStartedAt) setElapsedMs(Date.now() - examStartedAt);
-      setFinished(true);
-      return;
+  const next = async () => {
+    if (savingAnswer) return;
+    try {
+      if (index >= segments.length - 1) {
+        if (examStartedAt) setElapsedMs(Date.now() - examStartedAt);
+        setFinished(true);
+        await clearSession(db, getExamSessionKey(edition));
+        return;
+      }
+      setSelected(null);
+      setSelectedWordLookup(null);
+      const nextIndex = index + 1;
+      setIndex(nextIndex);
+      await saveSession<ExamSessionSnapshot>(db, getExamSessionKey(edition), {
+        index: nextIndex,
+        selected: null,
+        correctCount,
+        elapsedMs: examStartedAt ? Date.now() - examStartedAt : elapsedMs,
+        answerHistory,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setSaveError('La progression reste utilisable, mais la reprise locale n’a pas pu être actualisée.');
+      await recordTechnicalLog(db, 'error', 'exam_session_advance', message);
     }
-    setSelected(null);
-    setSelectedWordLookup(null);
-    setIndex((current) => current + 1);
   };
 
   if (loading) {
     return <LoadingView />;
+  }
+
+  if (loadError) {
+    return (
+      <View style={styles.content}>
+        <EmptyState title={loadError} />
+        <Pressable style={styles.primaryButton} onPress={() => setReloadToken((value) => value + 1)}>
+          <Text style={styles.primaryButtonText}>Réessayer</Text>
+        </Pressable>
+      </View>
+    );
   }
 
   return (
@@ -206,6 +278,7 @@ export function ExamScreen() {
           <Pressable
             style={styles.primaryButton}
             onPress={() => {
+              clearSession(db, getExamSessionKey(edition)).catch(() => undefined);
               setIndex(0);
               setSelected(null);
               setSelectedWordLookup(null);
@@ -361,11 +434,18 @@ export function ExamScreen() {
         </View>
       )}
       {selected !== null && (
-        <Pressable style={styles.primaryButton} onPress={next}>
-          <Text style={styles.primaryButtonText}>
-            {index === segments.length - 1 ? 'Voir mon résultat' : 'Question suivante'}
-          </Text>
-        </Pressable>
+        <>
+          {saveError ? <Text style={styles.preferencesText}>{saveError}</Text> : null}
+          <Pressable
+            style={[styles.primaryButton, savingAnswer && styles.primaryButtonDisabled]}
+            disabled={savingAnswer}
+            onPress={next}
+          >
+            <Text style={styles.primaryButtonText}>
+              {index === segments.length - 1 ? 'Voir mon résultat' : 'Question suivante'}
+            </Text>
+          </Pressable>
+        </>
       )}
         </>
       ) : (

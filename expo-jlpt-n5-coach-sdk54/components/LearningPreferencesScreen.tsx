@@ -6,8 +6,16 @@ import type { LearningPlanMode, LearningPreferences, QuizDifficultyPreference } 
 import {
   DEFAULT_LEARNING_PREFERENCES,
   loadLearningPreferences,
+  resetLearningPreferences,
   saveLearningPreference,
 } from '../services/preferences';
+import {
+  createLocalBackupSnapshot,
+  deleteAllUserData,
+  restoreLatestLocalBackupSnapshot,
+  type LocalBackupSummary,
+} from '../services/localBackup';
+import { loadRecentTechnicalLogs, recordTechnicalLog, type TechnicalLogEntry } from '../services/technicalLog';
 import { SegmentButton } from './formControls';
 import { LoadingView, Section } from './sharedUi';
 
@@ -29,6 +37,11 @@ export function LearningPreferencesScreen() {
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState<keyof LearningPreferences | null>(null);
   const [preferences, setPreferences] = useState<LearningPreferences>(DEFAULT_LEARNING_PREFERENCES);
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [backupSummary, setBackupSummary] = useState<LocalBackupSummary | null>(null);
+  const [backupMessage, setBackupMessage] = useState('');
+  const [deleteArmed, setDeleteArmed] = useState(false);
+  const [technicalLogs, setTechnicalLogs] = useState<TechnicalLogEntry[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -56,6 +69,82 @@ export function LearningPreferencesScreen() {
       await load();
     } finally {
       setSavingKey(null);
+    }
+  }
+
+  async function createBackup() {
+    setBackupBusy(true);
+    setBackupMessage('');
+    try {
+      const summary = await createLocalBackupSnapshot(db);
+      setBackupSummary(summary);
+      setBackupMessage(`Point de restauration cree : ${summary.totalRows} lignes utilisateur.`);
+    } catch (error) {
+      console.error('Unable to create local backup', error);
+      await recordTechnicalLog(db, 'error', 'preferences.backup', 'Unable to create local backup', error);
+      setBackupMessage('Sauvegarde impossible pour le moment.');
+    } finally {
+      setBackupBusy(false);
+    }
+  }
+
+  async function restoreBackup() {
+    setBackupBusy(true);
+    setBackupMessage('');
+    try {
+      const summary = await restoreLatestLocalBackupSnapshot(db);
+      setBackupSummary(summary);
+      setBackupMessage(summary ? `Restauration terminee : ${summary.totalRows} lignes relues.` : 'Aucun point de restauration local disponible.');
+      await load();
+    } catch (error) {
+      console.error('Unable to restore local backup', error);
+      await recordTechnicalLog(db, 'error', 'preferences.restore', 'Unable to restore local backup', error);
+      setBackupMessage('Restauration refusee : sauvegarde absente, invalide ou trop recente.');
+    } finally {
+      setBackupBusy(false);
+    }
+  }
+
+  async function deleteUserData() {
+    if (!deleteArmed) {
+      setDeleteArmed(true);
+      setBackupMessage('Confirme une deuxieme fois pour supprimer la progression locale.');
+      return;
+    }
+    setBackupBusy(true);
+    try {
+      const summary = await deleteAllUserData(db);
+      setBackupSummary(summary);
+      setBackupMessage(`Donnees supprimees : ${summary.totalRows} lignes utilisateur effacees.`);
+      setDeleteArmed(false);
+      await load();
+    } catch (error) {
+      console.error('Unable to delete user data', error);
+      await recordTechnicalLog(db, 'error', 'preferences.deleteUserData', 'Unable to delete user data', error);
+      setBackupMessage('Suppression impossible pour le moment.');
+    } finally {
+      setBackupBusy(false);
+    }
+  }
+
+  async function refreshTechnicalLogs() {
+    try {
+      setTechnicalLogs(await loadRecentTechnicalLogs(db, 6));
+    } catch (error) {
+      console.error('Unable to load technical logs', error);
+    }
+  }
+
+  async function resetPreferences() {
+    setLoading(true);
+    try {
+      setPreferences(await resetLearningPreferences(db));
+      setBackupMessage('Preferences pedagogiques remises aux valeurs par defaut.');
+    } catch (error) {
+      await recordTechnicalLog(db, 'error', 'preferences.reset', 'Unable to reset preferences', error);
+      setBackupMessage('Reinitialisation impossible pour le moment.');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -155,6 +244,53 @@ export function LearningPreferencesScreen() {
           </Pressable>
         ))}
       </Section>
+
+      <Section title="Donnees locales">
+        <View style={styles.preferenceBackupGrid}>
+          <Pressable disabled={backupBusy} onPress={createBackup} style={[styles.secondaryButton, backupBusy && styles.primaryButtonDisabled]}>
+            <Text style={styles.secondaryButtonText}>Sauvegarder</Text>
+          </Pressable>
+          <Pressable disabled={backupBusy} onPress={restoreBackup} style={[styles.secondaryButton, backupBusy && styles.primaryButtonDisabled]}>
+            <Text style={styles.secondaryButtonText}>Restaurer</Text>
+          </Pressable>
+        </View>
+        <Pressable
+          disabled={backupBusy}
+          onPress={deleteUserData}
+          style={[styles.preferenceDangerButton, backupBusy && styles.primaryButtonDisabled, deleteArmed && styles.preferenceDangerButtonArmed]}
+        >
+          <Text style={[styles.preferenceDangerButtonText, deleteArmed && styles.preferenceDangerButtonTextArmed]}>
+            {deleteArmed ? 'Confirmer la suppression' : 'Supprimer mes donnees'}
+          </Text>
+        </Pressable>
+        {!!backupMessage && <Text style={styles.preferenceHelpText}>{backupMessage}</Text>}
+        {!!backupSummary && (
+          <Text style={styles.preferenceHelpText}>
+            Derniere operation : {backupSummary.totalRows} lignes, {Object.keys(backupSummary.tableCounts).length} tables utilisateur.
+          </Text>
+        )}
+        <Pressable onPress={resetPreferences} style={styles.secondaryButton}>
+          <Text style={styles.secondaryButtonText}>Reinitialiser les preferences</Text>
+        </Pressable>
+      </Section>
+
+      <Section title="Diagnostic technique">
+        <Pressable onPress={refreshTechnicalLogs} style={styles.secondaryButton}>
+          <Text style={styles.secondaryButtonText}>Afficher le journal local</Text>
+        </Pressable>
+        {technicalLogs.length ? (
+          technicalLogs.map((entry) => (
+            <View key={entry.id} style={styles.preferenceLogRow}>
+              <Text style={styles.preferenceLogTitle}>
+                {entry.level.toUpperCase()} · {entry.scope}
+              </Text>
+              <Text style={styles.preferenceOptionText}>{entry.message}</Text>
+            </View>
+          ))
+        ) : (
+          <Text style={styles.preferenceHelpText}>Aucune erreur technique locale recente.</Text>
+        )}
+      </Section>
     </ScrollView>
   );
 }
@@ -173,7 +309,14 @@ function PreferenceSwitch({
   onPress: () => void;
 }) {
   return (
-    <Pressable disabled={disabled} onPress={onPress} style={[styles.preferenceSwitchCard, disabled && styles.preferenceDisabled]}>
+    <Pressable
+      accessibilityLabel={label}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: active, disabled: !!disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      style={[styles.preferenceSwitchCard, disabled && styles.preferenceDisabled]}
+    >
       <View style={styles.preferenceOptionBody}>
         <Text style={styles.preferenceOptionTitle}>{label}</Text>
         <Text style={styles.preferenceOptionText}>{detail}</Text>

@@ -408,7 +408,7 @@ export function buildGrammarQuizQuestions(
             'keyword_input',
             'dialogue_response_qcm',
           ];
-  return pool.map((lesson, index) => {
+  return pool.map<GrammarQuizQuestion>((lesson, index) => {
     const example = getGrammarExample(lesson);
     const keyword = getGrammarKeyword(lesson, example);
     const kind = exerciseCycle[index % exerciseCycle.length];
@@ -524,7 +524,7 @@ export function buildGrammarQuizQuestions(
       correctAnswer: formula,
       choices: formulaChoices,
     };
-  });
+  }).map(addGrammarWrongAnswerExplanations);
 }
 
 export function buildGrammarQuestionAnswerQuiz(size: 10 | 20): GrammarQuizQuestion[] {
@@ -532,7 +532,7 @@ export function buildGrammarQuestionAnswerQuiz(size: 10 | 20): GrammarQuizQuesti
     ALL_GRAMMAR_LESSONS.find((lesson) => lesson.order === 147) ??
     ALL_GRAMMAR_LESSONS.find((lesson) => lesson.title.includes('réponses naturelles')) ??
     ALL_GRAMMAR_LESSONS[0];
-  return Array.from({ length: size }, (_, index) => {
+  return Array.from<unknown, GrammarQuizQuestion>({ length: size }, (_, index) => {
     const dialogue = GRAMMAR_DIALOGUE_PROMPTS[index % GRAMMAR_DIALOGUE_PROMPTS.length];
     return {
       id: `grammar-response-${index}-${dialogue.answer}`,
@@ -548,7 +548,45 @@ export function buildGrammarQuestionAnswerQuiz(size: 10 | 20): GrammarQuizQuesti
       correctAnswer: dialogue.answer,
       choices: shuffle(dialogue.choices),
     };
-  });
+  }).map(addGrammarWrongAnswerExplanations);
+}
+
+function addGrammarWrongAnswerExplanations(question: GrammarQuizQuestion): GrammarQuizQuestion {
+  if (question.choices.length === 0) return question;
+  return {
+    ...question,
+    wrongAnswerExplanations: buildGrammarWrongAnswerExplanations(question.correctAnswer, question.choices, question.lesson),
+  };
+}
+
+function buildGrammarWrongAnswerExplanations(
+  correctAnswer: string,
+  choices: string[],
+  lesson: GrammarLesson
+): Record<string, string> {
+  return choices.reduce<Record<string, string>>((acc, choice) => {
+    if (choice === correctAnswer) return acc;
+    acc[choice] = buildWrongGrammarChoiceExplanation(choice, correctAnswer, lesson);
+    return acc;
+  }, {});
+}
+
+function buildWrongGrammarChoiceExplanation(choice: string, correctAnswer: string, lesson: GrammarLesson): string {
+  const particleChoices = new Set(['は', 'が', 'を', 'に', 'で', 'へ', 'と', 'も', 'の', 'か']);
+  if (particleChoices.has(choice) && particleChoices.has(correctAnswer)) {
+    return `La particule ${choice} ne porte pas la meme fonction ici. On attend ${correctAnswer} : ${lesson.explanation}`;
+  }
+  if (choice.includes('/') || correctAnswer.includes('/')) {
+    return `Cette formule appartient a un autre usage. Pour cette phrase, l'indice principal est : ${lesson.goal}`;
+  }
+  if (hasKanaOrKanji(choice) || hasKanaOrKanji(correctAnswer)) {
+    return `Cette reponse ne correspond pas a l'intention de la phrase. Compare le sens francais, puis relis : ${lesson.explanation}`;
+  }
+  return `Cette option attire l'oeil, mais elle ne respecte pas la regle visee : ${lesson.title}.`;
+}
+
+function hasKanaOrKanji(value: string): boolean {
+  return /[\u3040-\u30ff\u3400-\u9fff]/.test(value);
 }
 
 function buildGrammarMatchingRounds(roundCount = 3, pairsPerRound = 5): GrammarMatchingRound[] {

@@ -1,6 +1,6 @@
 {
   "name": "expo-jlpt-n5-coach-sdk54",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
@@ -16,12 +16,21 @@
     "audio:generate": "powershell -ExecutionPolicy Bypass -File scripts/generate-audio-pack.ps1",
     "audio:sync": "node scripts/sync-audio-registry.mjs",
     "audio:check": "node scripts/validate-audio-pack.mjs",
-    "audio:check:strict": "node scripts/validate-audio-pack.mjs --strict"
+    "audio:check:strict": "node scripts/validate-audio-pack.mjs --strict",
+    "db:compact": "python scripts/compact-mobile-db.py",
+    "db:validate": "python scripts/validate-mobile-db.py",
+    "audit:mobile": "node scripts/playwright-mobile-audit.mjs",
+    "test:unit": "node --import ./scripts/register-typescript-test-loader.mjs --test tests/unit/core.test.ts tests/unit/backup.test.ts",
+    "test:integration": "node --import ./scripts/register-typescript-test-loader.mjs --test tests/integration/persistence.test.ts",
+    "test:e2e": "npm run audit:mobile",
+    "test:content": "node scripts/validate-content.mjs",
+    "test:release": "npm run typecheck && npm run test:unit && npm run test:integration && npm run test:content && npm run db:validate && npm run smoke && npm run export:web && npm run audio:check"
   },
   "dependencies": {
     "expo": "~54.0.35",
     "expo-asset": "~12.0.13",
     "expo-audio": "~1.1.1",
+    "expo-build-properties": "~1.0.10",
     "expo-speech": "~14.0.8",
     "expo-sqlite": "~16.0.10",
     "expo-status-bar": "~3.0.9",
@@ -33,6 +42,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
+    "playwright": "^1.62.1",
     "typescript": "~5.9.2"
   },
   "engines": {

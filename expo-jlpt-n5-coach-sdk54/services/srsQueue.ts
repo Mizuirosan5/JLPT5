@@ -1,6 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import type { SrsItemType, SrsStatus } from './srs';
 import { recordSrsReviewForQuestionAttempt } from './srs';
+import { shuffle } from './random';
 
 export type SrsQueueSection = 'urgent' | 'today' | 'soon';
 
@@ -13,6 +14,8 @@ export type SrsQueueItem = {
   correct: number;
   wrongStreak: number;
   correctStreak: number;
+  riskScore: number;
+  reviewReason: string;
   section: SrsQueueSection;
   questionId: string;
   skillId: string;
@@ -28,6 +31,8 @@ type SrsQueueRow = {
   item_type: SrsItemType;
   status: SrsStatus;
   due_at: string;
+  last_reviewed_at: string | null;
+  ease: number;
   attempts: number;
   correct: number;
   wrong_streak: number;
@@ -41,6 +46,8 @@ type SrsQueueRow = {
 };
 
 export async function loadDueSrsItems(db: SQLiteDatabase, limit = 30): Promise<SrsQueueItem[]> {
+  await ensureSrsQueueTables(db);
+
   const rows = await db.getAllAsync<SrsQueueRow>(
     `
     SELECT
@@ -48,6 +55,8 @@ export async function loadDueSrsItems(db: SQLiteDatabase, limit = 30): Promise<S
       s.item_type,
       s.status,
       s.due_at,
+      s.last_reviewed_at,
+      s.ease,
       s.attempts,
       s.correct,
       s.wrong_streak,
@@ -59,13 +68,7 @@ export async function loadDueSrsItems(db: SQLiteDatabase, limit = 30): Promise<S
       q.correct_answer,
       q.explanation_fr
     FROM app_srs_item_state s
-    LEFT JOIN app_question_bank q ON q.question_id = (
-      SELECT qb.question_id
-      FROM app_question_bank qb
-      WHERE qb.question_id = s.item_id OR qb.skill_id = s.item_id
-      ORDER BY CASE WHEN qb.question_id = s.item_id THEN 0 ELSE 1 END, RANDOM()
-      LIMIT 1
-    )
+    LEFT JOIN app_question_bank q ON q.question_id = s.item_id OR q.skill_id = s.item_id
     WHERE s.due_at <= datetime('now', '+3 days')
     ORDER BY
       CASE WHEN s.due_at <= datetime('now') THEN 0 ELSE 1 END,
@@ -94,6 +97,8 @@ export async function loadDueSrsItems(db: SQLiteDatabase, limit = 30): Promise<S
       correct: row.correct,
       wrongStreak: row.wrong_streak,
       correctStreak: row.correct_streak,
+      riskScore: calculateSrsRiskScore(row),
+      reviewReason: getSrsReviewReason(row),
       section: getSrsQueueSection(row),
       questionId: row.question_id,
       skillId: row.skill_id,
@@ -120,6 +125,8 @@ export async function loadDueSrsItems(db: SQLiteDatabase, limit = 30): Promise<S
       s.item_type,
       s.status,
       s.due_at,
+      s.last_reviewed_at,
+      s.ease,
       s.attempts,
       s.correct,
       s.wrong_streak,
@@ -159,6 +166,8 @@ export async function loadDueSrsItems(db: SQLiteDatabase, limit = 30): Promise<S
       correct: row.correct,
       wrongStreak: row.wrong_streak,
       correctStreak: row.correct_streak,
+      riskScore: calculateSrsRiskScore(row),
+      reviewReason: getSrsReviewReason(row),
       section: getSrsQueueSection(row),
       questionId: row.question_id,
       skillId: row.skill_id,
@@ -171,7 +180,7 @@ export async function loadDueSrsItems(db: SQLiteDatabase, limit = 30): Promise<S
   }
 
   return items
-    .sort((a, b) => getSectionRank(a.section) - getSectionRank(b.section) || a.dueAt.localeCompare(b.dueAt))
+    .sort((a, b) => getSectionRank(a.section) - getSectionRank(b.section) || b.riskScore - a.riskScore || a.dueAt.localeCompare(b.dueAt))
     .slice(0, limit);
 }
 
@@ -209,12 +218,91 @@ export async function recordSrsReview(
   });
 }
 
+export async function markSrsQueueItemKnown(db: SQLiteDatabase, item: SrsQueueItem): Promise<void> {
+  const nextInterval = Math.max(7, Math.min(45, item.status === 'mastered' ? item.attempts + 14 : item.attempts + 7));
+  await db.runAsync(
+    `
+    UPDATE app_srs_item_state
+    SET
+      status = CASE WHEN status IN ('solid', 'mastered') THEN 'mastered' ELSE 'solid' END,
+      ease = MIN(3.2, ease + 0.12),
+      interval_days = ?,
+      due_at = datetime('now', ?),
+      last_reviewed_at = datetime('now'),
+      attempts = attempts + 1,
+      correct = correct + 1,
+      wrong_streak = 0,
+      correct_streak = correct_streak + 1,
+      updated_at = datetime('now')
+    WHERE item_id = ? AND item_type = ?
+    `,
+    nextInterval,
+    `+${nextInterval} days`,
+    item.itemId,
+    item.itemType
+  );
+}
+
+export async function postponeSrsQueueItem(db: SQLiteDatabase, item: SrsQueueItem, days = 1): Promise<void> {
+  const interval = Math.max(1, Math.min(3, days));
+  await db.runAsync(
+    `
+    UPDATE app_srs_item_state
+    SET
+      due_at = datetime('now', ?),
+      updated_at = datetime('now')
+    WHERE item_id = ? AND item_type = ?
+    `,
+    `+${interval} days`,
+    item.itemId,
+    item.itemType
+  );
+}
+
 function getSrsQueueSection(row: SrsQueueRow): SrsQueueSection {
-  const dueTime = new Date(`${row.due_at.replace(' ', 'T')}Z`).getTime();
+  const dueTime = parseSrsDate(row.due_at).getTime();
   const now = Date.now();
   if (dueTime <= now && (row.status === 'fragile' || row.status === 'new' || row.wrong_streak > 0)) return 'urgent';
   if (dueTime <= now) return 'today';
   return 'soon';
+}
+
+function calculateSrsRiskScore(row: SrsQueueRow): number {
+  const dueTime = parseSrsDate(row.due_at).getTime();
+  const now = Date.now();
+  const overdueDays = Math.max(0, Math.floor((now - dueTime) / 86_400_000));
+  const statusWeight: Record<SrsStatus, number> = {
+    new: 22,
+    fragile: 34,
+    known: 16,
+    solid: 7,
+    mastered: 2,
+  };
+  const accuracy = row.attempts > 0 ? row.correct / row.attempts : 0;
+  const accuracyPenalty = Math.round((1 - accuracy) * 20);
+  const easePenalty = Math.max(0, Math.round((2.5 - row.ease) * 12));
+  return Math.max(
+    0,
+    statusWeight[row.status] +
+      overdueDays * 18 +
+      row.wrong_streak * 28 +
+      accuracyPenalty +
+      easePenalty -
+      row.correct_streak * 7
+  );
+}
+
+function getSrsReviewReason(row: SrsQueueRow): string {
+  if (row.wrong_streak >= 2) return 'Revient car plusieurs erreurs se suivent.';
+  if (row.wrong_streak === 1) return 'Revient car une erreur recente a fragilise cette notion.';
+  if (row.attempts === 0 || row.status === 'new') return 'Revient car cette notion n a jamais ete consolidee.';
+  if (row.status === 'fragile') return 'Revient car la memoire est encore fragile.';
+  if (getSrsQueueSection(row) === 'soon') return 'Revient bientot pour eviter l oubli.';
+  return 'Revient aujourd hui selon son intervalle de revision.';
+}
+
+function parseSrsDate(value: string): Date {
+  return new Date(`${value.replace(' ', 'T')}Z`);
 }
 
 async function buildReviewChoices(
@@ -229,8 +317,8 @@ async function buildReviewChoices(
     FROM app_generated_choice
     WHERE question_id = ?
       AND is_correct = 0
-    ORDER BY RANDOM()
-    LIMIT 3
+    ORDER BY sort_order
+    LIMIT 12
     `,
     questionId
   );
@@ -245,20 +333,15 @@ async function buildReviewChoices(
             AND question_id != ?
             AND correct_answer IS NOT NULL
             AND correct_answer != ''
-          ORDER BY RANDOM()
-          LIMIT ?
+          ORDER BY question_id
+          LIMIT 12
           `,
           skillId,
-          questionId,
-          3 - distractors.length
+          questionId
         );
-  return shuffle([correctAnswer, ...distractors.map((choice) => choice.choice_text), ...fallback.map((choice) => choice.choice_text)])
+  return shuffle([correctAnswer, ...shuffle(distractors).slice(0, 3).map((choice) => choice.choice_text), ...shuffle(fallback).slice(0, Math.max(0, 3 - distractors.length)).map((choice) => choice.choice_text)])
     .filter((choice, index, all) => all.indexOf(choice) === index)
     .slice(0, 4);
-}
-
-function shuffle<T>(items: T[]): T[] {
-  return [...items].sort(() => Math.random() - 0.5);
 }
 
 function buildErrorFlashcardChoices(correctAnswer: string, selectedAnswer: string | null): string[] {
@@ -272,4 +355,73 @@ function getSectionRank(section: SrsQueueSection): number {
   if (section === 'urgent') return 0;
   if (section === 'today') return 1;
   return 2;
+}
+
+async function ensureSrsQueueTables(db: SQLiteDatabase): Promise<void> {
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS app_srs_item_state (
+      item_id TEXT NOT NULL,
+      item_type TEXT NOT NULL,
+      status TEXT NOT NULL,
+      ease REAL NOT NULL DEFAULT 2.5,
+      interval_days INTEGER NOT NULL DEFAULT 0,
+      due_at TEXT NOT NULL,
+      last_reviewed_at TEXT,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      correct INTEGER NOT NULL DEFAULT 0,
+      wrong_streak INTEGER NOT NULL DEFAULT 0,
+      correct_streak INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL,
+      PRIMARY KEY (item_id, item_type)
+    );
+
+    CREATE TABLE IF NOT EXISTS app_error_flashcard (
+      id TEXT PRIMARY KEY,
+      source_question_id TEXT NOT NULL,
+      source_mode TEXT NOT NULL,
+      item_type TEXT NOT NULL,
+      prompt TEXT NOT NULL,
+      japanese TEXT,
+      translation TEXT,
+      expected_answer TEXT NOT NULL,
+      selected_answer TEXT,
+      explanation TEXT,
+      archived INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      UNIQUE(source_question_id, expected_answer)
+    );
+  `);
+
+  await ensureColumn(db, 'app_srs_item_state', 'item_id', "TEXT NOT NULL DEFAULT ''");
+  await ensureColumn(db, 'app_srs_item_state', 'item_type', "TEXT NOT NULL DEFAULT 'vocabulary'");
+  await ensureColumn(db, 'app_srs_item_state', 'status', "TEXT NOT NULL DEFAULT 'new'");
+  await ensureColumn(db, 'app_srs_item_state', 'ease', 'REAL NOT NULL DEFAULT 2.5');
+  await ensureColumn(db, 'app_srs_item_state', 'interval_days', 'INTEGER NOT NULL DEFAULT 0');
+  await ensureColumn(db, 'app_srs_item_state', 'due_at', "TEXT NOT NULL DEFAULT ''");
+  await ensureColumn(db, 'app_srs_item_state', 'last_reviewed_at', 'TEXT');
+  await ensureColumn(db, 'app_srs_item_state', 'attempts', 'INTEGER NOT NULL DEFAULT 0');
+  await ensureColumn(db, 'app_srs_item_state', 'correct', 'INTEGER NOT NULL DEFAULT 0');
+  await ensureColumn(db, 'app_srs_item_state', 'wrong_streak', 'INTEGER NOT NULL DEFAULT 0');
+  await ensureColumn(db, 'app_srs_item_state', 'correct_streak', 'INTEGER NOT NULL DEFAULT 0');
+  await ensureColumn(db, 'app_srs_item_state', 'updated_at', "TEXT NOT NULL DEFAULT ''");
+
+  await ensureColumn(db, 'app_error_flashcard', 'source_question_id', "TEXT NOT NULL DEFAULT ''");
+  await ensureColumn(db, 'app_error_flashcard', 'source_mode', "TEXT NOT NULL DEFAULT 'unknown'");
+  await ensureColumn(db, 'app_error_flashcard', 'item_type', "TEXT NOT NULL DEFAULT 'vocabulary'");
+  await ensureColumn(db, 'app_error_flashcard', 'prompt', "TEXT NOT NULL DEFAULT ''");
+  await ensureColumn(db, 'app_error_flashcard', 'japanese', 'TEXT');
+  await ensureColumn(db, 'app_error_flashcard', 'translation', 'TEXT');
+  await ensureColumn(db, 'app_error_flashcard', 'expected_answer', "TEXT NOT NULL DEFAULT ''");
+  await ensureColumn(db, 'app_error_flashcard', 'selected_answer', 'TEXT');
+  await ensureColumn(db, 'app_error_flashcard', 'explanation', 'TEXT');
+  await ensureColumn(db, 'app_error_flashcard', 'archived', 'INTEGER NOT NULL DEFAULT 0');
+  await ensureColumn(db, 'app_error_flashcard', 'created_at', "TEXT NOT NULL DEFAULT ''");
+  await ensureColumn(db, 'app_error_flashcard', 'updated_at', "TEXT NOT NULL DEFAULT ''");
+}
+
+async function ensureColumn(db: SQLiteDatabase, tableName: string, columnName: string, definition: string): Promise<void> {
+  const columns = await db.getAllAsync<{ name: string }>(`PRAGMA table_info(${tableName})`);
+  if (columns.some((column) => column.name === columnName)) return;
+  await db.execAsync(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`);
 }

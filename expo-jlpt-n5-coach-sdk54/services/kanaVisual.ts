@@ -112,11 +112,8 @@ const PREFERRED_N5_ROMAJI: Record<string, string> = {
   えん: 'en',
 };
 
-// OpenMoji illustrations are CC BY-SA 4.0; keep attribution in the app credits before release.
-const OPENMOJI_BASE_URI = 'https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/color/618x618';
-
-function openMoji(code: string): string {
-  return `${OPENMOJI_BASE_URI}/${code}.png`;
+function openMoji(_code: string): string {
+  return '';
 }
 
 const N5_EXAMPLE_ILLUSTRATIONS: Record<string, { uri: string; fallback: string }> = {

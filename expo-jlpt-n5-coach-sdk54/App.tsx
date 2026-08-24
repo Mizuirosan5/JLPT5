@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { SQLiteProvider } from 'expo-sqlite';
-import { useEffect, useState } from 'react';
-import { SafeAreaView, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Keyboard, SafeAreaView, Text, View } from 'react-native';
 import { styles } from './appStyles';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { AppNavigation } from './components/AppNavigation';
@@ -23,18 +23,15 @@ import { StoryLessonScreen } from './components/StoryLessonScreen';
 import { VocabularyScreen } from './components/VocabularyScreen';
 import { WritingJournalScreen } from './components/WritingJournalScreen';
 import { HeaderJapanScene } from './components/shellUi';
-import { initializeDatabase } from './services/database';
-import type { Screen } from './models';
-type NavGroupId = 'all' | 'path' | 'learn' | 'quiz' | 'settings';
+import { DATABASE_NAME, initializeDatabase } from './services/database';
+import { useHardwareBack } from './services/useHardwareBack';
+import type { Screen } from './models'; type NavGroupId = 'all' | 'path' | 'learn' | 'quiz' | 'settings';
 export default function App() {
   return (
     <AppErrorBoundary>
       <SQLiteProvider
-        databaseName="jlpt_n5_mobile_v7.db"
-        assetSource={{
-          assetId: require('./assets/database/jlpt_n5_mobile.db'),
-          forceOverwrite: false,
-        }}
+        databaseName={DATABASE_NAME}
+        assetSource={{ assetId: require('./assets/database/jlpt_n5_mobile.db'), forceOverwrite: false }}
         onInit={initializeDatabase}
       >
         <MainApp />
@@ -48,18 +45,20 @@ function MainApp() {
   const [drawerGroup, setDrawerGroup] = useState<NavGroupId | null>(null);
   const [childCanGoBack, setChildCanGoBack] = useState(false);
   const [childBackSignal, setChildBackSignal] = useState(0);
-  function navigateTo(nextScreen: Screen) {
+  const navigateTo = useCallback((nextScreen: Screen) => {
+    Keyboard.dismiss();
     setScreen((currentScreen) => {
       if (currentScreen === nextScreen) return currentScreen;
       setScreenHistory((history) => [...history, currentScreen].slice(-20));
       return nextScreen;
     });
     setDrawerGroup(null);
-  }
+  }, []);
   useEffect(() => {
     if (screen !== 'quiz') setChildCanGoBack(false);
   }, [screen]);
-  function goBack() {
+  const goBack = useCallback(() => {
+    Keyboard.dismiss();
     if (drawerGroup) {
       setDrawerGroup(null);
       return;
@@ -73,8 +72,9 @@ function MainApp() {
       setScreen(previous);
       return history.slice(0, -1);
     });
-  }
+  }, [childCanGoBack, drawerGroup]);
   const canGoBack = !!drawerGroup || childCanGoBack || screenHistory.length > 0 || screen !== 'dashboard';
+  useHardwareBack(canGoBack, goBack);
   return (
     <SafeAreaView style={styles.app}>
       <StatusBar style="dark" />

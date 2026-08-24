@@ -68,8 +68,8 @@ export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate }: AudioQu
   }, [db]);
 
   const currentQuestion = session?.questions[session.currentIndex] ?? null;
-  const canPlayAudio = audioEnabled && audio.available;
   const canPlayEmbeddedAudio = Boolean(currentQuestion && hasEmbeddedAudioAsset(currentQuestion.item.id));
+  const canPlayAudio = audioEnabled && (audio.available || canPlayEmbeddedAudio);
 
   const playCurrentAudio = useCallback(() => {
     if (!currentQuestion || !audioEnabled) return;

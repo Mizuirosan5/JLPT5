@@ -11,7 +11,13 @@ export function SegmentButton({
   onPress: () => void;
 }) {
   return (
-    <Pressable onPress={onPress} style={[styles.segmentButton, active && styles.segmentButtonActive]}>
+    <Pressable
+      accessibilityLabel={label}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: active }}
+      onPress={onPress}
+      style={[styles.segmentButton, active && styles.segmentButtonActive]}
+    >
       <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{label}</Text>
     </Pressable>
   );
@@ -27,7 +33,13 @@ export function FilterButton({
   onPress: () => void;
 }) {
   return (
-    <Pressable onPress={onPress} style={[styles.filterButton, active && styles.filterButtonActive]}>
+    <Pressable
+      accessibilityLabel={label}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      onPress={onPress}
+      style={[styles.filterButton, active && styles.filterButtonActive]}
+    >
       <Text style={[styles.filterText, active && styles.filterTextActive]}>{label}</Text>
     </Pressable>
   );

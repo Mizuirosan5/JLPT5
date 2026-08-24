@@ -78,45 +78,59 @@ const ATTENDANCE_BONUSES = [
   { id: 'attendance-streak-7', title: 'Serie 7 jours', rewardXp: 780, badgeCode: 'ASSIDUITE-7', streakTarget: 7, repeat: 'once' },
 ] as const;
 
+const DAILY_GOAL_MATERIALIZATION_DAYS = 186;
+
 export async function ensureDailyGoalPlan(
   db: SQLiteDatabase,
   dailyDefinitions: GoalDefinition[],
   goalPlanDays: number
 ) {
   const profile = await loadDailyGoalProfile(db);
-  await db.runAsync(
+  const now = new Date();
+  const todayKey = formatDateKey(now);
+  const tomorrowKey = formatDateKey(addDays(now, 1));
+  const days = buildDateRange(Math.min(goalPlanDays, DAILY_GOAL_MATERIALIZATION_DAYS), now);
+  const existingRows = await db.getAllAsync<{ day: string; count: number }>(
     `
-    DELETE FROM app_daily_goal_plan
-    WHERE day >= date('now')
-      AND goal_id LIKE 'daily-%'
-    `
+    SELECT day, COUNT(*) AS count
+    FROM app_daily_goal_plan
+    WHERE day >= ?
+    GROUP BY day
+    `,
+    todayKey
   );
+  const plannedGoalCountByDay = new Map(existingRows.map((row) => [row.day, row.count]));
 
-  const start = new Date();
-  start.setDate(start.getDate() - 364);
-  const days = buildDateRange(goalPlanDays, start);
-  const todayKey = formatDateKey(new Date());
-  const todayIndex = Math.max(0, days.indexOf(todayKey));
-  for (const day of days) {
-    const dayIndex = Math.max(0, days.indexOf(day) - todayIndex);
-    const goals = day >= todayKey ? buildAdaptiveDailyGoals(day, dayIndex, profile) : dailyDefinitions;
-    for (const goal of goals) {
-      await db.runAsync(
-        `
-        INSERT OR IGNORE INTO app_daily_goal_plan (
-          day, goal_id, title, description, target, reward_xp, badge_code, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
-        `,
-        day,
-        goal.id,
-        goal.title,
-        goal.description,
-        goal.target,
-        goal.rewardXp,
-        goal.badgeCode
-      );
+  await db.withTransactionAsync(async () => {
+    for (const [dayIndex, day] of days.entries()) {
+      const shouldRefreshNearTerm = day === todayKey || day === tomorrowKey;
+      const existingCount = plannedGoalCountByDay.get(day) ?? 0;
+      if (!shouldRefreshNearTerm && existingCount >= 3) continue;
+      if (shouldRefreshNearTerm && existingCount > 0) {
+        await db.runAsync(
+          `DELETE FROM app_daily_goal_plan WHERE day = ? AND goal_id LIKE 'daily-%'`,
+          day
+        );
+      }
+      const goals = buildAdaptiveDailyGoals(day, dayIndex, profile);
+      for (const goal of goals) {
+        await db.runAsync(
+          `
+          INSERT OR IGNORE INTO app_daily_goal_plan (
+            day, goal_id, title, description, target, reward_xp, badge_code, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+          `,
+          day,
+          goal.id,
+          goal.title,
+          goal.description,
+          goal.target,
+          goal.rewardXp,
+          goal.badgeCode
+        );
+      }
     }
-  }
+  });
 }
 
 type DailyGoalProfile = {
@@ -340,36 +354,84 @@ export async function loadDashboardOverviewData(
   db: SQLiteDatabase,
   grammarTotal: number
 ): Promise<DashboardOverviewData> {
-  const base = await db.getFirstAsync<{
-    questions: number;
-    vocabulary: number;
-    grammar: number;
-    kanji: number;
-    kana: number;
-    audio: number;
-  }>(`
-    SELECT
-      (SELECT COUNT(*) FROM app_question_bank) AS questions,
-      (SELECT COUNT(*) FROM canonical_vocabulary) AS vocabulary,
-      (SELECT COUNT(*) FROM canonical_grammar) AS grammar,
-      (SELECT COUNT(*) FROM canonical_kanji) AS kanji,
-      (SELECT COUNT(*) FROM canonical_kana) AS kana,
-      (SELECT COUNT(*) FROM app_audio_asset) AS audio
-  `);
-
-  const attempts = await db.getFirstAsync<{
-    attempts: number;
-    todayAttempts: number;
-    correct: number | null;
-    todayCorrect: number | null;
-  }>(`
-    SELECT
-      COUNT(*) AS attempts,
-      SUM(CASE WHEN date(answered_at) = date('now') THEN 1 ELSE 0 END) AS todayAttempts,
-      SUM(CASE WHEN date(answered_at) = date('now') THEN is_correct ELSE 0 END) AS todayCorrect,
-      SUM(is_correct) AS correct
-    FROM app_question_attempt_local
-  `);
+  const [base, attempts, weakSkills, masteredSkills, dailyProgress] = await Promise.all([
+    db.getFirstAsync<{
+      questions: number;
+      vocabulary: number;
+      grammar: number;
+      kanji: number;
+      kana: number;
+      audio: number;
+    }>(`
+      SELECT
+        (SELECT COUNT(*) FROM app_question_bank) AS questions,
+        (SELECT COUNT(*) FROM canonical_vocabulary) AS vocabulary,
+        (SELECT COUNT(*) FROM canonical_grammar) AS grammar,
+        (SELECT COUNT(*) FROM canonical_kanji) AS kanji,
+        (SELECT COUNT(*) FROM canonical_kana) AS kana,
+        (SELECT COUNT(*) FROM app_audio_asset) AS audio
+    `),
+    db.getFirstAsync<{
+      attempts: number;
+      todayAttempts: number;
+      correct: number | null;
+      todayCorrect: number | null;
+    }>(`
+      SELECT
+        COUNT(*) AS attempts,
+        SUM(CASE WHEN date(answered_at) = date('now') THEN 1 ELSE 0 END) AS todayAttempts,
+        SUM(CASE WHEN date(answered_at) = date('now') THEN is_correct ELSE 0 END) AS todayCorrect,
+        SUM(is_correct) AS correct
+      FROM app_question_attempt_local
+    `),
+    db.getAllAsync<SkillProgress>(`
+      SELECT skill_id,
+             COUNT(*) AS attempts,
+             SUM(is_correct) AS correct,
+             ROUND(SUM(is_correct) * 100.0 / COUNT(*)) AS rate
+      FROM app_question_attempt_local
+      GROUP BY skill_id
+      HAVING attempts >= 2
+      ORDER BY rate ASC, attempts DESC
+      LIMIT 5
+    `),
+    db.getAllAsync<SkillProgress>(`
+      SELECT skill_id,
+             COUNT(*) AS attempts,
+             SUM(is_correct) AS correct,
+             ROUND(SUM(is_correct) * 100.0 / COUNT(*)) AS rate
+      FROM app_question_attempt_local
+      GROUP BY skill_id
+      HAVING attempts >= 2
+      ORDER BY rate DESC, attempts DESC
+      LIMIT 5
+    `),
+    db.getAllAsync<DailyProgress>(`
+      SELECT day,
+             SUM(attempts) AS attempts,
+             SUM(correct) AS correct,
+             CASE
+               WHEN SUM(attempts) > 0 THEN ROUND(SUM(correct) * 100.0 / SUM(attempts))
+               ELSE 0
+             END AS rate
+      FROM (
+        SELECT date(answered_at) AS day,
+               COUNT(*) AS attempts,
+               SUM(is_correct) AS correct
+        FROM app_question_attempt_local
+        GROUP BY date(answered_at)
+        UNION ALL
+        SELECT date(created_at) AS day,
+               COUNT(*) AS attempts,
+               COUNT(*) AS correct
+        FROM app_kana_arcade_score
+        GROUP BY date(created_at)
+      )
+      GROUP BY day
+      ORDER BY day DESC
+      LIMIT 14
+    `),
+  ]);
 
   const total = attempts?.attempts ?? 0;
   const correct = attempts?.correct ?? 0;
@@ -388,56 +450,6 @@ export async function loadDashboardOverviewData(
     correctRate: total > 0 ? Math.round((correct / total) * 100) : 0,
   };
 
-  const weakSkills = await db.getAllAsync<SkillProgress>(`
-    SELECT skill_id,
-           COUNT(*) AS attempts,
-           SUM(is_correct) AS correct,
-           ROUND(SUM(is_correct) * 100.0 / COUNT(*)) AS rate
-    FROM app_question_attempt_local
-    GROUP BY skill_id
-    HAVING attempts >= 2
-    ORDER BY rate ASC, attempts DESC
-    LIMIT 5
-  `);
-
-  const masteredSkills = await db.getAllAsync<SkillProgress>(`
-    SELECT skill_id,
-           COUNT(*) AS attempts,
-           SUM(is_correct) AS correct,
-           ROUND(SUM(is_correct) * 100.0 / COUNT(*)) AS rate
-    FROM app_question_attempt_local
-    GROUP BY skill_id
-    HAVING attempts >= 2
-    ORDER BY rate DESC, attempts DESC
-    LIMIT 5
-  `);
-
-  const dailyProgress = await db.getAllAsync<DailyProgress>(`
-    SELECT day,
-           SUM(attempts) AS attempts,
-           SUM(correct) AS correct,
-           CASE
-             WHEN SUM(attempts) > 0 THEN ROUND(SUM(correct) * 100.0 / SUM(attempts))
-             ELSE 0
-           END AS rate
-    FROM (
-      SELECT date(answered_at) AS day,
-             COUNT(*) AS attempts,
-             SUM(is_correct) AS correct
-      FROM app_question_attempt_local
-      GROUP BY date(answered_at)
-      UNION ALL
-      SELECT date(created_at) AS day,
-             COUNT(*) AS attempts,
-             COUNT(*) AS correct
-      FROM app_kana_arcade_score
-      GROUP BY date(created_at)
-    )
-    GROUP BY day
-    ORDER BY day DESC
-    LIMIT 14
-  `);
-
   return {
     stats,
     weakSkills,
@@ -447,39 +459,84 @@ export async function loadDashboardOverviewData(
 }
 
 export async function loadDashboardQuizData(db: SQLiteDatabase): Promise<DashboardQuizData> {
-  const quizAttempts = await db.getFirstAsync<{
-    attempts: number;
-    todayAttempts: number;
-    correct: number | null;
-    kanaArcadeAttempts: number;
-    adaptiveAttempts: number;
-    examAttempts: number;
-  }>(`
-    SELECT
-      COUNT(*) AS attempts,
-      SUM(CASE WHEN date(answered_at) = date('now') THEN 1 ELSE 0 END) AS todayAttempts,
-      SUM(is_correct) AS correct,
-      SUM(CASE WHEN source_mode = 'kana_arcade' THEN 1 ELSE 0 END) AS kanaArcadeAttempts,
-      SUM(CASE WHEN source_mode IN ('adaptive_quiz', 'grammar_quiz', 'grammar_lesson') THEN 1 ELSE 0 END) AS adaptiveAttempts,
-      SUM(CASE WHEN source_mode = 'exam_mode' THEN 1 ELSE 0 END) AS examAttempts
-    FROM app_question_attempt_local
-    WHERE source_mode IN ('kana_arcade', 'adaptive_quiz', 'exam_mode', 'grammar_quiz', 'grammar_lesson')
-  `);
-  const arcadeScoreStats = await db.getFirstAsync<{
-    bestScore: number | null;
-    bestScoreTime: number | null;
-    bestStreak: number | null;
-    averageScore: number | null;
-    averageTime: number | null;
-  }>(`
-    SELECT
-      MAX(score) AS bestScore,
-      (SELECT elapsed_ms FROM app_kana_arcade_score ORDER BY score DESC, elapsed_ms ASC LIMIT 1) AS bestScoreTime,
-      MAX(best_streak) AS bestStreak,
-      ROUND(AVG(score)) AS averageScore,
-      ROUND(AVG(elapsed_ms)) AS averageTime
-    FROM app_kana_arcade_score
-  `);
+  const [quizAttempts, arcadeScoreStats, dailyProgress, modeProgress, scoreTrend, weakSkills] = await Promise.all([
+    db.getFirstAsync<{
+      attempts: number;
+      todayAttempts: number;
+      correct: number | null;
+      kanaArcadeAttempts: number;
+      adaptiveAttempts: number;
+      examAttempts: number;
+    }>(`
+      SELECT
+        COUNT(*) AS attempts,
+        SUM(CASE WHEN date(answered_at) = date('now') THEN 1 ELSE 0 END) AS todayAttempts,
+        SUM(is_correct) AS correct,
+        SUM(CASE WHEN source_mode = 'kana_arcade' THEN 1 ELSE 0 END) AS kanaArcadeAttempts,
+        SUM(CASE WHEN source_mode IN ('adaptive_quiz', 'grammar_quiz', 'grammar_lesson') THEN 1 ELSE 0 END) AS adaptiveAttempts,
+        SUM(CASE WHEN source_mode = 'exam_mode' THEN 1 ELSE 0 END) AS examAttempts
+      FROM app_question_attempt_local
+      WHERE source_mode IN ('kana_arcade', 'adaptive_quiz', 'exam_mode', 'grammar_quiz', 'grammar_lesson')
+    `),
+    db.getFirstAsync<{
+      bestScore: number | null;
+      bestScoreTime: number | null;
+      bestStreak: number | null;
+      averageScore: number | null;
+      averageTime: number | null;
+    }>(`
+      SELECT
+        MAX(score) AS bestScore,
+        (SELECT elapsed_ms FROM app_kana_arcade_score ORDER BY score DESC, elapsed_ms ASC LIMIT 1) AS bestScoreTime,
+        MAX(best_streak) AS bestStreak,
+        ROUND(AVG(score)) AS averageScore,
+        ROUND(AVG(elapsed_ms)) AS averageTime
+      FROM app_kana_arcade_score
+    `),
+    db.getAllAsync<DailyProgress>(`
+      SELECT date(answered_at) AS day,
+             COUNT(*) AS attempts,
+             SUM(is_correct) AS correct,
+             ROUND(SUM(is_correct) * 100.0 / COUNT(*)) AS rate
+      FROM app_question_attempt_local
+      WHERE source_mode IN ('kana_arcade', 'adaptive_quiz', 'exam_mode', 'grammar_quiz', 'grammar_lesson')
+      GROUP BY date(answered_at)
+      ORDER BY day DESC
+      LIMIT 14
+    `),
+    db.getAllAsync<QuizModeProgress>(`
+      SELECT source_mode,
+             COUNT(*) AS attempts,
+             SUM(is_correct) AS correct,
+             ROUND(SUM(is_correct) * 100.0 / COUNT(*)) AS rate
+      FROM app_question_attempt_local
+      WHERE source_mode IN ('kana_arcade', 'adaptive_quiz', 'exam_mode', 'grammar_quiz', 'grammar_lesson')
+      GROUP BY source_mode
+      ORDER BY attempts DESC
+    `),
+    db.getAllAsync<QuizScoreTrend>(`
+      SELECT '#' || ROW_NUMBER() OVER (ORDER BY created_at ASC) AS label,
+             score,
+             ROUND(correct_count * 100.0 / total_count) AS rate,
+             elapsed_ms,
+             created_at
+      FROM app_kana_arcade_score
+      ORDER BY created_at DESC
+      LIMIT 10
+    `),
+    db.getAllAsync<SkillProgress>(`
+      SELECT skill_id,
+             COUNT(*) AS attempts,
+             SUM(is_correct) AS correct,
+             ROUND(SUM(is_correct) * 100.0 / COUNT(*)) AS rate
+      FROM app_question_attempt_local
+      WHERE source_mode IN ('kana_arcade', 'adaptive_quiz', 'exam_mode', 'grammar_quiz', 'grammar_lesson')
+      GROUP BY skill_id
+      HAVING attempts >= 2
+      ORDER BY rate ASC, attempts DESC
+      LIMIT 6
+    `),
+  ]);
   const quizTotal = quizAttempts?.attempts ?? 0;
   const quizCorrect = quizAttempts?.correct ?? 0;
   const summary: QuizDashboardSummary = {
@@ -497,53 +554,6 @@ export async function loadDashboardQuizData(db: SQLiteDatabase): Promise<Dashboa
     averageTime: arcadeScoreStats?.averageTime ?? 0,
   };
 
-  const dailyProgress = await db.getAllAsync<DailyProgress>(`
-    SELECT date(answered_at) AS day,
-           COUNT(*) AS attempts,
-           SUM(is_correct) AS correct,
-           ROUND(SUM(is_correct) * 100.0 / COUNT(*)) AS rate
-    FROM app_question_attempt_local
-    WHERE source_mode IN ('kana_arcade', 'adaptive_quiz', 'exam_mode', 'grammar_quiz', 'grammar_lesson')
-    GROUP BY date(answered_at)
-    ORDER BY day DESC
-    LIMIT 14
-  `);
-
-  const modeProgress = await db.getAllAsync<QuizModeProgress>(`
-    SELECT source_mode,
-           COUNT(*) AS attempts,
-           SUM(is_correct) AS correct,
-           ROUND(SUM(is_correct) * 100.0 / COUNT(*)) AS rate
-    FROM app_question_attempt_local
-    WHERE source_mode IN ('kana_arcade', 'adaptive_quiz', 'exam_mode', 'grammar_quiz', 'grammar_lesson')
-    GROUP BY source_mode
-    ORDER BY attempts DESC
-  `);
-
-  const scoreTrend = await db.getAllAsync<QuizScoreTrend>(`
-    SELECT '#' || ROW_NUMBER() OVER (ORDER BY created_at ASC) AS label,
-           score,
-           ROUND(correct_count * 100.0 / total_count) AS rate,
-           elapsed_ms,
-           created_at
-    FROM app_kana_arcade_score
-    ORDER BY created_at DESC
-    LIMIT 10
-  `);
-
-  const weakSkills = await db.getAllAsync<SkillProgress>(`
-    SELECT skill_id,
-           COUNT(*) AS attempts,
-           SUM(is_correct) AS correct,
-           ROUND(SUM(is_correct) * 100.0 / COUNT(*)) AS rate
-    FROM app_question_attempt_local
-    WHERE source_mode IN ('kana_arcade', 'adaptive_quiz', 'exam_mode', 'grammar_quiz', 'grammar_lesson')
-    GROUP BY skill_id
-    HAVING attempts >= 2
-    ORDER BY rate ASC, attempts DESC
-    LIMIT 6
-  `);
-
   return {
     summary,
     dailyProgress: dailyProgress.reverse(),
@@ -557,7 +567,8 @@ export async function loadDashboardMasteryDomains(
   db: SQLiteDatabase,
   grammarProgress: GrammarProgressSummary
 ): Promise<MasteryDomainStats[]> {
-  const kanaMastery = await db.getAllAsync<MasteryDomainStats>(`
+  const [kanaMastery, contentMastery] = await Promise.all([
+    db.getAllAsync<MasteryDomainStats>(`
     SELECT
       k.script AS id,
       CASE WHEN k.script = 'hiragana' THEN 'Hiragana' ELSE 'Katakana' END AS label,
@@ -581,8 +592,8 @@ export async function loadDashboardMasteryDomains(
     WHERE k.script IN ('hiragana', 'katakana')
     GROUP BY k.script
     ORDER BY CASE WHEN k.script = 'hiragana' THEN 0 ELSE 1 END
-  `);
-  const contentMastery = await db.getAllAsync<MasteryDomainStats>(`
+  `),
+    db.getAllAsync<MasteryDomainStats>(`
     WITH content AS (
       SELECT 'vocabulary' AS id, 'Vocabulaire' AS label, id AS item_id FROM canonical_vocabulary
       UNION ALL
@@ -626,7 +637,8 @@ export async function loadDashboardMasteryDomains(
       WHEN 'kanji' THEN 2
       ELSE 3
     END
-  `);
+  `),
+  ]);
   const grammarMastery = buildGrammarMasteryDomain(grammarProgress);
   const adjustedContentMastery = contentMastery.map((domain) =>
     domain.id === 'grammar' ? grammarMastery : domain
@@ -789,19 +801,9 @@ export async function loadDashboardGoalData(
   );
   let rewardToast: RewardToast | null = null;
   for (const { key, quest } of newlyCompleted) {
-    const existingClaim = await db.getFirstAsync<{ goal_id: string }>(
-      `
-      SELECT goal_id
-      FROM app_daily_reward_claim
-      WHERE day = ? AND goal_id = ?
-      `,
-      key,
-      quest.id
-    );
-    if (!existingClaim) {
-      await db.runAsync(
+    const claim = await db.runAsync(
         `
-        INSERT INTO app_daily_reward_claim (
+        INSERT OR IGNORE INTO app_daily_reward_claim (
           day, goal_id, reward_xp, badge_code, claimed_at
         ) VALUES (?, ?, ?, ?, datetime('now'))
         `,
@@ -810,24 +812,15 @@ export async function loadDashboardGoalData(
         quest.rewardXp,
         quest.badgeCode
       );
+    if (claim.changes > 0) {
       rewardToast = { title: quest.title, xp: quest.rewardXp, badgeCode: quest.badgeCode };
     }
   }
   for (const bonus of attendanceBonuses) {
     if (!bonus.unlocked) continue;
-    const existingClaim = await db.getFirstAsync<{ goal_id: string }>(
-      `
-      SELECT goal_id
-      FROM app_daily_reward_claim
-      WHERE day = ? AND goal_id = ?
-      `,
-      bonus.claimDay,
-      bonus.id
-    );
-    if (!existingClaim) {
-      await db.runAsync(
+    const claim = await db.runAsync(
         `
-        INSERT INTO app_daily_reward_claim (
+        INSERT OR IGNORE INTO app_daily_reward_claim (
           day, goal_id, reward_xp, badge_code, claimed_at
         ) VALUES (?, ?, ?, ?, datetime('now'))
         `,
@@ -836,6 +829,7 @@ export async function loadDashboardGoalData(
         bonus.rewardXp,
         bonus.badgeCode
       );
+    if (claim.changes > 0) {
       rewardToast = { title: bonus.title, xp: bonus.rewardXp, badgeCode: bonus.badgeCode };
     }
   }

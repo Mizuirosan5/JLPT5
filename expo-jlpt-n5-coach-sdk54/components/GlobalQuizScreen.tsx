@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { styles } from '../appStyles';
@@ -6,18 +6,7 @@ import { SegmentButton } from './formControls';
 import { JapaneseCorrectionDetails, JapaneseLookupText, WordLookupPanel } from './JapaneseLookup';
 import { EmptyState, Section } from './sharedUi';
 import { GLOBAL_QUIZ_MODES } from '../models';
-import type {
-  GlobalMatchingSession,
-  GlobalQuizDomain,
-  GlobalQuizMode,
-  GlobalQuizSession,
-  KanaCard,
-  KanjiItem,
-  KnowledgeQuizScope,
-  LearningPreferences,
-  MainQuizMode,
-  WordLookupEntry,
-} from '../models';
+import type { GlobalMatchingSession, GlobalQuizDomain, GlobalQuizMode, GlobalQuizSession, KnowledgeQuizScope, LearningPreferences, WordLookupEntry } from '../models';
 import { hasJapaneseText, normalizeAnswer } from '../services/text';
 import {
   buildGlobalMatchingSession,
@@ -25,19 +14,18 @@ import {
   createGlobalQuizSession,
   getGlobalDomainLabel,
   getKnowledgeQuizModeCopy,
-  type KanjiAnswerTarget,
 } from '../services/globalQuizFactory';
 import { getGrammarStreakMultiplier } from '../services/grammarPedagogy';
 import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../services/preferences';
+import { buildQuizFeedbackInsights } from '../services/quizFeedback';
 import { recordSrsReviewForQuestionAttempt } from '../services/srs';
+import { clearSession, loadSession, saveSession } from '../services/sessionPersistence';
+import { recordTechnicalLog } from '../services/technicalLog';
+import { useManagedTimers } from '../services/useManagedTimers';
+import type { GlobalQuizScreenProps, GlobalQuizSnapshot } from './globalQuizModels';
+import type { KanjiAnswerTarget } from '../services/globalQuizFactory';
 
-type GlobalQuizScreenProps = {
-  initialScope: KnowledgeQuizScope;
-  kanaArcadeCards: KanaCard[];
-  vocabularyLookupEntries: WordLookupEntry[];
-  globalKanjiItems: KanjiItem[];
-  onNavigate: (mode: MainQuizMode, scope?: KnowledgeQuizScope) => void;
-};
+const GLOBAL_QUIZ_SESSION_KEY = 'quiz:global';
 
 export function GlobalQuizScreen({
   initialScope,
@@ -53,10 +41,13 @@ export function GlobalQuizScreen({
   const [globalQuizSession, setGlobalQuizSession] = useState<GlobalQuizSession | null>(null);
   const [globalMatchingSession, setGlobalMatchingSession] = useState<GlobalMatchingSession | null>(null);
   const [globalDirectInput, setGlobalDirectInput] = useState('');
-  const [globalMatchMessage, setGlobalMatchMessage] = useState('Choisis un ??l??ment, puis sa correspondance.');
+  const [globalMatchMessage, setGlobalMatchMessage] = useState('Choisis un élément, puis sa correspondance.');
   const [kanjiAnswerTarget, setKanjiAnswerTarget] = useState<KanjiAnswerTarget>('french');
   const [selectedWordLookup, setSelectedWordLookup] = useState<WordLookupEntry | null>(null);
   const [preferences, setPreferences] = useState<LearningPreferences>(DEFAULT_LEARNING_PREFERENCES);
+  const [sessionHydrated, setSessionHydrated] = useState(false);
+  const answerInFlight = useRef(false);
+  const schedule = useManagedTimers();
 
   useEffect(() => {
     setKnowledgeQuizScope(initialScope);
@@ -73,6 +64,37 @@ export function GlobalQuizScreen({
         console.error('Unable to load global quiz preferences', error);
       });
   }, [db]);
+
+  useEffect(() => {
+    loadSession<GlobalQuizSnapshot>(db, GLOBAL_QUIZ_SESSION_KEY)
+      .then((snapshot) => {
+        if (!snapshot) return;
+        setKnowledgeQuizScope(snapshot.scope);
+        setGlobalQuizMode(snapshot.mode);
+        setGlobalQuizSize(snapshot.size);
+        setGlobalQuizSession(snapshot.quizSession);
+        setGlobalMatchingSession(snapshot.matchingSession);
+        setKanjiAnswerTarget(snapshot.kanjiAnswerTarget);
+      })
+      .catch((error) => recordTechnicalLog(db, 'error', 'global_quiz_restore', error instanceof Error ? error.message : String(error)))
+      .finally(() => setSessionHydrated(true));
+  }, [db]);
+
+  useEffect(() => {
+    if (!sessionHydrated) return;
+    if (!globalQuizSession && !globalMatchingSession) {
+      clearSession(db, GLOBAL_QUIZ_SESSION_KEY).catch(() => undefined);
+      return;
+    }
+    saveSession<GlobalQuizSnapshot>(db, GLOBAL_QUIZ_SESSION_KEY, {
+      scope: knowledgeQuizScope,
+      mode: globalQuizMode,
+      size: globalQuizSize,
+      quizSession: globalQuizSession,
+      matchingSession: globalMatchingSession,
+      kanjiAnswerTarget,
+    }).catch((error) => recordTechnicalLog(db, 'error', 'global_quiz_save', error instanceof Error ? error.message : String(error)));
+  }, [db, globalMatchingSession, globalQuizMode, globalQuizSession, globalQuizSize, kanjiAnswerTarget, knowledgeQuizScope, sessionHydrated]);
 
   const startGlobalQuiz = () => {
     setGlobalDirectInput('');
@@ -120,9 +142,10 @@ export function GlobalQuizScreen({
   };
 
   const answerGlobalQuiz = async (choice: string) => {
-    if (!globalQuizSession || globalQuizSession.selected || globalQuizSession.finished) return;
+    if (!globalQuizSession || globalQuizSession.selected || globalQuizSession.finished || answerInFlight.current) return;
     const current = globalQuizSession.questions[globalQuizSession.currentIndex];
     if (!current) return;
+    answerInFlight.current = true;
     const isCorrect = normalizeAnswer(choice) === normalizeAnswer(current.correctAnswer);
     const nextStreak = isCorrect ? globalQuizSession.streak + 1 : 0;
     const points = isCorrect ? 100 * getGrammarStreakMultiplier(nextStreak) : 0;
@@ -163,6 +186,8 @@ export function GlobalQuizScreen({
       });
     } catch (error) {
       console.error('Unable to save global quiz answer', error);
+    } finally {
+      answerInFlight.current = false;
     }
   };
 
@@ -196,6 +221,8 @@ export function GlobalQuizScreen({
     const left = round?.pairs.find((pair) => pair.id === globalMatchingSession.selectedLeftId);
     const right = round?.pairs.find((pair) => pair.id === pairId);
     if (!left || !right) return;
+    if (answerInFlight.current) return;
+    answerInFlight.current = true;
     const isCorrect = left.id === right.id;
     setGlobalMatchingSession({
       ...globalMatchingSession,
@@ -227,8 +254,10 @@ export function GlobalQuizScreen({
       });
     } catch (error) {
       console.error('Unable to save global matching answer', error);
+    } finally {
+      answerInFlight.current = false;
     }
-    setTimeout(() => {
+    schedule(() => {
       setGlobalMatchingSession((current) => {
         if (!current) return current;
         if (!isCorrect) return { ...current, selectedLeftId: null, selectedRightId: null, locked: false };
@@ -613,6 +642,21 @@ export function GlobalQuizScreen({
                   {normalizeAnswer(globalQuizSession.selected) === normalizeAnswer(currentQuestion.correctAnswer) ? 'Correct' : 'À revoir'}
                 </Text>
                 <Text style={styles.feedbackText}>Réponse : {currentQuestion.correctAnswer}</Text>
+                <View style={styles.correctionInsightCard}>
+                  <Text style={styles.correctionInsightKicker}>Analyse</Text>
+                  {buildQuizFeedbackInsights({
+                    selectedAnswer: globalQuizSession.selected,
+                    expectedAnswer: currentQuestion.correctAnswer,
+                    explanation: currentQuestion.explanation,
+                    japanese: hasJapaneseText(currentQuestion.display) ? currentQuestion.display : currentQuestion.correctAnswer,
+                    translation: currentQuestion.prompt,
+                  }).map((insight) => (
+                    <View key={insight.title} style={styles.correctionInsightBlock}>
+                      <Text style={styles.correctionInsightLabel}>{insight.title}</Text>
+                      <Text style={styles.correctionInsightText}>{insight.detail}</Text>
+                    </View>
+                  ))}
+                </View>
                 {hasJapaneseText(currentQuestion.correctAnswer) && (
                   <JapaneseLookupText
                     text={currentQuestion.correctAnswer}

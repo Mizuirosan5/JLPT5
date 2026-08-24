@@ -39,6 +39,8 @@ yarn-error.*
 AGENTS.md
 CLAUDE.md
 preview/
+playwright-v2-*.png
+.release-local/
 examAssets.ts
 assets/exams/official_2012/
 assets/exams/official_2018/

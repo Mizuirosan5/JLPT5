@@ -2,7 +2,9 @@
   "expo": {
     "name": "Coach Japonais JLPT N5",
     "slug": "jlpt-n5-coach",
-    "version": "1.0.0",
+    "version": "2.0.0",
+    "scheme": "coachjaponaisn5",
+    "description": "Coach JLPT N5 complet, local et utilisable hors connexion.",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -10,15 +12,23 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FFF8EF"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.mizuirosan5.coachjaponaisn5",
+      "buildNumber": "2",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.mizuirosan5.coachjaponaisn5",
+      "versionCode": 2,
+      "permissions": [],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#FFF8EF"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -32,7 +42,29 @@
     "plugins": [
       "expo-sqlite",
       "expo-asset",
-      "expo-audio"
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundRecording": false
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.1"
+          },
+          "android": {
+            "minSdkVersion": 24,
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36,
+            "usesCleartextTraffic": false,
+            "networkInspector": false
+          }
+        }
+      ]
     ]
   }
 }

@@ -9,6 +9,15 @@ export type VocabularyCardState = {
   updated_at: string;
 };
 
+type VocabularyLoadResult = {
+  rows: VocabularyItem[];
+  total: number;
+  n5: number;
+};
+
+const vocabularyItemsCache = new WeakMap<SQLiteDatabase, Promise<VocabularyLoadResult>>();
+const kanjiItemsCache = new WeakMap<SQLiteDatabase, Promise<KanjiItem[]>>();
+
 export function getVocabularyCategory(item: VocabularyExample): string {
   const text = `${item.japanese} ${item.kana ?? ''} ${item.kanji ?? ''} ${item.romaji ?? ''} ${item.meaning_fr}`.toLowerCase();
   if (/父|母|兄|姉|弟|妹|家族|famille|père|mère|frère|sœur/.test(text)) return 'Famille';
@@ -33,8 +42,28 @@ export function getVocabularyMainText(item: VocabularyExample): string {
 }
 
 export function buildVocabularyCards(items: VocabularyItem[], kanjiItems: KanjiItem[] = []): VocabularyCardData[] {
+  const kanjiRoots = new Set(kanjiItems.map((kanji) => kanji.character));
+  const relatedEntriesByKanji = new Map<string, VocabularyItem[]>();
+  const grouped = new Map<string, VocabularyItem[]>();
+
+  items.forEach((item) => {
+    const itemKanji = `${item.kanji ?? ''}${item.japanese ?? ''}`.match(/[\u4E00-\u9FFF]/gu) ?? [];
+    Array.from(new Set(itemKanji)).forEach((character) => {
+      if (!kanjiRoots.has(character)) return;
+      const related = relatedEntriesByKanji.get(character) ?? [];
+      related.push(item);
+      relatedEntriesByKanji.set(character, related);
+    });
+
+    const root = getVocabularyRoot(item);
+    if (kanjiRoots.has(root)) return;
+    const group = grouped.get(root) ?? [];
+    group.push(item);
+    grouped.set(root, group);
+  });
+
   const kanjiCards = kanjiItems.map((kanji) => {
-    const relatedEntries = items.filter((item) => vocabularyItemContainsKanji(item, kanji.character));
+    const relatedEntries = relatedEntriesByKanji.get(kanji.character) ?? [];
     const primary = relatedEntries[0] ?? createVocabularyItemFromKanji(kanji);
     return {
       id: `kanji-card-${kanji.id}`,
@@ -49,15 +78,6 @@ export function buildVocabularyCards(items: VocabularyItem[], kanjiItems: KanjiI
       meanings: uniqueCompact([kanji.meaning_fr, ...relatedEntries.flatMap((entry) => splitVocabularyField(entry.meaning_fr))]),
       kanji,
     };
-  });
-  const kanjiRoots = new Set(kanjiItems.map((kanji) => kanji.character));
-  const grouped = new Map<string, VocabularyItem[]>();
-  items.forEach((item) => {
-    const root = getVocabularyRoot(item);
-    if (kanjiRoots.has(root)) return;
-    const group = grouped.get(root) ?? [];
-    group.push(item);
-    grouped.set(root, group);
   });
 
   const vocabularyCards = Array.from(grouped.entries()).map(([root, entries]) => {
@@ -149,11 +169,6 @@ function getVocabularyRoot(item: VocabularyExample): string {
   return getVocabularyMainText(item);
 }
 
-function vocabularyItemContainsKanji(item: VocabularyExample, character: string): boolean {
-  const text = `${item.kanji ?? ''}${item.japanese ?? ''}`;
-  return text.includes(character);
-}
-
 function splitVocabularyField(value?: string | null): string[] {
   if (!value) return [];
   return value
@@ -175,11 +190,18 @@ function uniqueCompact(values: string[]): string[] {
   return result;
 }
 
-export async function loadVocabularyItems(db: SQLiteDatabase): Promise<{
-  rows: VocabularyItem[];
-  total: number;
-  n5: number;
-}> {
+export async function loadVocabularyItems(db: SQLiteDatabase): Promise<VocabularyLoadResult> {
+  const cached = vocabularyItemsCache.get(db);
+  if (cached) return cached;
+  const request = loadVocabularyItemsFromDatabase(db).catch((error) => {
+    vocabularyItemsCache.delete(db);
+    throw error;
+  });
+  vocabularyItemsCache.set(db, request);
+  return request;
+}
+
+async function loadVocabularyItemsFromDatabase(db: SQLiteDatabase): Promise<VocabularyLoadResult> {
   try {
     const rows = await db.getAllAsync<VocabularyItem>(`
       SELECT id, japanese, kana, kanji, romaji, meaning_fr, part_of_speech, theme, COALESCE(jlpt_level, 'N5') AS jlpt_level
@@ -231,12 +253,19 @@ export async function loadVocabularyItems(db: SQLiteDatabase): Promise<{
 }
 
 export async function loadKanjiItems(db: SQLiteDatabase): Promise<KanjiItem[]> {
-  return db.getAllAsync<KanjiItem>(`
+  const cached = kanjiItemsCache.get(db);
+  if (cached) return cached;
+  const request = db.getAllAsync<KanjiItem>(`
     SELECT id, character, meaning_fr, onyomi, kunyomi, n5_readings, stroke_count, jlpt_level
     FROM canonical_kanji
     WHERE jlpt_level = 'N5'
     ORDER BY id
-  `);
+  `).catch((error) => {
+    kanjiItemsCache.delete(db);
+    throw error;
+  });
+  kanjiItemsCache.set(db, request);
+  return request;
 }
 
 export async function loadVocabularyCardStates(db: SQLiteDatabase): Promise<VocabularyCardState[]> {

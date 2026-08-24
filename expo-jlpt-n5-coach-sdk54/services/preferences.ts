@@ -94,9 +94,19 @@ export async function saveLearningPreference<K extends keyof LearningPreferences
 }
 
 export async function saveLearningPreferences(db: SQLiteDatabase, preferences: LearningPreferences): Promise<void> {
-  await Promise.all(
-    (Object.keys(preferences) as Array<keyof LearningPreferences>).map((key) =>
-      saveLearningPreference(db, key, preferences[key])
-    )
-  );
+  await db.withTransactionAsync(async () => {
+    for (const key of Object.keys(preferences) as Array<keyof LearningPreferences>) {
+      await saveLearningPreference(db, key, preferences[key]);
+    }
+  });
+}
+
+export async function resetLearningPreferences(db: SQLiteDatabase): Promise<LearningPreferences> {
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM app_user_learning_preferences');
+    for (const key of Object.keys(DEFAULT_LEARNING_PREFERENCES) as Array<keyof LearningPreferences>) {
+      await saveLearningPreference(db, key, DEFAULT_LEARNING_PREFERENCES[key]);
+    }
+  });
+  return { ...DEFAULT_LEARNING_PREFERENCES };
 }

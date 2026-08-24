@@ -13,7 +13,7 @@ export type QuickSessionResult = {
   xp: number;
 };
 
-function getQuickQuestionLimit(preferences: LearningPreferences): number {
+export function getQuickQuestionLimit(preferences: LearningPreferences): number {
   if (preferences.preferredSessionLength === 20) return 14;
   if (preferences.preferredSessionLength === 10) return 10;
   return 8;
@@ -25,7 +25,7 @@ function getDifficultyClause(preferences: LearningPreferences): string {
       ORDER BY
         CASE WHEN a.local_attempts IS NULL THEN 35 ELSE 0 END DESC,
         p.final_priority DESC,
-        random()
+        q.question_id
     `;
   }
   if (preferences.quizDifficulty === 'hard') {
@@ -37,7 +37,7 @@ function getDifficultyClause(preferences: LearningPreferences): string {
           ELSE 0
         END DESC,
         p.final_priority DESC,
-        random()
+        q.question_id
     `;
   }
   return `
@@ -49,8 +49,18 @@ function getDifficultyClause(preferences: LearningPreferences): string {
         ELSE 0
       END DESC,
       p.final_priority DESC,
-      random()
+      q.question_id
   `;
+}
+
+export function uniqueChoices(choices: string[]): string[] {
+  const seen = new Set<string>();
+  return choices.filter((choice) => {
+    const normalized = choice.trim().toLowerCase();
+    if (!normalized || seen.has(normalized)) return false;
+    seen.add(normalized);
+    return true;
+  });
 }
 
 async function loadChoicesForQuestion(db: SQLiteDatabase, question: QuizQuestion): Promise<string[]> {
@@ -64,7 +74,7 @@ async function loadChoicesForQuestion(db: SQLiteDatabase, question: QuizQuestion
     question.question_id
   );
   if (generatedChoices.length > 0) {
-    return generatedChoices.map((choice) => choice.choice_text);
+    return uniqueChoices(generatedChoices.map((choice) => choice.choice_text));
   }
 
   const distractors = await db.getAllAsync<{ choice_text: string }>(
@@ -75,13 +85,13 @@ async function loadChoicesForQuestion(db: SQLiteDatabase, question: QuizQuestion
       AND skill_id = ?
       AND correct_answer IS NOT NULL
       AND correct_answer != ''
-    ORDER BY random()
-    LIMIT 3
+    ORDER BY question_id
+    LIMIT 12
     `,
     question.question_id,
     question.skill_id
   );
-  return shuffle([question.correct_answer, ...distractors.map((choice) => choice.choice_text)]).slice(0, 4);
+  return shuffle(uniqueChoices([question.correct_answer, ...shuffle(distractors).slice(0, 3).map((choice) => choice.choice_text)])).slice(0, 4);
 }
 
 export async function buildQuickSessionQuestions(
@@ -103,14 +113,15 @@ export async function buildQuickSessionQuestions(
       FROM app_question_attempt_local
       GROUP BY question_id
     ) a ON a.question_id = q.question_id
+    WHERE q.question_origin != 'exam'
     ${getDifficultyClause(preferences)}
     LIMIT ?
     `,
-    limit
+    limit * 3
   );
 
   const withChoices = await Promise.all(
-    rows.map(async (question) => ({
+    shuffle(rows).slice(0, limit).map(async (question) => ({
       question,
       choices: await loadChoicesForQuestion(db, question),
     }))
@@ -129,17 +140,17 @@ export function calculateQuickSessionResult(correct: number, total: number): Qui
   };
 }
 
-export async function claimQuickSessionReward(db: SQLiteDatabase, result: QuickSessionResult): Promise<void> {
+export async function claimQuickSessionReward(db: SQLiteDatabase, result: QuickSessionResult, sessionId: string): Promise<void> {
   if (result.total <= 0 || result.xp <= 0) return;
   const day = new Date().toISOString().slice(0, 10);
   await db.runAsync(
     `
-    INSERT INTO app_daily_reward_claim (
+    INSERT OR IGNORE INTO app_daily_reward_claim (
       day, goal_id, reward_xp, badge_code, claimed_at
     ) VALUES (?, ?, ?, 'QUICK', datetime('now'))
     `,
     day,
-    `quick-session-${Date.now()}`,
+    `quick-session-${sessionId}`,
     result.xp
   );
 }

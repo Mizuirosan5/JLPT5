@@ -37,7 +37,7 @@ function getPreferredJapaneseWord(item: WordLookupEntry): string {
 function getKanjiJapaneseReading(item: KanjiItem): string {
   const source = item.kunyomi || item.n5_readings || item.onyomi || '';
   return source
-    .split(/[ã€,;ï¼›/]/)
+    .split(/[、,;；/]/)
     .map((part) => part.trim())
     .filter(Boolean)[0] || item.character;
 }
@@ -96,10 +96,10 @@ export function getKnowledgeQuizModeCopy(mode: GlobalQuizMode, scope: KnowledgeQ
   if (scope === 'all') return base;
   const domain = getGlobalDomainLabel(scope);
   if (mode === 'blank_qcm') return { ...base, title: `QCM ${domain}`, subtitle: `Quatre choix portant uniquement sur ${domain}.` };
-  if (mode === 'matching') return { ...base, title: `Associations ${domain}`, subtitle: `Relie cinq Ã©lÃ©ments de ${domain} Ã  leur correspondance.` };
-  if (mode === 'question_answer') return { ...base, title: `Question inversÃ©e ${domain}`, subtitle: `Pars du sens ou de la lecture pour retrouver la rÃ©ponse en ${domain}.` };
-  if (mode === 'arcade') return { ...base, title: `DÃ©fi ${domain}`, subtitle: `Score, sÃ©ries et combo sur le domaine ${domain}.` };
-  return { ...base, title: `RÃ©ponse directe ${domain}`, subtitle: `Ã‰cris directement la rÃ©ponse attendue en ${domain}.` };
+  if (mode === 'matching') return { ...base, title: `Associations ${domain}`, subtitle: `Relie cinq éléments de ${domain} à leur correspondance.` };
+  if (mode === 'question_answer') return { ...base, title: `Question inversée ${domain}`, subtitle: `Pars du sens ou de la lecture pour retrouver la réponse en ${domain}.` };
+  if (mode === 'arcade') return { ...base, title: `Défi ${domain}`, subtitle: `Score, séries et combo sur le domaine ${domain}.` };
+  return { ...base, title: `Réponse directe ${domain}`, subtitle: `Écris directement la réponse attendue en ${domain}.` };
 }
 
 export function buildGlobalQuizQuestions(
@@ -134,7 +134,7 @@ export function buildGlobalQuizQuestions(
         id: `global-kana-${index}-${item.id}`,
         domain,
         format: reverse ? 'kana_recognition' : 'kana_reading',
-        prompt: reverse ? 'Quel kana correspond Ã  ce romaji ?' : 'Quelle est la lecture en romaji ?',
+        prompt: reverse ? 'Quel kana correspond à ce romaji ?' : 'Quelle est la lecture en romaji ?',
         display: reverse ? item.romaji : item.character,
         correctAnswer: answer,
         choices: buildExerciseChoices({ correctAnswer: answer, alternatives, direct }),
@@ -179,7 +179,7 @@ export function buildGlobalQuizQuestions(
         display: format === 'vocabulary_japanese' ? item.meaning_fr : japaneseWord,
         correctAnswer: answer,
         choices: buildExerciseChoices({ correctAnswer: answer, alternatives, direct }),
-        explanation: `${item.japanese}${item.romaji ? ` (${item.romaji})` : ''} signifie Â« ${item.meaning_fr} Â».` ,
+        explanation: `${item.japanese}${item.romaji ? ` (${item.romaji})` : ''} signifie « ${item.meaning_fr} ».` ,
       }, mode);
     }
     if (domain === 'grammar') {
@@ -274,7 +274,7 @@ export function buildGlobalQuizQuestions(
       explanation:
         format === 'kanji_components'
           ? `${item.character} : ${detail?.mnemonicFr ?? `Associe ce kanji a ${item.meaning_fr}.`}`
-          : `${item.character} signifie Â« ${item.meaning_fr} Â». Lectures : ${item.n5_readings || item.onyomi || item.kunyomi || 'Ã  rÃ©viser'}.`,
+          : `${item.character} signifie « ${item.meaning_fr} ». Lectures : ${item.n5_readings || item.onyomi || item.kunyomi || 'à réviser'}.`,
       srsItemId: item.id,
       srsItemType: 'kanji',
     }, mode);

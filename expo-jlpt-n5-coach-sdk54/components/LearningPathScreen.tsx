@@ -456,11 +456,14 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const grammarProgress = await loadGrammarProgressSummary(db, ALL_GRAMMAR_LESSONS, getGrammarMainMenu);
-      await ensureDailyGoalPlan(db, DAILY_GOAL_DEFINITIONS, GOAL_PLAN_DAYS);
-      const overview = await loadDashboardOverviewData(db, grammarProgress.total);
-      const quizData = await loadDashboardQuizData(db);
-      const kanaRows = await db.getAllAsync<MasteryDomainStats>(`
+      const [grammarProgress] = await Promise.all([
+        loadGrammarProgressSummary(db, ALL_GRAMMAR_LESSONS, getGrammarMainMenu),
+        ensureDailyGoalPlan(db, DAILY_GOAL_DEFINITIONS, GOAL_PLAN_DAYS),
+      ]);
+      const [overview, quizData, kanaRows, combinedKana, contentRows, activity] = await Promise.all([
+        loadDashboardOverviewData(db, grammarProgress.total),
+        loadDashboardQuizData(db),
+        db.getAllAsync<MasteryDomainStats>(`
         SELECT
           k.script AS id,
           CASE WHEN k.script = 'hiragana' THEN 'Hiragana' ELSE 'Katakana' END AS label,
@@ -484,9 +487,9 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
         WHERE k.script IN ('hiragana', 'katakana')
           AND instr(k.character, '?') = 0
         GROUP BY k.script
-      `);
+      `),
 
-      const combinedKana = await db.getFirstAsync<MasteryDomainStats>(`
+        db.getFirstAsync<MasteryDomainStats>(`
         SELECT
           'combined' AS id,
           'Sons combinés' AS label,
@@ -509,9 +512,9 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
         LEFT JOIN app_kana_card_state s ON s.kana_id = k.id
         WHERE instr(k.character, '?') = 0
           AND length(k.character) > 1
-      `);
+      `),
 
-      const contentRows = await db.getAllAsync<MasteryDomainStats>(`
+        db.getAllAsync<MasteryDomainStats>(`
         WITH content AS (
           SELECT 'vocabulary' AS id, 'Vocabulaire' AS label, id AS item_id FROM canonical_vocabulary
           UNION ALL
@@ -549,9 +552,9 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
         FROM content c
         LEFT JOIN item_attempts i ON i.id = c.id AND i.item_id = c.item_id
         GROUP BY c.id, c.label
-      `);
+      `),
 
-      const activity = await db.getFirstAsync<{
+        db.getFirstAsync<{
         attempts: number;
         todayAttempts: number;
         quizAttempts: number;
@@ -565,7 +568,8 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
           SUM(CASE WHEN source_mode = 'exam_mode' THEN 1 ELSE 0 END) AS examAttempts,
           (SELECT MAX(score) FROM app_kana_arcade_score) AS bestScore
         FROM app_question_attempt_local
-      `);
+      `),
+      ]);
 
       const adjustedContentRows = contentRows.map((domain) =>
         domain.id === 'grammar' ? buildGrammarMasteryDomain(grammarProgress) : domain
@@ -930,6 +934,7 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
             quests={rewardState.quests}
             nextQuests={rewardState.tomorrowQuests}
             srsOverview={rewardState.srsOverview}
+            onOpenReview={() => onNavigate('review')}
             goalCalendar={rewardState.goalCalendar}
             recommendedDomain={rewardState.recommendedDomain}
             rewardSummary={{ ...rewardState.rewardSummary, badges: rewardState.unlockedBadgeCount }}

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Svg, { Circle, G, Line, Path, Text as SvgText } from 'react-native-svg';
 import { styles } from '../appStyles';
 import type {
@@ -41,6 +41,7 @@ export function CoachPremiumPanel({
   quests,
   nextQuests = [],
   srsOverview,
+  onOpenReview,
   goalCalendar,
   recommendedDomain,
   rewardSummary,
@@ -54,6 +55,7 @@ export function CoachPremiumPanel({
   quests: CoachQuest[];
   nextQuests?: CoachQuest[];
   srsOverview?: SrsOverview;
+  onOpenReview?: () => void;
   goalCalendar: DailyGoalDay[];
   recommendedDomain: MasteryDomainStats | null;
   rewardSummary: RewardSummary;
@@ -174,6 +176,11 @@ export function CoachPremiumPanel({
           <Text style={styles.dailyTrackingMeta}>
             {srsOverview.total} elements suivis. Les erreurs reviennent plus vite, les acquis s'espacent.
           </Text>
+          {onOpenReview && (
+            <Pressable style={styles.dailyTrackingAction} onPress={onOpenReview}>
+              <Text style={styles.dailyTrackingActionText}>Ouvrir les revisions</Text>
+            </Pressable>
+          )}
         </View>
       )}
 

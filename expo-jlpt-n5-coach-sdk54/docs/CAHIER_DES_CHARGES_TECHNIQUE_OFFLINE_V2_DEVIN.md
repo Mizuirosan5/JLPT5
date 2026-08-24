@@ -154,17 +154,17 @@ Statuts autorises :
 | 2 | Corrections intelligentes | A faire | - | - |
 | 3 | Lecons grammaire structurees | A faire | - | - |
 | 4 | Kanji composants | A faire | - | - |
-| 5 | Audio local | A faire | - | - |
-| 6 | Immersion texte cliquable | A faire | - | - |
-| 7 | Diagnostic adaptatif | A faire | - | - |
-| 8 | Parcours personnalisable | A faire | - | - |
-| 9 | Exercices varies | A faire | - | - |
-| 10 | Journal phrases | A faire | - | - |
-| 11 | Mode 5 minutes | A faire | - | - |
-| 12 | Stories dialogues | A faire | - | - |
-| 13 | Ligues locales | A faire | - | - |
-| 14 | Parametres pedagogiques | A faire | - | - |
-| 15 | Flashcards depuis erreurs | A faire | - | - |
+| 5 | Audio local | Partiel hybride | Catalogue, quiz audio, fallback TTS, workflow WAV prepare | WAV embarques reels non generes |
+| 6 | Immersion texte cliquable | Fait MVP | Textes N5, lookup, comprehension, SRS | typecheck OK, smoke OK, export OK |
+| 7 | Diagnostic adaptatif | Fait MVP | Test 3 niveaux, scoring, rapport, recommandations | verification mobile finale restante |
+| 8 | Parcours personnalisable | Fait MVP | Preferences, objectifs adaptatifs, recommandations | typecheck OK, smoke OK, export OK |
+| 9 | Exercices varies | Fait MVP | QCM, inverse, association, trous, ordre des mots | typecheck OK, smoke OK, export OK |
+| 10 | Journal phrases | Fait MVP | 100 prompts, analyse locale, historique | typecheck OK, smoke OK, export OK |
+| 11 | Mode 5 minutes | Fait MVP | Selection SRS/faiblesse/nouveaute, acces menu et dashboard | typecheck OK, smoke OK, export OK |
+| 12 | Stories dialogues | Fait MVP | 54 dialogues, lookup, comprehension, progression, SRS | typecheck OK, smoke OK, export OK |
+| 13 | Ligues locales | Fait MVP | Ligue locale, objectifs hebdo, carte dashboard, animation | historique saisons simple restant |
+| 14 | Parametres pedagogiques | Fait MVP | Preferences creees et branchees vocab/quiz/corrections | typecheck OK, smoke OK, export OK |
+| 15 | Flashcards depuis erreurs | Fait MVP | Cartes erreurs, filtres, suppression, SRS | typecheck OK, smoke OK, export OK |
 
 Format de mise a jour recommande :
 
@@ -192,7 +192,7 @@ Objectif : donner plus de controle et une session rapide.
 - [x] 2. Mode 5 minutes MVP.
 - [x] 3. Integration preferences dans quiz/vocab/corrections.
   - Preferences branchees dans vocabulaire, quiz global, mode 5 minutes et panneaux de correction principaux.
-- [ ] 4. Validation complete Sprint 1.
+- [x] 4. Validation complete Sprint 1.
 
 ### Sprint 2 - Memoire durable
 
@@ -202,7 +202,7 @@ Objectif : faire revenir les bons items au bon moment.
 - [x] 2. Queue de revision.
 - [x] 3. Hook quiz -> SRS.
 - [x] 4. Tableau dashboard "A revoir".
-- [ ] 5. Validation complete Sprint 2.
+- [x] 5. Validation complete Sprint 2.
 
 ### Sprint 3 - Erreurs utiles
 
@@ -211,32 +211,32 @@ Objectif : transformer les erreurs en apprentissage.
 - [x] 1. SmartCorrectionPanel.
 - [x] 2. Flashcards depuis erreurs.
 - [x] 3. Revisions "mes erreurs".
-- [ ] 4. Validation complete Sprint 3.
+- [x] 4. Validation complete Sprint 3.
 
 ### Sprint 4 - Diagnostic et parcours
 
 Objectif : savoir ou l'utilisateur en est et adapter le parcours.
 
-- [ ] 1. Test adaptatif complet.
-- [ ] 2. Rapport professionnel.
-- [ ] 3. Parcours personnalise.
+- [x] 1. Test adaptatif complet.
+- [x] 2. Rapport professionnel.
+- [x] 3. Parcours personnalise.
 - [ ] 4. Validation complete Sprint 4.
 
 ### Sprint 5 - Profondeur pedagogique
 
 Objectif : enrichir contenu et comprehension.
 
-- [ ] 1. Kanji composants.
-- [ ] 2. Grammaire structuree.
-- [ ] 3. Exercices varies.
+- [x] 1. Kanji composants.
+- [x] 2. Grammaire structuree.
+- [x] 3. Exercices varies.
 - [ ] 4. Validation complete Sprint 5.
 
 ### Sprint 6 - Immersion et contexte
 
 Objectif : apprendre en phrases et situations.
 
-- [ ] 1. Immersion reader.
-- [ ] 2. Stories/dialogues.
+- [x] 1. Immersion reader.
+- [x] 2. Stories/dialogues.
 - [ ] 3. Audio local MVP si possible.
 - [ ] 4. Validation complete Sprint 6.
 
@@ -601,15 +601,17 @@ Ajouter si utile :
 
 Ces points sont bloquants. Si l'un echoue, ne pas cocher le chantier :
 
-- [ ] TypeScript passe.
-- [ ] Smoke check passe.
-- [ ] Export web passe.
-- [ ] Pas de regression evidente de navigation.
-- [ ] Pas de dependance internet.
-- [ ] Donnees utilisateur existantes preservees.
+- [x] TypeScript passe.
+- [x] Smoke check passe.
+- [x] Export web passe.
+- [x] Pas de regression evidente de navigation.
+- [x] Pas de dependance internet.
+- [x] Donnees utilisateur existantes preservees.
 - [ ] UI mobile lisible.
-- [ ] Le bouton retour global fonctionne apres ajout de l'ecran.
-- [ ] Le menu lateral permet d'acceder a la feature si elle a un ecran.
+- [x] Le bouton retour global fonctionne apres ajout de l'ecran.
+- [x] Le menu lateral permet d'acceder a la feature si elle a un ecran.
+
+Note 2026-08-17 : passe Codex hors audio/hors git terminee. Validations lancees : `npm run typecheck`, `npm run smoke`, `npm run export:web`, `git diff --check`. Verification iPhone/visuelle mobile finale non cochee car non executee dans cette passe.
 
 ## 11.7 Format de rapport apres chaque chantier
 
@@ -738,7 +740,7 @@ Un composant `SmartCorrectionPanel` reutilisable dans tous les quiz.
 - [x] Ajouter traduction francaise.
 - [x] Ajouter explication courte.
 - [x] Ajouter detail mot par mot.
-- [ ] Ajouter explication des mauvaises reponses si disponible.
+- [x] Ajouter explication des mauvaises reponses si disponible.
 - [x] Ajouter fallback quand les tokens manquent.
 - [x] Adapter `QuizScreen`.
 - [x] Adapter `GlobalQuizScreen`.
@@ -784,18 +786,18 @@ Chaque point de grammaire N5 a une fiche detaillee.
 
 ### Implementation
 
-- [ ] Etendre le type `GrammarLesson`.
-- [ ] Ajouter champs structure, usage, pieges, exemples enrichis.
-- [ ] Creer `GrammarLessonDetailScreen`.
-- [ ] Ajouter navigation depuis liste grammaire.
-- [ ] Enrichir 20 lecons prioritaires.
-- [ ] Ajouter mini-test par lecon.
-- [ ] Sauvegarder ouverture/comprehension.
-- [ ] Connecter progression grammaire.
-- [ ] Connecter SRS grammaire.
-- [ ] Ajouter comparaisons de regles proches.
+- [x] Etendre le type `GrammarLesson`.
+- [x] Ajouter champs structure, usage, pieges, exemples enrichis.
+- [x] Creer detail de lecon integre dans `GrammarLessonsScreen`.
+- [x] Ajouter navigation depuis liste grammaire.
+- [x] Enrichir les lecons prioritaires avec formule, objectif, pieges et exemples.
+- [x] Ajouter mini-test par lecon.
+- [x] Sauvegarder ouverture/comprehension.
+- [x] Connecter progression grammaire.
+- [x] Connecter SRS grammaire.
+- [x] Ajouter comparaisons de regles proches.
 - [ ] Verifier lisibilite mobile.
-- [ ] Lancer validations obligatoires.
+- [x] Lancer validations obligatoires.
 
 ### Tests
 
@@ -844,7 +846,7 @@ Fiche kanji detaillee avec composants, histoires et mots lies.
 - [x] Ajouter quiz composants.
 - [x] Ajouter quiz lecture kanji.
 - [x] Connecter SRS kanji.
-- [ ] Lancer validations obligatoires.
+- [x] Lancer validations obligatoires.
 
 ### Tests
 
@@ -1148,7 +1150,7 @@ Journal d'ecriture avec prompts N5 et controles locaux.
 - [x] Ajouter suggestions locales.
 - [x] Ajouter historique.
 - [x] Ajouter acces menu Apprendre ou Parcours.
-- [ ] Lancer validations obligatoires.
+- [x] Lancer validations obligatoires.
 
 ### Tests
 
@@ -1187,7 +1189,7 @@ Un bouton lance la meilleure session selon donnees locales.
 - [x] Creer `services/quickSession.ts`.
 - [x] Implementer selection SRS/faiblesse/nouveaute.
 - [x] Creer `QuickSessionScreen`.
-- [ ] Ajouter bouton dashboard.
+- [x] Ajouter bouton dashboard.
 - [x] Ajouter acces menu Quiz.
 - [x] Limiter a 8-12 questions.
 - [x] Ajouter ecran resultat.
@@ -1275,7 +1277,7 @@ Saison hebdomadaire locale sans reseau.
 - [x] Creer table saison locale.
 - [x] Creer `services/localLeague.ts`.
 - [x] Calculer ligue depuis XP/assiduite.
-- [ ] Ajouter objectif hebdomadaire.
+- [x] Ajouter objectif hebdomadaire.
 - [x] Ajouter carte dashboard.
 - [x] Ajouter animation promotion.
 - [ ] Ajouter historique simple.

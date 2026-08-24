@@ -359,6 +359,7 @@ export type GrammarQuizQuestion = {
   helper: string;
   correctAnswer: string;
   choices: string[];
+  wrongAnswerExplanations?: Record<string, string>;
 };
 
 export type GrammarQuizMistake = {
@@ -416,6 +417,7 @@ export type GlobalQuizQuestion = {
   correctAnswer: string;
   choices: string[];
   explanation: string;
+  wrongAnswerExplanations?: Record<string, string>;
   srsItemId?: string;
   srsItemType?: 'kana' | 'vocabulary' | 'kanji' | 'grammar' | 'skill';
 };

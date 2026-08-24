@@ -156,49 +156,61 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      await ensureDailyGoalPlan(db, DAILY_GOAL_DEFINITIONS, GOAL_PLAN_DAYS);
       const grammarProgress = await loadGrammarProgressSummary(db, ALL_GRAMMAR_LESSONS, getGrammarMainMenu);
       setGrammarLessonSummary(grammarProgress);
-      const overview = await loadDashboardOverviewData(db, grammarProgress.total);
+      const [overview, quizData] = await Promise.all([
+        loadDashboardOverviewData(db, grammarProgress.total),
+        loadDashboardQuizData(db),
+      ]);
       const todayAttempts = overview.stats.todayAttempts;
       const todayCorrect = overview.stats.todayCorrect;
       setStats(overview.stats);
       setWeakSkills(overview.weakSkills);
       setMasteredSkills(overview.masteredSkills);
       setDailyProgress(overview.dailyProgress);
-
-      const quizData = await loadDashboardQuizData(db);
       setQuizSummary(quizData.summary);
       setQuizDailyProgress(quizData.dailyProgress);
       setQuizModeProgress(quizData.modeProgress);
       setQuizScoreTrend(quizData.scoreTrend);
       setQuizWeakSkills(quizData.weakSkills);
+      setLoading(false);
 
-      setMasteryDomains(await loadDashboardMasteryDomains(db, grammarProgress));
+      try {
+        const [masteryData, goalData, srsData] = await Promise.all([
+          loadDashboardMasteryDomains(db, grammarProgress),
+          (async () => {
+            await ensureDailyGoalPlan(db, DAILY_GOAL_DEFINITIONS, GOAL_PLAN_DAYS);
+            return loadDashboardGoalData(
+              db,
+              {
+                daily: DAILY_GOAL_DEFINITIONS,
+                weekly: WEEKLY_GOAL_DEFINITIONS,
+                monthly: MONTHLY_GOAL_DEFINITIONS,
+                yearly: YEARLY_GOAL_DEFINITIONS,
+              },
+              CALENDAR_HISTORY_DAYS,
+              todayAttempts,
+              todayCorrect
+            );
+          })(),
+          loadSrsOverview(db),
+        ]);
 
-      const goalData = await loadDashboardGoalData(
-        db,
-        {
-          daily: DAILY_GOAL_DEFINITIONS,
-          weekly: WEEKLY_GOAL_DEFINITIONS,
-          monthly: MONTHLY_GOAL_DEFINITIONS,
-          yearly: YEARLY_GOAL_DEFINITIONS,
-        },
-        CALENDAR_HISTORY_DAYS,
-        todayAttempts,
-        todayCorrect
-      );
-      setTodayGoalMetrics(goalData.today);
-      setWeeklyGoalMetrics(goalData.weekly);
-      setMonthlyGoalMetrics(goalData.monthly);
-      setYearlyGoalMetrics(goalData.yearly);
-      setTodayGoalDefinitions(goalData.todayDefinitions);
-      setTomorrowGoalDefinitions(goalData.tomorrowDefinitions);
-      setRewardSummary(goalData.rewardSummary);
-      setEarnedBadgeCodes(goalData.earnedBadgeCodes);
-      setGoalCalendar(goalData.goalCalendar);
-      setSrsOverview(await loadSrsOverview(db));
-      if (goalData.rewardToast) setRewardToast(goalData.rewardToast);
+        setMasteryDomains(masteryData);
+        setTodayGoalMetrics(goalData.today);
+        setWeeklyGoalMetrics(goalData.weekly);
+        setMonthlyGoalMetrics(goalData.monthly);
+        setYearlyGoalMetrics(goalData.yearly);
+        setTodayGoalDefinitions(goalData.todayDefinitions);
+        setTomorrowGoalDefinitions(goalData.tomorrowDefinitions);
+        setRewardSummary(goalData.rewardSummary);
+        setEarnedBadgeCodes(goalData.earnedBadgeCodes);
+        setGoalCalendar(goalData.goalCalendar);
+        setSrsOverview(srsData);
+        if (goalData.rewardToast) setRewardToast(goalData.rewardToast);
+      } catch (secondaryError) {
+        console.warn('Unable to load secondary dashboard blocks', secondaryError);
+      }
     } catch (error) {
       console.error('Unable to load dashboard stats', error);
       setStats(emptyStats);
@@ -214,7 +226,6 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
       setGoalCalendar([]);
       setRewardSummary({ xp: 0, badges: 0 });
       setEarnedBadgeCodes([]);
-    } finally {
       setLoading(false);
     }
   }, [db]);
@@ -346,10 +357,24 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
             quests={coachQuests}
             nextQuests={tomorrowQuests}
             srsOverview={srsOverview}
+            onOpenReview={() => onNavigate?.('review')}
             goalCalendar={goalCalendar}
             recommendedDomain={recommendedDomain}
             rewardSummary={{ ...rewardSummary, badges: unlockedBadgeCount }}
           />
+
+          <Pressable onPress={() => onNavigate?.('quick')} style={styles.dailyTrackingCard}>
+            <View style={styles.dailyTrackingHeader}>
+              <View>
+                <Text style={styles.dailyTrackingKicker}>Session rapide</Text>
+                <Text style={styles.dailyTrackingTitle}>5 minutes pour aujourd'hui</Text>
+              </View>
+              <Text style={styles.dailyTrackingBadge}>GO</Text>
+            </View>
+            <Text style={styles.dailyTrackingMeta}>
+              Melange intelligent entre revisions SRS, point faible et nouvelle notion adaptee au niveau actuel.
+            </Text>
+          </Pressable>
 
           <View style={styles.dailyTrackingCard}>
             <View style={styles.dailyTrackingHeader}>

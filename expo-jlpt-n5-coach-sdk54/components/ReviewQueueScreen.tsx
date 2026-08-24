@@ -5,13 +5,17 @@ import { styles } from '../appStyles';
 import {
   buildSrsReviewSession,
   loadDueSrsItems,
+  markSrsQueueItemKnown,
+  postponeSrsQueueItem,
   recordSrsReview,
   type SrsQueueItem,
   type SrsQueueSection,
 } from '../services/srsQueue';
-import { normalizeAnswer } from '../services/text';
+import { hasJapaneseText, normalizeAnswer } from '../services/text';
 import { SegmentButton } from './formControls';
+import { JapaneseLookupText, WordLookupPanel, useVocabularyLookupIndex } from './JapaneseLookup';
 import { EmptyState, LoadingView, Section } from './sharedUi';
+import type { WordLookupEntry } from '../models';
 
 type ReviewAnswer = {
   questionId: string;
@@ -28,6 +32,7 @@ const SECTION_LABELS: Record<SrsQueueSection, string> = {
 
 export function ReviewQueueScreen() {
   const db = useSQLiteContext();
+  const vocabularyLookupEntries = useVocabularyLookupIndex(db);
   const [loading, setLoading] = useState(true);
   const [queue, setQueue] = useState<SrsQueueItem[]>([]);
   const [session, setSession] = useState<SrsQueueItem[]>([]);
@@ -35,6 +40,7 @@ export function ReviewQueueScreen() {
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
   const [answers, setAnswers] = useState<ReviewAnswer[]>([]);
   const [domainFilter, setDomainFilter] = useState<ReviewDomainFilter>('all');
+  const [selectedWordLookup, setSelectedWordLookup] = useState<WordLookupEntry | null>(null);
 
   const current = session[currentIndex] ?? null;
   const sessionDone = session.length > 0 && currentIndex >= session.length;
@@ -60,6 +66,7 @@ export function ReviewQueueScreen() {
     setCurrentIndex(0);
     setSelectedChoice(null);
     setAnswers([]);
+    setSelectedWordLookup(null);
     try {
       setQueue(await loadDueSrsItems(db));
     } catch (error) {
@@ -82,6 +89,7 @@ export function ReviewQueueScreen() {
     setCurrentIndex(0);
     setSelectedChoice(null);
     setAnswers([]);
+    setSelectedWordLookup(null);
   }
 
   async function answer(choice: string) {
@@ -101,11 +109,55 @@ export function ReviewQueueScreen() {
     if (currentIndex + 1 >= session.length) {
       setCurrentIndex(session.length);
       setSelectedChoice(null);
+      setSelectedWordLookup(null);
       setQueue(await loadDueSrsItems(db));
       return;
     }
     setCurrentIndex((index) => index + 1);
     setSelectedChoice(null);
+    setSelectedWordLookup(null);
+  }
+
+  async function refreshQueue() {
+    setQueue(await loadDueSrsItems(db));
+  }
+
+  async function markKnown(item: SrsQueueItem) {
+    try {
+      await markSrsQueueItemKnown(db, item);
+      await refreshQueue();
+    } catch (error) {
+      console.error('Unable to mark SRS item as known', error);
+    }
+  }
+
+  async function postpone(item: SrsQueueItem) {
+    try {
+      await postponeSrsQueueItem(db, item);
+      await refreshQueue();
+    } catch (error) {
+      console.error('Unable to postpone SRS item', error);
+    }
+  }
+
+  async function completeCurrentWithAction(action: 'known' | 'postpone') {
+    if (!current || selectedChoice) return;
+    if (action === 'known') {
+      await markSrsQueueItemKnown(db, current);
+      setAnswers((existing) => [...existing, { questionId: current.questionId, isCorrect: true }]);
+    } else {
+      await postponeSrsQueueItem(db, current);
+    }
+    if (currentIndex + 1 >= session.length) {
+      setCurrentIndex(session.length);
+      setSelectedChoice(null);
+      setSelectedWordLookup(null);
+      await refreshQueue();
+      return;
+    }
+    setCurrentIndex((index) => index + 1);
+    setSelectedChoice(null);
+    setSelectedWordLookup(null);
   }
 
   if (loading) return <LoadingView />;
@@ -148,8 +200,20 @@ export function ReviewQueueScreen() {
         </View>
         <View style={styles.quickQuestionCard}>
           <Text style={styles.quickQuestionSkill}>{current.skillId.replace(/_/g, ' ')}</Text>
+          <View style={styles.srsReasonBox}>
+            <Text style={styles.srsReasonTitle}>Risque memoire {current.riskScore}</Text>
+            <Text style={styles.srsReasonText}>{current.reviewReason}</Text>
+          </View>
           <Text style={styles.quickPrompt}>{current.promptFr}</Text>
-          {!!current.promptJa && <Text style={styles.quickJapanese}>{current.promptJa}</Text>}
+          {!!current.promptJa && (
+            <JapaneseLookupText
+              text={current.promptJa}
+              entries={vocabularyLookupEntries}
+              onSelect={setSelectedWordLookup}
+              style={styles.quickJapanese}
+            />
+          )}
+          {selectedWordLookup && <WordLookupPanel entry={selectedWordLookup} onClose={() => setSelectedWordLookup(null)} />}
           <View style={styles.quickChoiceList}>
             {current.choices.map((choice) => {
               const isSelected = selectedChoice === choice;
@@ -165,14 +229,26 @@ export function ReviewQueueScreen() {
                     selectedChoice && isCorrect && styles.quickChoiceCorrect,
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.quickChoiceText,
-                      (isSelected || (selectedChoice && isCorrect)) && styles.quickChoiceTextActive,
-                    ]}
-                  >
-                    {choice}
-                  </Text>
+                  {selectedChoice && hasJapaneseText(choice) ? (
+                    <JapaneseLookupText
+                      text={choice}
+                      entries={vocabularyLookupEntries}
+                      onSelect={setSelectedWordLookup}
+                      style={[
+                        styles.quickChoiceText,
+                        (isSelected || (selectedChoice && isCorrect)) && styles.quickChoiceTextActive,
+                      ]}
+                    />
+                  ) : (
+                    <Text
+                      style={[
+                        styles.quickChoiceText,
+                        (isSelected || (selectedChoice && isCorrect)) && styles.quickChoiceTextActive,
+                      ]}
+                    >
+                      {choice}
+                    </Text>
+                  )}
                 </Pressable>
               );
             })}
@@ -183,10 +259,32 @@ export function ReviewQueueScreen() {
                 {normalizeAnswer(selectedChoice) === normalizeAnswer(current.correctAnswer) ? 'Solide' : 'A revoir vite'}
               </Text>
               <Text style={styles.quickCorrectionText}>{current.explanationFr}</Text>
-              <Text style={styles.quickCorrectionAnswer}>Reponse : {current.correctAnswer}</Text>
+              {hasJapaneseText(current.correctAnswer) ? (
+                <View>
+                  <Text style={styles.quickCorrectionAnswer}>Reponse :</Text>
+                  <JapaneseLookupText
+                    text={current.correctAnswer}
+                    entries={vocabularyLookupEntries}
+                    onSelect={setSelectedWordLookup}
+                    style={styles.quickCorrectionAnswer}
+                  />
+                </View>
+              ) : (
+                <Text style={styles.quickCorrectionAnswer}>Reponse : {current.correctAnswer}</Text>
+              )}
             </View>
           )}
         </View>
+        {!selectedChoice && (
+          <View style={styles.srsActionRow}>
+            <Pressable onPress={() => completeCurrentWithAction('known')} style={styles.srsKnownButton}>
+              <Text style={styles.srsKnownButtonText}>Je connais deja</Text>
+            </Pressable>
+            <Pressable onPress={() => completeCurrentWithAction('postpone')} style={styles.srsPostponeButton}>
+              <Text style={styles.srsPostponeButtonText}>Revoir plus tard</Text>
+            </Pressable>
+          </View>
+        )}
         <Pressable disabled={!selectedChoice} onPress={next} style={[styles.primaryButton, !selectedChoice && styles.primaryButtonDisabled]}>
           <Text style={styles.primaryButtonText}>{currentIndex + 1 >= session.length ? 'Terminer' : 'Suivant'}</Text>
         </Pressable>
@@ -219,7 +317,12 @@ export function ReviewQueueScreen() {
       </View>
 
       {visibleQueue.length === 0 ? (
-        <EmptyState title="Rien a revoir pour le moment." />
+        <View style={styles.srsEmptyState}>
+          <EmptyState title="Rien a revoir pour le moment." />
+          <Text style={styles.srsEmptyText}>
+            Ta file SRS est vide pour ce filtre. Continue un quiz, une lecon ou marque des cartes a revoir : elles reviendront ici automatiquement.
+          </Text>
+        </View>
       ) : (
         <>
           <Pressable onPress={startSession} style={styles.primaryButton}>
@@ -231,8 +334,17 @@ export function ReviewQueueScreen() {
                 <View key={`${item.itemType}-${item.itemId}-${item.questionId}`} style={styles.preferenceOptionCard}>
                   <Text style={styles.preferenceOptionTitle}>{item.promptFr}</Text>
                   <Text style={styles.preferenceOptionText}>
-                    {item.itemType} · {item.status} · {item.attempts} essai{item.attempts > 1 ? 's' : ''}
+                    {item.itemType} - {item.status} - risque {item.riskScore} - {item.attempts} essai{item.attempts > 1 ? 's' : ''}
                   </Text>
+                  <Text style={styles.srsReasonText}>{item.reviewReason}</Text>
+                  <View style={styles.srsActionRow}>
+                    <Pressable onPress={() => markKnown(item)} style={styles.srsKnownButton}>
+                      <Text style={styles.srsKnownButtonText}>Je connais deja</Text>
+                    </Pressable>
+                    <Pressable onPress={() => postpone(item)} style={styles.srsPostponeButton}>
+                      <Text style={styles.srsPostponeButtonText}>Plus tard</Text>
+                    </Pressable>
+                  </View>
                 </View>
               ))}
             </Section>

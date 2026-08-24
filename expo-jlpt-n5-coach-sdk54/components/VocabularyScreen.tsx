@@ -65,6 +65,7 @@ function getKanjiCardTextStyle(
 }
 
 type VocabularyCardFilter = 'all' | 'favorites' | 'review';
+const CARD_PAGE_SIZE = 24;
 
 export function VocabularyScreen() {
   const db = useSQLiteContext();
@@ -81,6 +82,7 @@ export function VocabularyScreen() {
   const [cardStates, setCardStates] = useState<Record<string, VocabularyCardState>>({});
   const [preferences, setPreferences] = useState<LearningPreferences>(DEFAULT_LEARNING_PREFERENCES);
   const [selectedKanjiDetail, setSelectedKanjiDetail] = useState<KanjiDetail | null>(null);
+  const [cardPage, setCardPage] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -161,14 +163,18 @@ export function VocabularyScreen() {
     return kanjiItems.filter((item) => item.jlpt_level.toUpperCase() === 'N5');
   }, [kanjiItems, scope]);
 
+  const n5VocabularyCards = useMemo(
+    () => buildVocabularyCards(scopedItems, scopedKanjiItems).filter((card) => !!card.kanji),
+    [scopedItems, scopedKanjiItems]
+  );
+
   const deckItems = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    const cards = buildVocabularyCards(scopedItems, scopedKanjiItems).filter((card) => !!card.kanji);
     const filteredCards = normalized
-      ? cards.filter((card) => getVocabularyCardSearchText(card).includes(normalized))
-      : cards;
+      ? n5VocabularyCards.filter((card) => getVocabularyCardSearchText(card).includes(normalized))
+      : n5VocabularyCards;
     return filterVocabularyCards(filteredCards, cardStates, cardFilter).slice(0, 80);
-  }, [query, scopedItems, scopedKanjiItems, cardFilter, cardStates]);
+  }, [query, n5VocabularyCards, cardStates, cardFilter]);
 
   const genericDeckItems = useMemo(
     () => filterGenericVocabularyCards(filteredItems, cardStates, cardFilter).slice(0, 160),
@@ -178,7 +184,7 @@ export function VocabularyScreen() {
   const smartCardStats = useMemo(() => {
     const allCardIds =
       scope === 'n5'
-        ? buildVocabularyCards(scopedItems, scopedKanjiItems).filter((card) => !!card.kanji).map((card) => card.id)
+        ? n5VocabularyCards.map((card) => card.id)
         : filteredItems.map((item) => item.id);
     return allCardIds.reduce(
       (acc, id) => {
@@ -189,7 +195,23 @@ export function VocabularyScreen() {
       },
       { total: allCardIds.length, favorites: 0, review: 0 }
     );
-  }, [scope, scopedItems, scopedKanjiItems, filteredItems, cardStates]);
+  }, [scope, n5VocabularyCards, filteredItems, cardStates]);
+
+  useEffect(() => {
+    setCardPage(0);
+  }, [scope, viewMode, query, cardFilter, selectedVocabularyTheme]);
+
+  const visibleDeckItems = useMemo(
+    () => deckItems.slice(cardPage * CARD_PAGE_SIZE, (cardPage + 1) * CARD_PAGE_SIZE),
+    [cardPage, deckItems]
+  );
+
+  const visibleGenericDeckItems = useMemo(
+    () => genericDeckItems.slice(cardPage * CARD_PAGE_SIZE, (cardPage + 1) * CARD_PAGE_SIZE),
+    [cardPage, genericDeckItems]
+  );
+  const activeDeckLength = scope === 'n5' ? deckItems.length : genericDeckItems.length;
+  const cardPageCount = Math.max(1, Math.ceil(activeDeckLength / CARD_PAGE_SIZE));
 
   const toggleVocabularyCard = (id: string) => {
     setFlippedIds((current) => {
@@ -322,7 +344,7 @@ export function VocabularyScreen() {
           </Text>
           <View style={styles.vocabularyDeckGrid}>
             {scope === 'n5'
-              ? deckItems.map((item, index) => (
+              ? visibleDeckItems.map((item, index) => (
                   <VocabularySmartCardShell
                     key={item.id}
                     favorite={!!cardStates[item.id]?.favorite}
@@ -335,14 +357,14 @@ export function VocabularyScreen() {
                   >
                     <VocabularyFlashCard
                       card={item}
-                      index={index}
+                      index={cardPage * CARD_PAGE_SIZE + index}
                       flipped={flippedIds.has(item.id)}
                       showRomaji={preferences.showRomaji}
                       onPress={() => toggleVocabularyCard(item.id)}
                     />
                   </VocabularySmartCardShell>
                 ))
-              : genericDeckItems.map((item, index) => (
+              : visibleGenericDeckItems.map((item, index) => (
                   <VocabularySmartCardShell
                     key={item.id}
                     favorite={!!cardStates[item.id]?.favorite}
@@ -354,7 +376,7 @@ export function VocabularyScreen() {
                   >
                     <GenericVocabularyFlashCard
                       item={item}
-                      index={index}
+                      index={cardPage * CARD_PAGE_SIZE + index}
                       flipped={flippedIds.has(item.id)}
                       showRomaji={preferences.showRomaji}
                       onPress={() => toggleVocabularyCard(item.id)}
@@ -362,6 +384,33 @@ export function VocabularyScreen() {
                   </VocabularySmartCardShell>
                 ))}
           </View>
+          {cardPageCount > 1 && (
+            <View style={styles.segmented}>
+              <Pressable
+                accessibilityLabel="Page de cartes précédente"
+                accessibilityRole="button"
+                accessibilityState={{ disabled: cardPage === 0 }}
+                disabled={cardPage === 0}
+                style={[styles.segmentButton, cardPage === 0 && styles.primaryButtonDisabled]}
+                onPress={() => setCardPage((page) => Math.max(0, page - 1))}
+              >
+                <Text style={styles.segmentText}>Précédent</Text>
+              </Pressable>
+              <View style={styles.segmentButton}>
+                <Text style={styles.segmentText}>{cardPage + 1}/{cardPageCount}</Text>
+              </View>
+              <Pressable
+                accessibilityLabel="Page de cartes suivante"
+                accessibilityRole="button"
+                accessibilityState={{ disabled: cardPage >= cardPageCount - 1 }}
+                disabled={cardPage >= cardPageCount - 1}
+                style={[styles.segmentButton, cardPage >= cardPageCount - 1 && styles.primaryButtonDisabled]}
+                onPress={() => setCardPage((page) => Math.min(cardPageCount - 1, page + 1))}
+              >
+                <Text style={styles.segmentText}>Suivant</Text>
+              </Pressable>
+            </View>
+          )}
           {!!selectedKanjiDetail && (
             <KanjiDetailPanel detail={selectedKanjiDetail} onClose={() => setSelectedKanjiDetail(null)} />
           )}
@@ -701,20 +750,20 @@ function filterGenericVocabularyCards(
 
 function getVocabularyVisual(item: VocabularyItem): { kind: string; symbol: string; colors: [string, string] } {
   const text = `${getVocabularyThemeLabel(item)} ${item.japanese} ${item.kana ?? ''} ${item.kanji ?? ''} ${item.meaning_fr}`.toLowerCase();
-  if (/chat|chien|oiseau|poisson|animal|çŒ«|çŠ¬|é³¥|é­š/.test(text)) return { kind: 'animal', symbol: 'ç”Ÿ', colors: ['#4BAE7F', '#1F7A68'] };
-  if (/eau|thÃ©|riz|pain|viande|poisson|manger|boire|nourriture|é£Ÿ|é£²|æ°´|èŒ¶|è‚‰|é­š|ç±³|ãƒ‘ãƒ³/.test(text)) return { kind: 'food', symbol: 'é£Ÿ', colors: ['#F08A4B', '#C83543'] };
-  if (/mÃ¨re|pÃ¨re|frÃ¨re|sÅ“ur|famille|ami|personne|çˆ¶|æ¯|å…„|å§‰|å¼Ÿ|å¦¹|å‹|äºº/.test(text)) return { kind: 'family', symbol: 'äºº', colors: ['#E85D75', '#9A4DAD'] };
-  if (/Ã©cole|Ã©tude|livre|crayon|professeur|Ã©tudiant|å­¦æ ¡|å­¦|æœ¬|æ›¸|å…ˆç”Ÿ|å­¦ç”Ÿ|é‰›ç­†/.test(text)) return { kind: 'study', symbol: 'å­¦', colors: ['#4F8CC9', '#1B5E8C'] };
-  if (/gare|train|voiture|route|aller|venir|rentrer|dÃ©placement|é§…|é›»è»Š|è»Š|é“|è¡Œ|æ¥|å¸°/.test(text)) return { kind: 'transport', symbol: 'è»Š', colors: ['#2D7DD2', '#143D73'] };
-  if (/jour|mois|annÃ©e|heure|temps|matin|soir|hier|demain|ä»Šæ—¥|æ˜Žæ—¥|æ˜¨æ—¥|æ™‚|åˆ†|æœˆ|æ—¥|å¹´/.test(text)) return { kind: 'time', symbol: 'æ™‚', colors: ['#F6C85F', '#D7891B'] };
-  if (/montagne|riviÃ¨re|pluie|feu|ciel|arbre|nature|å±±|å·|é›¨|ç«|æ°´|å¤©|æœ¨/.test(text)) return { kind: 'nature', symbol: 'å±±', colors: ['#52A66B', '#28745C'] };
-  if (/rouge|bleu|blanc|noir|couleur|èµ¤|é’|ç™½|é»’/.test(text)) return { kind: 'color', symbol: 'è‰²', colors: ['#F05A5A', '#4666D8'] };
-  if (/grand|petit|nouveau|ancien|cher|haut|long|å¤§|å°|æ–°|å¤|é«˜|é•·/.test(text)) return { kind: 'description', symbol: 'å½¢', colors: ['#A77BD8', '#5C4BB2'] };
-  if (/main|pied|tÃªte|Å“il|oreille|bouche|corps|æ‰‹|è¶³|é ­|ç›®|è€³|å£|ä½“/.test(text)) return { kind: 'body', symbol: 'æ‰‹', colors: ['#E0A95C', '#B45A3C'] };
-  if (/yen|argent|acheter|magasin|å††|é‡‘|è²·|åº—/.test(text)) return { kind: 'money', symbol: 'å††', colors: ['#E6C84F', '#8F7A17'] };
-  if (/bonjour|merci|pardon|expression|salut|ã“ã‚“ã«ã¡ã¯|ã‚ã‚ŠãŒã¨ã†|ã™ã¿ã¾ã›ã‚“/.test(text)) return { kind: 'expression', symbol: 'ä¼š', colors: ['#47B8A8', '#186B63'] };
-  if (/verbe|faire|voir|Ã©couter|lire|parler|Ã©crire|è¦‹|èž|èª­|è©±|æ›¸|ã™ã‚‹/.test(text)) return { kind: 'action', symbol: 'å‹•', colors: ['#D86F45', '#A8324B'] };
-  return { kind: 'object', symbol: 'èªž', colors: ['#325B67', '#152B3A'] };
+  if (/chat|chien|oiseau|poisson|animal|猫|犬|鳥|魚/.test(text)) return { kind: 'animal', symbol: '生', colors: ['#4BAE7F', '#1F7A68'] };
+  if (/eau|thé|riz|pain|viande|poisson|manger|boire|nourriture|食|飲|水|茶|肉|魚|米|パン/.test(text)) return { kind: 'food', symbol: '食', colors: ['#F08A4B', '#C83543'] };
+  if (/mère|père|frère|sœur|famille|ami|personne|父|母|兄|姉|弟|妹|友|人/.test(text)) return { kind: 'family', symbol: '人', colors: ['#E85D75', '#9A4DAD'] };
+  if (/école|étude|livre|crayon|professeur|étudiant|学校|学|本|書|先生|学生|鉛筆/.test(text)) return { kind: 'study', symbol: '学', colors: ['#4F8CC9', '#1B5E8C'] };
+  if (/gare|train|voiture|route|aller|venir|rentrer|déplacement|駅|電車|車|道|行|来|帰/.test(text)) return { kind: 'transport', symbol: '車', colors: ['#2D7DD2', '#143D73'] };
+  if (/jour|mois|année|heure|temps|matin|soir|hier|demain|今日|明日|昨日|時|分|月|日|年/.test(text)) return { kind: 'time', symbol: '時', colors: ['#F6C85F', '#D7891B'] };
+  if (/montagne|rivière|pluie|feu|ciel|arbre|nature|山|川|雨|火|水|天|木/.test(text)) return { kind: 'nature', symbol: '山', colors: ['#52A66B', '#28745C'] };
+  if (/rouge|bleu|blanc|noir|couleur|赤|青|白|黒/.test(text)) return { kind: 'color', symbol: '色', colors: ['#F05A5A', '#4666D8'] };
+  if (/grand|petit|nouveau|ancien|cher|haut|long|大|小|新|古|高|長/.test(text)) return { kind: 'description', symbol: '形', colors: ['#A77BD8', '#5C4BB2'] };
+  if (/main|pied|tête|œil|oreille|bouche|corps|手|足|頭|目|耳|口|体/.test(text)) return { kind: 'body', symbol: '手', colors: ['#E0A95C', '#B45A3C'] };
+  if (/yen|argent|acheter|magasin|円|金|買|店/.test(text)) return { kind: 'money', symbol: '円', colors: ['#E6C84F', '#8F7A17'] };
+  if (/bonjour|merci|pardon|expression|salut|こんにちは|ありがとう|すみません/.test(text)) return { kind: 'expression', symbol: '会', colors: ['#47B8A8', '#186B63'] };
+  if (/verbe|faire|voir|écouter|lire|parler|écrire|見|聞|読|話|書|する/.test(text)) return { kind: 'action', symbol: '動', colors: ['#D86F45', '#A8324B'] };
+  return { kind: 'object', symbol: '語', colors: ['#325B67', '#152B3A'] };
 }
 
 function renderVocabularyVisualShape(kind: string): ReactNode {

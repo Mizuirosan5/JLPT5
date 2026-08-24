@@ -68,6 +68,8 @@ export function JapaneseLookupText({
         token.entry ? (
           <Text
             key={`${token.text}-${index}`}
+            accessibilityLabel={`Afficher la lecture et le sens de ${token.text}`}
+            accessibilityRole="link"
             style={styles.lookupToken}
             onPress={() => onSelect(token.entry!)}
             onLongPress={() => onSelect(token.entry!)}
@@ -105,7 +107,7 @@ export function WordLookupPanel({ entry, onClose }: { entry: WordLookupEntry | n
           <Text style={styles.wordLookupKicker}>Mot sélectionné</Text>
           <Text style={styles.wordLookupTitle}>{entry.kanji || entry.japanese}</Text>
         </View>
-        <Pressable style={styles.wordLookupClose} onPress={onClose}>
+        <Pressable accessibilityLabel="Fermer la fiche du mot" accessibilityRole="button" style={styles.wordLookupClose} onPress={onClose}>
           <Text style={styles.wordLookupCloseText}>×</Text>
         </Pressable>
       </View>
@@ -116,7 +118,14 @@ export function WordLookupPanel({ entry, onClose }: { entry: WordLookupEntry | n
       <Text style={styles.wordLookupMeaning}>Français : {entry.meaning_fr}</Text>
       <Text style={styles.wordLookupUsage}>{entry.usage}</Text>
       <View style={styles.wordLookupActionRow}>
-        <Pressable style={[styles.wordLookupActionButton, reviewAdded && styles.wordLookupActionButtonDone]} onPress={addToReview}>
+        <Pressable
+          accessibilityLabel={reviewAdded ? 'Mot ajouté aux révisions' : 'Ajouter ce mot aux révisions'}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: reviewAdded }}
+          disabled={reviewAdded}
+          style={[styles.wordLookupActionButton, reviewAdded && styles.wordLookupActionButtonDone]}
+          onPress={addToReview}
+        >
           <Text style={styles.wordLookupActionText}>{reviewAdded ? 'Ajoute aux revisions' : 'Ajouter a revoir'}</Text>
         </Pressable>
         <Text style={styles.wordLookupActionMeta}>{formatLookupSrsType(itemType)}</Text>

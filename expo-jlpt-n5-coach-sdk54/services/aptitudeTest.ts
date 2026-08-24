@@ -92,6 +92,8 @@ export async function loadLatestAptitudeResult(db: SQLiteDatabase): Promise<Apti
   `);
 
   if (!row) return null;
+  const answers = parseJsonObject(row.answers_json);
+  const report = normalizeAptitudeReport(parseJsonObject(row.report_json), row);
   return {
     id: row.id,
     score: row.score,
@@ -101,8 +103,59 @@ export async function loadLatestAptitudeResult(db: SQLiteDatabase): Promise<Apti
     recommendedModule: row.recommended_module,
     weakestDomain: row.weakest_domain,
     strongestDomain: row.strongest_domain,
-    answers: JSON.parse(row.answers_json),
-    report: JSON.parse(row.report_json),
+    answers: Object.fromEntries(Object.entries(answers).map(([key, value]) => [key, String(value ?? '')])),
+    report,
     createdAt: row.created_at,
+  };
+}
+
+function parseJsonObject(value: string): Record<string, unknown> {
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {};
+  } catch {
+    return {};
+  }
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
+export function normalizeAptitudeReport(
+  value: Record<string, unknown>,
+  row: {
+    score: number;
+    level3_rate: number;
+    estimated_level: string;
+    global_label: string;
+    weakest_domain: string;
+    recommended_module: string;
+  }
+): AptitudeReportSnapshot {
+  const domainRows = Array.isArray(value.domainRows)
+    ? value.domainRows.filter((item): item is AptitudeDomainRow => {
+        if (!item || typeof item !== 'object') return false;
+        const candidate = item as Partial<AptitudeDomainRow>;
+        return typeof candidate.domain === 'string' && typeof candidate.rate === 'number';
+      })
+    : [];
+  return {
+    score: typeof value.score === 'number' ? value.score : row.score,
+    globalLabel: typeof value.globalLabel === 'string' ? value.globalLabel : row.global_label,
+    summary: typeof value.summary === 'string' ? value.summary : 'Rapport restaure depuis une version precedente.',
+    domainRows,
+    strengths: stringArray(value.strengths),
+    priorities: stringArray(value.priorities),
+    maintenance: stringArray(value.maintenance),
+    estimatedLevel: typeof value.estimatedLevel === 'string' ? value.estimatedLevel : row.estimated_level,
+    levelAdvice: typeof value.levelAdvice === 'string' ? value.levelAdvice : '',
+    level3Rate: typeof value.level3Rate === 'number' ? value.level3Rate : row.level3_rate,
+    difficultyAdvice: typeof value.difficultyAdvice === 'string' ? value.difficultyAdvice : '',
+    recommendedModules: stringArray(value.recommendedModules).length
+      ? stringArray(value.recommendedModules)
+      : [row.recommended_module].filter(Boolean),
+    sevenDayPlan: stringArray(value.sevenDayPlan),
+    thirtyDayPlan: stringArray(value.thirtyDayPlan),
   };
 }

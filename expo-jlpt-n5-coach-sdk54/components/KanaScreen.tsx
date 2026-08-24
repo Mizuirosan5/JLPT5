@@ -772,13 +772,13 @@ export function KanaScreen() {
           placeholderTextColor="#8A938F"
           style={styles.searchInput}
         />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterBar}>
+        <View style={styles.filterBar}>
           <FilterButton label="Tout" active={filter === 'all'} onPress={() => setFilter('all')} />
           <FilterButton label="Connus" active={filter === 'known'} onPress={() => setFilter('known')} />
           <FilterButton label="À revoir" active={filter === 'review'} onPress={() => setFilter('review')} />
           <FilterButton label="Maîtrisés" active={filter === 'mastered'} onPress={() => setFilter('mastered')} />
           <FilterButton label="Jamais vus" active={filter === 'unseen'} onPress={() => setFilter('unseen')} />
-        </ScrollView>
+        </View>
         <View style={styles.statusLegend}>
           <View style={styles.statusLegendItem}>
             <View style={[styles.statusLegendDot, styles.thumbnailStatusUnseen]} />

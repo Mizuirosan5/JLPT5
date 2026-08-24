@@ -33,6 +33,8 @@ export function QuickSessionScreen() {
   const [result, setResult] = useState<QuickSessionResult | null>(null);
   const [rewardClaimed, setRewardClaimed] = useState(false);
   const rewardAnim = useRef(new Animated.Value(0)).current;
+  const sessionId = useRef(`${Date.now()}-${Math.random()}`);
+  const answerInFlight = useRef(false);
 
   const current = questions[currentIndex] ?? null;
   const correctCount = answers.filter((answer) => answer.isCorrect).length;
@@ -43,6 +45,7 @@ export function QuickSessionScreen() {
     setAnswers([]);
     setResult(null);
     setRewardClaimed(false);
+    sessionId.current = `${Date.now()}-${Math.random()}`;
     setCurrentIndex(0);
     try {
       const loadedPreferences = await loadLearningPreferences(db);
@@ -70,7 +73,7 @@ export function QuickSessionScreen() {
       tension: 90,
       useNativeDriver: true,
     }).start();
-    claimQuickSessionReward(db, result).catch((error) => {
+    claimQuickSessionReward(db, result, sessionId.current).catch((error) => {
       console.error('Unable to claim quick session reward', error);
     });
   }, [db, result, rewardAnim, rewardClaimed]);
@@ -81,7 +84,8 @@ export function QuickSessionScreen() {
   }, [currentIndex, questions.length, selectedChoice]);
 
   async function answer(choice: string) {
-    if (!current || selectedChoice || result) return;
+    if (!current || selectedChoice || result || answerInFlight.current) return;
+    answerInFlight.current = true;
     const isCorrect = normalizeAnswer(choice) === normalizeAnswer(current.question.correct_answer);
     setSelectedChoice(choice);
     setAnswers((existing) => [
@@ -116,6 +120,8 @@ export function QuickSessionScreen() {
       });
     } catch (error) {
       console.error('Unable to save quick session answer', error);
+    } finally {
+      answerInFlight.current = false;
     }
   }
 
@@ -176,7 +182,7 @@ export function QuickSessionScreen() {
   return (
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.quickHero}>
-        <View>
+        <View style={styles.quickHeroCopy}>
           <Text style={styles.quickKicker}>Mode rapide</Text>
           <Text style={styles.quickTitle}>{preferences?.preferredSessionLength ?? 5} minutes</Text>
           <Text style={styles.quickText}>Une session courte, choisie localement selon ton historique.</Text>
@@ -198,12 +204,12 @@ export function QuickSessionScreen() {
           {!!current.question.prompt_ja && <Text style={styles.quickJapanese}>{current.question.prompt_ja}</Text>}
 
           <View style={styles.quickChoiceList}>
-            {current.choices.map((choice) => {
+            {current.choices.map((choice, choiceIndex) => {
               const isSelected = selectedChoice === choice;
               const isCorrect = normalizeAnswer(choice) === normalizeAnswer(current.question.correct_answer);
               return (
                 <Pressable
-                  key={choice}
+                  key={`${current.question.question_id}-${choiceIndex}-${choice}`}
                   disabled={!!selectedChoice}
                   onPress={() => answer(choice)}
                   style={[

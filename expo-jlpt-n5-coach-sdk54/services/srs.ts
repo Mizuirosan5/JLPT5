@@ -146,7 +146,7 @@ export async function markSrsItemForReview(db: SQLiteDatabase, input: SrsManualR
   );
 }
 
-function buildNextSrsState(existing: SrsItemState | null, isCorrect: boolean) {
+export function buildNextSrsState(existing: SrsItemState | null, isCorrect: boolean) {
   const currentStatus = existing?.status ?? 'new';
   const currentEase = existing?.ease ?? 2.5;
   const currentInterval = existing?.interval_days ?? 0;
@@ -179,7 +179,7 @@ function getNextIntervalDays(status: SrsStatus, currentInterval: number, ease: n
   return 1;
 }
 
-function inferSrsItemType(skillId: string, sourceMode: string): SrsItemType {
+export function inferSrsItemType(skillId: string, sourceMode: string): SrsItemType {
   const value = `${skillId}:${sourceMode}`.toLowerCase();
   if (value.includes('kana') || value.includes('hiragana') || value.includes('katakana')) return 'kana';
   if (value.includes('vocab')) return 'vocabulary';
@@ -188,7 +188,7 @@ function inferSrsItemType(skillId: string, sourceMode: string): SrsItemType {
   return 'skill';
 }
 
-function inferSrsItemId(skillId: string, questionId: string, itemType: SrsItemType): string {
+export function inferSrsItemId(skillId: string, questionId: string, itemType: SrsItemType): string {
   if (itemType === 'skill') return skillId || questionId;
   return skillId || questionId;
 }

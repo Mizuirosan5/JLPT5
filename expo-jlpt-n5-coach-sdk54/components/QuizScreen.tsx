@@ -28,6 +28,7 @@ import { hasJapaneseText, normalizeAnswer } from '../services/text';
 import { loadKanjiItems } from '../services/vocabulary';
 import { shuffle } from '../services/random';
 import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../services/preferences';
+import { buildQuizFeedbackInsights } from '../services/quizFeedback';
 import { recordSrsReviewForQuestionAttempt } from '../services/srs';
 
 type QuizLocation = { mode: MainQuizMode; scope: KnowledgeQuizScope };
@@ -113,7 +114,7 @@ export function QuizScreen({
     setSelectedWordLookup(null);
     setSelectedWordLookupAnchorId(null);
     try {
-      const next = await db.getFirstAsync<QuizQuestion>(`
+      const candidates = await db.getAllAsync<QuizQuestion>(`
         SELECT q.question_id, q.question_origin, q.skill_id, q.question_type,
                q.prompt_fr, q.prompt_ja, q.correct_answer, q.explanation_fr
         FROM app_question_bank q
@@ -134,9 +135,10 @@ export function QuizScreen({
             ELSE p.final_priority - 10
           END DESC,
           COALESCE(a.last_answered_at, '1970-01-01') ASC,
-          random()
-        LIMIT 1
+          q.question_id
+        LIMIT 12
       `);
+      const next = shuffle(candidates.slice(0, 8))[0] ?? null;
       setQuestion(next ?? null);
 
       if (next) {
@@ -162,8 +164,8 @@ export function QuizScreen({
               AND correct_answer IS NOT NULL
               AND correct_answer != ?
             GROUP BY correct_answer
-            ORDER BY random()
-            LIMIT 3
+            ORDER BY correct_answer
+            LIMIT 12
             `,
             next.question_id,
             next.skill_id,
@@ -177,7 +179,7 @@ export function QuizScreen({
                 choice_text: next.correct_answer,
                 is_correct: 1,
               },
-              ...distractors.map((choice, index) => ({
+              ...shuffle(distractors).slice(0, 3).map((choice, index) => ({
                 id: `${next.question_id}-fallback-${index}`,
                 choice_text: choice.choice_text,
                 is_correct: 0,
@@ -372,8 +374,8 @@ export function QuizScreen({
               ) : (
                 <Text style={styles.choiceText}>{choice.choice_text}</Text>
               )}
-              {selected && isCorrect && <Text style={styles.choiceIcon}>???</Text>}
-              {selected && isSelected && !isCorrect && <Text style={styles.choiceIcon}>??</Text>}
+              {selected && isCorrect && <Text style={styles.choiceIcon}>OK</Text>}
+              {selected && isSelected && !isCorrect && <Text style={styles.choiceIcon}>X</Text>}
             </Pressable>
           );
         })}
@@ -382,8 +384,23 @@ export function QuizScreen({
       {selected && (
         <View style={styles.feedback}>
           <Text style={styles.feedbackTitle}>
-            {selected.is_correct ? 'Correct' : '?? revoir'}
+            {selected.is_correct ? 'Correct' : 'À revoir'}
           </Text>
+          <View style={styles.correctionInsightCard}>
+            <Text style={styles.correctionInsightKicker}>Analyse</Text>
+            {buildQuizFeedbackInsights({
+              selectedAnswer: selected.choice_text,
+              expectedAnswer: question.correct_answer,
+              explanation: question.explanation_fr,
+              japanese: question.prompt_ja,
+              translation: question.prompt_fr,
+            }).map((insight) => (
+              <View key={insight.title} style={styles.correctionInsightBlock}>
+                <Text style={styles.correctionInsightLabel}>{insight.title}</Text>
+                <Text style={styles.correctionInsightText}>{insight.detail}</Text>
+              </View>
+            ))}
+          </View>
           <JapaneseCorrectionDetails
             japanese={question.prompt_ja}
             translation={question.prompt_fr}
