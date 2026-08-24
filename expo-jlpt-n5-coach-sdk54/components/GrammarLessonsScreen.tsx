@@ -69,8 +69,12 @@ import type { CurriculumCode } from '../data/curriculum';
 export function GrammarLessonsScreen() {
   const db = useSQLiteContext();
   const vocabularyLookupEntries = useVocabularyLookupIndex(db);
+  const curriculumLessons = ALL_GRAMMAR_LESSONS;
   const [curriculumCode, setCurriculumCode] = useState<CurriculumCode>('1A');
-  const curriculumLessons = useMemo(() => filterGrammarForCurriculum(ALL_GRAMMAR_LESSONS, curriculumCode), [curriculumCode]);
+  const guidedExerciseLessons = useMemo(
+    () => filterGrammarForCurriculum(ALL_GRAMMAR_LESSONS, curriculumCode),
+    [curriculumCode],
+  );
   const folders = useMemo(
     () => GRAMMAR_MAIN_MENUS.filter((menu) => curriculumLessons.some((lesson) => getGrammarMainMenu(lesson) === menu)),
     [curriculumLessons]
@@ -228,7 +232,8 @@ export function GrammarLessonsScreen() {
   };
 
   const startGrammarExercises = () => {
-    setGrammarExerciseSession(createGrammarSession(buildGrammarQuizQuestions(grammarExerciseSize)));
+    if (!guidedExerciseLessons.length) return;
+    setGrammarExerciseSession(createGrammarSession(buildGrammarQuizQuestions(grammarExerciseSize, 'arcade', guidedExerciseLessons)));
     setGrammarExerciseInput('');
     setGrammarExerciseRomajiVisible(false);
     setGrammarExerciseFrenchVisible(false);
@@ -626,7 +631,20 @@ export function GrammarLessonsScreen() {
           <Metric label="Ouvertes" value={`${grammarProgress.opened}/${grammarProgress.total}`} />
         </View>
 
-        {!grammarExerciseSession ? (
+        {guidedExerciseLessons.length === 0 ? (
+          <Section title="Progression guidée">
+            <View style={styles.quizConfigCard}>
+              <Text style={styles.quizConfigTitle}>Kana d’abord</Text>
+              <Text style={styles.quizConfigMode}>Niveau {curriculumCode}</Text>
+              <Text style={styles.quizConfigText}>
+                Aucune question de grammaire n’est ajoutée à ce niveau. Les leçons restent toutes consultables dans l’onglet Leçons.
+              </Text>
+            </View>
+            <Pressable style={styles.primaryButton} onPress={() => setGrammarMode('learn')}>
+              <Text style={styles.primaryButtonText}>Consulter les leçons</Text>
+            </Pressable>
+          </Section>
+        ) : !grammarExerciseSession ? (
           <Section title="Configuration">
             <View style={styles.segmented}>
               <SegmentButton label="10 questions" active={grammarExerciseSize === 10} onPress={() => setGrammarExerciseSize(10)} />
@@ -634,9 +652,9 @@ export function GrammarLessonsScreen() {
             </View>
             <View style={styles.quizConfigCard}>
               <Text style={styles.quizConfigTitle}>{grammarExerciseSize} exercices prêts</Text>
-              <Text style={styles.quizConfigMode}>Atelier complet N5</Text>
+              <Text style={styles.quizConfigMode}>Atelier guidé · niveau {curriculumCode}</Text>
               <Text style={styles.quizConfigText}>
-                La session mélange textes à trou, réponses à taper, QCM de règle, traductions et situations concrètes.
+                La session utilise uniquement les notions de ton niveau actuel et les acquis précédents.
               </Text>
               <Text style={styles.quizConfigText}>
                 Les réponses alimentent les stats, missions, badges et le parcours JLPT.

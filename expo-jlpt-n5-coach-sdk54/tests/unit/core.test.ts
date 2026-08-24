@@ -10,7 +10,7 @@ import { buildNextSrsState, inferSrsItemType } from '../../services/srs';
 import { hasJapaneseText, normalizeAnswer } from '../../services/text';
 import { normalizeAptitudeReport } from '../../services/aptitudeTest';
 import { assertMigrationCounts, getCommonMigrationColumns } from '../../services/databaseMigration';
-import { filterGrammarForCurriculum, getKanaCurriculumCode, getKanjiCurriculumCode, getVocabularyCurriculumPlacement, isCurriculumAccessible } from '../../services/curriculum';
+import { filterGrammarForCurriculum, filterKanaForCurriculum, filterKanjiForCurriculum, getKanaCurriculumCode, getKanjiCurriculumCode, getVocabularyCurriculumPlacement, isCurriculumAccessible } from '../../services/curriculum';
 import { ALL_GRAMMAR_LESSONS } from '../../services/grammarCourse';
 
 const preferences: LearningPreferences = {
@@ -106,13 +106,24 @@ describe('moteurs metier critiques', () => {
     assert.equal(stages[1]!.subSteps?.length, 3);
   });
 
-  it('verrouille strictement les contenus pedagogiques futurs', () => {
+  it('écarte strictement les contenus futurs des sessions sans bloquer les bibliothèques', () => {
     assert.equal(isCurriculumAccessible('1A', '1A'), true);
     assert.equal(isCurriculumAccessible('4A', '3C'), false);
     assert.equal(getKanaCurriculumCode({ character: 'あ', script: 'hiragana' }), '1A');
     assert.equal(getKanaCurriculumCode({ character: 'きゃ', script: 'hiragana' }), '2C');
     assert.equal(getKanjiCurriculumCode({ character: '一' }), '4A');
     assert.equal(getKanjiCurriculumCode({ character: '学' }), '6B');
+    assert.deepEqual(
+      filterKanaForCurriculum([
+        { character: 'あ', script: 'hiragana' },
+        { character: 'きゃ', script: 'hiragana' },
+      ], '1A').map((item) => item.character),
+      ['あ'],
+    );
+    assert.deepEqual(
+      filterKanjiForCurriculum([{ character: '一' }, { character: '日' }], '4A').map((item) => item.character),
+      ['一'],
+    );
   });
 
   it('ecarte du parcours guide le lexique hors socle ou insuffisamment valide', () => {

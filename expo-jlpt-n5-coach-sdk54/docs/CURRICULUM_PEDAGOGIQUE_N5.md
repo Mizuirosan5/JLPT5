@@ -2,7 +2,7 @@
 
 ## Objet
 
-Ce document définit le référentiel unique utilisé par l'application pour enseigner, réviser, interroger et débloquer les contenus. Les niveaux d'XP restent des récompenses de régularité ; ils ne déterminent jamais le niveau linguistique.
+Ce document définit le référentiel unique utilisé par l'application pour enseigner, réviser, interroger et recommander les contenus. Les niveaux d'XP restent des récompenses de régularité ; ils ne déterminent jamais le niveau linguistique.
 
 Le curriculum comporte 30 unités séquentielles, de `1A` à `10C`. Une unité combine :
 
@@ -50,12 +50,18 @@ Sources :
 
 Les détails exécutables de chaque unité se trouvent dans `data/curriculum.ts`.
 
+## Accès libre et progression guidée
+
+Le curriculum ne verrouille jamais la bibliothèque. Dès le premier lancement, l'utilisateur peut consulter tous les menus, leçons, kana, kanji, mots, dialogues, textes, outils d'écriture et examens. Les statuts « actuel » et « à venir » du parcours sont des repères pédagogiques, pas des interdictions.
+
+Le niveau courant s'applique uniquement aux contenus proposés automatiquement : session du jour, quiz, exercices générés, audio guidé et révisions SRS. Ces moteurs acceptent le niveau courant et les acquis antérieurs, mais refusent systématiquement tout niveau futur. Une consultation volontaire d'un chapitre avancé ne modifie pas le niveau courant et ne l'injecte pas dans les prochaines sessions.
+
 ## Inventaires guidés
 
 - Kana : 228 entrées canoniques classées par ligne, voisement et combinaison.
 - Kanji : 80 kanji, introduits par groupes de huit entre `4A` et `7A`.
 - Cartes kanji : 148 groupes de lectures prioritaires issus du classeur éditorial `JLPT_N5_Kanji_lectures_vocabulaire_ROMAJI.xlsx`. Chaque groupe conserve kana, romaji et au moins un mot traduit ; le verso n'affiche qu'un exemple par lecture pour rester lisible sur téléphone.
-- Vocabulaire : 714 entrées guidées. Une entrée n'est disponible que lorsque son thème, tous ses kana et tous ses kanji sont accessibles. Les entrées sans thème exploitable sont ordonnées par priorité éditoriale puis par longueur de lecture ; elles ne sont jamais réparties aléatoirement.
+- Vocabulaire : 714 entrées guidées. Une entrée n'est proposée automatiquement que lorsque son thème, tous ses kana et tous ses kanji sont acquis. Elle reste consultable dans la bibliothèque dès le départ. Les entrées sans thème exploitable sont ordonnées par priorité éditoriale puis par longueur de lecture ; elles ne sont jamais réparties aléatoirement.
 - Grammaire : 119 leçons classées. Les exemples en kanji sont remplacés par leur version kana tant que les kanji nécessaires ne sont pas acquis.
 - Référence : 1 398 entrées lexicales complémentaires restent consultables hors parcours guidé.
 
@@ -63,17 +69,17 @@ Les contenus avancés ou éditoriaux qui ne relèvent pas du socle N5, notamment
 
 ## Règles obligatoires
 
-1. Une leçon ne peut afficher que son niveau courant ou un niveau antérieur.
+1. Une session ou un exercice généré ne peut proposer que le niveau courant ou un niveau antérieur.
 2. Une question, sa bonne réponse et tous ses distracteurs doivent respecter le même périmètre.
 3. Un mot comportant un kana ou un kanji futur est repoussé jusqu'au niveau de ce prérequis.
 4. Un exemple grammatical comportant un kanji futur est affiché en kana.
 5. Le romaji peut servir de consigne pour découvrir un son, mais n'est pas mélangé à des réponses japonaises.
 6. Le SRS révise le niveau courant ou les niveaux antérieurs ; il n'introduit jamais un contenu futur.
-7. Les dialogues, l'immersion, l'écriture libre et l'examen blanc sont débloqués seulement lorsque leurs prérequis sont atteints.
+7. Les dialogues, l'immersion, l'écriture libre et l'examen blanc sont toujours consultables ; leurs prérequis restent affichés comme recommandations.
 8. Le diagnostic peut placer un utilisateur expérimenté plus haut ; l'XP ne le peut pas.
 9. Une unité n'est validée qu'avec exposition, précision et maîtrise distincte des notions.
 10. Toute donnée non classée est refusée par défaut dans le parcours guidé.
-11. Le vocabulaire guidé se débloque en `3C`, lorsque ses kana peuvent être lus ; avant ce seuil, l'application travaille explicitement le décodage et n'affiche pas une bibliothèque vide.
+11. Le vocabulaire entre dans les sessions guidées en `3C`, lorsque ses kana peuvent être lus ; sa bibliothèque complète reste disponible auparavant.
 
 ## Contrôles automatiques
 

@@ -17,7 +17,6 @@ const requiredFiles = [
   'components/DashboardScreen.tsx',
   'components/ExamScreen.tsx',
   'components/AudioQuizScreen.tsx',
-  'components/CurriculumGate.tsx',
   'components/GlobalQuizScreen.tsx',
   'components/GrammarLessonsScreen.tsx',
   'components/GrammarQuizScreen.tsx',
@@ -70,6 +69,12 @@ for (const screenImport of [
   'ExamScreen',
 ]) {
   if (!appSource.includes(screenImport)) fail(`App.tsx no longer references ${screenImport}`);
+}
+if (appSource.includes('CurriculumGate')) fail('Learning libraries must remain directly accessible from the first day');
+
+const examSource = read('components/ExamScreen.tsx');
+if (examSource.includes('examUnlocked') || examSource.includes('se débloque au niveau')) {
+  fail('The JLPT exam must remain accessible independently of guided progression');
 }
 
 const lineBudgets = {
@@ -203,6 +208,15 @@ for (const requiredCurriculumToken of [
   if (!curriculumSource.includes(requiredCurriculumToken)) {
     fail(`Curriculum token missing: ${requiredCurriculumToken}`);
   }
+}
+
+const grammarLessonScreenSource = read('components/GrammarLessonsScreen.tsx');
+if (!grammarLessonScreenSource.includes("buildGrammarQuizQuestions(grammarExerciseSize, 'arcade', guidedExerciseLessons)")) {
+  fail('Grammar exercises must use the level-aware lesson pool');
+}
+const grammarQuizScreenSource = read('components/GrammarQuizScreen.tsx');
+if (grammarQuizScreenSource.includes('createGrammarMatchingSession()')) {
+  fail('Grammar matching replays must preserve the level-aware lesson pool');
 }
 
 console.log('Smoke check passed.');

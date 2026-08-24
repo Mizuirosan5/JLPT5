@@ -13,7 +13,8 @@ import { buildDailyKanaDeck, buildSmartKanaDeck, getKanaPriority } from '../serv
 import { shuffle } from '../services/random';
 import { normalizeAnswer } from '../services/text';
 import { recordSrsReviewForQuestionAttempt } from '../services/srs';
-import { filterKanaForCurriculum, filterVocabularyForCurriculum, loadCurriculumProfile } from '../services/curriculum';
+import { filterKanaForCurriculum, loadCurriculumProfile } from '../services/curriculum';
+import type { CurriculumCode } from '../data/curriculum';
 import { detectOfflineAudio, speakJapanese as speakOfflineJapanese, stopOfflineAudio, type OfflineAudioState } from '../services/audio';
 import type {
   KanaCard,
@@ -69,6 +70,7 @@ export function KanaScreen() {
   const [matchingKanaId, setMatchingKanaId] = useState<string | null>(null);
   const [matchingRomaji, setMatchingRomaji] = useState<string | null>(null);
   const [audio, setAudio] = useState<OfflineAudioState>({ available: false, japaneseVoiceId: null });
+  const [curriculumCode, setCurriculumCode] = useState<CurriculumCode>('1A');
 
   useEffect(() => {
     let mounted = true;
@@ -128,10 +130,10 @@ export function KanaScreen() {
             : null;
 
       const curriculum = await loadCurriculumProfile(db);
-      const levelRows = filterKanaForCurriculum(rows, curriculum.currentCode);
+      setCurriculumCode(curriculum.currentCode);
       const filteredRows = validCharacters
-        ? levelRows.filter((row) => validCharacters.has(row.character))
-        : levelRows.filter((row) => !row.character.includes('?'));
+        ? rows.filter((row) => validCharacters.has(row.character))
+        : rows.filter((row) => !row.character.includes('?'));
 
       const enriched = await Promise.all(
         filteredRows.map(async (row) => {
@@ -174,7 +176,7 @@ export function KanaScreen() {
           const examples =
             row.character.length > 1 && combinedPreset
               ? [buildCombinedKanaVocabularyExample(row.character, combinedPreset)]
-              : filterVocabularyForCurriculum(dbExamples, curriculum.currentCode).slice(0, 1);
+              : dbExamples.slice(0, 1);
           return {
             ...row,
             script: row.script as 'hiragana' | 'katakana',
@@ -233,8 +235,9 @@ export function KanaScreen() {
     return { seen, mastered, review, known };
   }, [cards]);
 
-  const smartDeck = useMemo(() => buildSmartKanaDeck(cards), [cards]);
-  const dailyDeck = useMemo(() => buildDailyKanaDeck(cards), [cards]);
+  const guidedCards = useMemo(() => filterKanaForCurriculum(cards, curriculumCode), [cards, curriculumCode]);
+  const smartDeck = useMemo(() => buildSmartKanaDeck(guidedCards), [guidedCards]);
+  const dailyDeck = useMemo(() => buildDailyKanaDeck(guidedCards), [guidedCards]);
   const liveElapsedMs =
     quizSession?.timerEnabled
       ? quizSession.elapsedMs ?? (quizSession.startedAt ? Math.max(0, timerTick - quizSession.startedAt) : 0)
@@ -369,8 +372,10 @@ export function KanaScreen() {
   };
 
   const startSingleCardQuiz = (card: KanaCard) => {
-    const pool = cards.length >= 4 ? cards : visibleCards;
-    const exercise = buildKanaExercise(pool, card, 'kana_to_romaji', 'multiple_choice');
+    const pool = guidedCards.length >= 4 ? guidedCards : filterKanaForCurriculum(visibleCards, curriculumCode);
+    const prompt = pool.some((item) => item.id === card.id) ? card : pool[0];
+    if (!prompt) return;
+    const exercise = buildKanaExercise(pool, prompt, 'kana_to_romaji', 'multiple_choice');
     if (!exercise) return;
     setMode('exercise');
     setViewerIndex(null);
@@ -532,7 +537,8 @@ export function KanaScreen() {
   };
 
   const startQuiz = async () => {
-    const baseQuizCards = visibleCards.length >= 4 ? visibleCards : cards;
+    const visibleGuidedCards = filterKanaForCurriculum(visibleCards, curriculumCode);
+    const baseQuizCards = visibleGuidedCards.length >= 4 ? visibleGuidedCards : guidedCards;
     let quizCards = baseQuizCards;
     if (includeCombinedKana && tab !== 'combined') {
       const combinedCards = await loadCombinedExerciseCards();

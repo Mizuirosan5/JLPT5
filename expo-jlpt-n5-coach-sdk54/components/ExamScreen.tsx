@@ -11,7 +11,6 @@ import { recordTechnicalLog } from '../services/technicalLog';
 import { SegmentButton } from './formControls';
 import { JapaneseLookupText, SmartCorrectionPanel, WordLookupPanel, useVocabularyLookupIndex } from './JapaneseLookup';
 import { EmptyState, LoadingView } from './sharedUi';
-import { loadCurriculumProfile } from '../services/curriculum';
 
 type ExamAnswerRecord = {
   questionId: string;
@@ -52,13 +51,6 @@ export function ExamScreen() {
   const [saveError, setSaveError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
   const [savingAnswer, setSavingAnswer] = useState(false);
-  const [examUnlocked, setExamUnlocked] = useState(false);
-
-  useEffect(() => {
-    loadCurriculumProfile(db)
-      .then((profile) => setExamUnlocked(profile.currentCode === '10C'))
-      .catch(() => setExamUnlocked(false));
-  }, [db]);
 
   const segment = useMemo(() => segments[index] ?? null, [segments, index]);
   const questionAsset = segment ? OFFICIAL_EXAM_QUESTION_ASSETS[segment.question_id] : undefined;
@@ -239,10 +231,6 @@ export function ExamScreen() {
         </Pressable>
       </View>
     );
-  }
-
-  if (!examUnlocked) {
-    return <View style={styles.content}><EmptyState title="L’examen blanc se débloque au niveau 10C." /></View>;
   }
 
   return (

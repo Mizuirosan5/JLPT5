@@ -349,13 +349,13 @@ export function buildCurriculumLearningPathStages(profile: CurriculumProfile): L
       status,
       reward: 'Validation pédagogique',
       screen: phase.screen,
-      actionLabel: status === 'locked' ? 'Niveau verrouillé' : 'Continuer ce niveau',
+      actionLabel: status === 'locked' ? 'Voir ce niveau' : 'Continuer ce niveau',
       subSteps,
       detail: units.map((item) => `${item.code} : ${item.canDo}`).join('\n'),
       checkpoints: units.map((item) => `${item.code} — ${item.title}`),
       prerequisites: phaseIndex === 0 ? ['Aucun prérequis.'] : [`Avoir validé le niveau ${phaseIndex}C.`],
       successCriteria: units.map((item) => `${item.code} : ${item.minimumAccuracy}% minimum avec ${item.targetItems} notions maîtrisées.`),
-      lockedReason: status === 'locked' ? `Valide d’abord le niveau ${phaseIndex}C.` : undefined,
+      lockedReason: status === 'locked' ? `Niveau à venir dans le parcours guidé. Son contenu reste consultable librement.` : undefined,
       nextActionHint: activeSubStep ? `${activeSubStep.code} — ${activeSubStep.objective}` : 'Module validé.',
     };
   });

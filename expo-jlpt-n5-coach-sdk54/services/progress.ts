@@ -56,7 +56,7 @@ export function clampProgress(value: number, target: number): number {
 export function formatPathStatus(status: LearningPathStage['status']): string {
   if (status === 'done') return 'Maîtrisé';
   if (status === 'active') return 'À faire';
-  return 'Verrouillé';
+  return 'À venir';
 }
 
 export function formatQuizModeLabel(mode: string): string {

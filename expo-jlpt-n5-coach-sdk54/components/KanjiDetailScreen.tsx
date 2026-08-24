@@ -7,7 +7,6 @@ import { buildKanjiDetail, type KanjiDetail } from '../services/kanjiComponents'
 import { markSrsItemForReview } from '../services/srs';
 import { loadKanjiItems, loadVocabularyItems } from '../services/vocabulary';
 import { EmptyState, LoadingView, Section } from './sharedUi';
-import { filterKanjiForCurriculum, filterVocabularyForCurriculum, loadCurriculumProfile } from '../services/curriculum';
 
 export function KanjiDetailScreen({ onNavigate }: { onNavigate?: (screen: Screen) => void }) {
   const db = useSQLiteContext();
@@ -20,12 +19,12 @@ export function KanjiDetailScreen({ onNavigate }: { onNavigate?: (screen: Screen
 
   useEffect(() => {
     let mounted = true;
-    Promise.all([loadKanjiItems(db), loadVocabularyItems(db), loadCurriculumProfile(db)])
-      .then(([kanjiRows, vocabularyResult, curriculum]) => {
+    Promise.all([loadKanjiItems(db), loadVocabularyItems(db)])
+      .then(([kanjiRows, vocabularyResult]) => {
         if (!mounted) return;
-        const n5Kanji = filterKanjiForCurriculum(kanjiRows, curriculum.currentCode);
+        const n5Kanji = kanjiRows.filter((item) => item.jlpt_level === 'N5');
         setKanjiItems(n5Kanji);
-        setVocabularyItems(filterVocabularyForCurriculum(vocabularyResult.rows, curriculum.currentCode));
+        setVocabularyItems(vocabularyResult.rows.filter((item) => (item.jlpt_level ?? 'N5') === 'N5'));
         setSelectedId((current) => current ?? n5Kanji[0]?.id ?? null);
       })
       .catch((error) => {

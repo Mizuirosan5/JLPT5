@@ -297,7 +297,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
       ? Math.round(((grammarMatchingSession.attempts - grammarMatchingSession.errors) / grammarMatchingSession.attempts) * 100)
       : 100;
     const activeGrammarMode = GRAMMAR_QUIZ_MODES.find((mode) => mode.id === grammarQuizMode) ?? GRAMMAR_QUIZ_MODES[0];
-    if (!availableLessons.length) return <EmptyState title="La grammaire se débloque au niveau 2A." />;
+    if (!availableLessons.length) return <EmptyState title="Aucune question de grammaire ne correspond encore à ton niveau guidé." />;
     return (
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.segmented}>
@@ -380,7 +380,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
             <Pressable
               style={styles.primaryButton}
               onPress={() => {
-                setGrammarMatchingSession(createGrammarMatchingSession());
+                setGrammarMatchingSession(createGrammarMatchingSession(availableLessons));
                 setGrammarMatchMessage('Choisis une phrase, puis sa traduction.');
               }}
             >
