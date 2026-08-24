@@ -219,6 +219,19 @@ if (grammarQuizScreenSource.includes('createGrammarMatchingSession()')) {
   fail('Grammar matching replays must preserve the level-aware lesson pool');
 }
 
+const vocabularyScreenSource = read('components/VocabularyScreen.tsx');
+for (const requiredKanjiViewerToken of [
+  'n5VocabularyCards.slice(0, 80)',
+  'KanjiFullscreenViewer',
+  'Ouvrir les ${kanjiViewerDeck.length} cartes kanji en plein écran',
+  'reading.examples.map',
+  'Retourner la carte kanji',
+]) {
+  if (!vocabularyScreenSource.includes(requiredKanjiViewerToken)) {
+    fail(`Kanji fullscreen viewer token missing: ${requiredKanjiViewerToken}`);
+  }
+}
+
 console.log('Smoke check passed.');
 console.log(`Database: ${(databaseSize / 1024 / 1024).toFixed(1)} MB`);
 console.log(`Exam PNG assets: ${examPngCount}`);
