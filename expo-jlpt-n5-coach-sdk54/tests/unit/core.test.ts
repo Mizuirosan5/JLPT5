@@ -4,7 +4,7 @@ import type { LearningPreferences, MasteryDomainStats } from '../../models';
 import { buildDateRange, formatDateKey, getGoalProgress } from '../../services/goals';
 import { buildLearningPathStages } from '../../services/learningPath';
 import { getLevelProgressFromXp, masteryProgress } from '../../services/progress';
-import { getQuickQuestionLimit, uniqueChoices } from '../../services/quickSession';
+import { getQuickLearnerStage, getQuickQuestionLimit, keepHomogeneousChoices, uniqueChoices } from '../../services/quickSession';
 import { shuffle } from '../../services/random';
 import { buildNextSrsState, inferSrsItemType } from '../../services/srs';
 import { hasJapaneseText, normalizeAnswer } from '../../services/text';
@@ -40,6 +40,15 @@ describe('moteurs metier critiques', () => {
     assert.equal(getQuickQuestionLimit(preferences), 8);
     assert.equal(getQuickQuestionLimit({ ...preferences, preferredSessionLength: 10 }), 10);
     assert.equal(getQuickQuestionLimit({ ...preferences, preferredSessionLength: 20 }), 14);
+  });
+
+  it('protege le parcours debutant et homogeneise les choix', () => {
+    assert.equal(getQuickLearnerStage({ totalAttempts: 0, kanaSeen: 0, kanaMastered: 0 }), 'discovery');
+    assert.equal(getQuickLearnerStage({ totalAttempts: 12, kanaSeen: 5, kanaMastered: 2 }), 'hiragana');
+    assert.equal(getQuickLearnerStage({ totalAttempts: 55, kanaSeen: 20, kanaMastered: 12 }), 'kana');
+    assert.equal(getQuickLearnerStage({ totalAttempts: 120, kanaSeen: 46, kanaMastered: 35 }), 'consolidation');
+    assert.deepEqual(keepHomogeneousChoices('がいます', ['です', 'ga imasu', 'あります', 'bonjour']), ['です', 'あります']);
+    assert.deepEqual(keepHomogeneousChoices('ga imasu', ['です', 'ga imasu', 'arimasu']), ['ga imasu', 'arimasu']);
   });
 
   it('normalise les reponses sans perdre le japonais', () => {

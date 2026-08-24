@@ -60,7 +60,7 @@ async function snapshot(page, name, checkpoints) {
   checkpoints.push({
     name,
     hasErrorBoundary: /Error code|ErrorBoundary|Exception logicielle|Unhandled|Cannot read|TypeError|ReferenceError/i.test(text),
-    hasContentDefect: name.endsWith('-5-min') && /page d'examen/i.test(text),
+    hasContentDefect: name.endsWith('-5-min') && /page d'examen|À quel usage correspond|ga imasu|GRAMMAR/i.test(text),
     bodyLength: text.length,
     horizontalOverflow: metrics.horizontalOverflow,
     clippedButtons: metrics.clippedButtons,

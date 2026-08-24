@@ -6276,6 +6276,18 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
+  quickLearningHelper: {
+    backgroundColor: '#FFF3C9',
+    borderLeftColor: '#F6C85F',
+    borderLeftWidth: 4,
+    color: '#344C56',
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 19,
+    marginTop: 2,
+    paddingHorizontal: 11,
+    paddingVertical: 10,
+  },
   todayHero: {
     backgroundColor: '#152B3A',
     borderBottomColor: '#F6C85F',

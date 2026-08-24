@@ -183,9 +183,9 @@ export function QuickSessionScreen() {
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.quickHero}>
         <View style={styles.quickHeroCopy}>
-          <Text style={styles.quickKicker}>Mode rapide</Text>
-          <Text style={styles.quickTitle}>{preferences?.preferredSessionLength ?? 5} minutes</Text>
-          <Text style={styles.quickText}>Une session courte, choisie localement selon ton historique.</Text>
+          <Text style={styles.quickKicker}>{getStageKicker(current?.stage)}</Text>
+          <Text style={styles.quickTitle}>{current?.stage === 'discovery' ? 'Premiers hiragana' : `${preferences?.preferredSessionLength ?? 5} minutes`}</Text>
+          <Text style={styles.quickText}>{getStageDescription(current?.stage)}</Text>
         </View>
         <View style={styles.quickCounter}>
           <Text style={styles.quickCounterValue}>{currentIndex + 1}</Text>
@@ -199,8 +199,9 @@ export function QuickSessionScreen() {
 
       {current && (
         <View style={styles.quickQuestionCard}>
-          <Text style={styles.quickQuestionSkill}>{current.question.skill_id.replace(/_/g, ' ')}</Text>
+          <Text style={styles.quickQuestionSkill}>{formatQuickSkill(current.question.skill_id)}</Text>
           <Text style={styles.quickPrompt}>{current.question.prompt_fr}</Text>
+          {!!current.helper && <Text style={styles.quickLearningHelper}>{current.helper}</Text>}
           {!!current.question.prompt_ja && <Text style={styles.quickJapanese}>{current.question.prompt_ja}</Text>}
 
           <View style={styles.quickChoiceList}>
@@ -237,7 +238,7 @@ export function QuickSessionScreen() {
                 {normalizeAnswer(selectedChoice) === normalizeAnswer(current.question.correct_answer) ? 'Bonne réponse' : 'À revoir'}
               </Text>
               <Text style={styles.quickCorrectionText}>{current.question.explanation_fr}</Text>
-              <Text style={styles.quickCorrectionAnswer}>Reponse : {current.question.correct_answer}</Text>
+              <Text style={styles.quickCorrectionAnswer}>Réponse : {current.question.correct_answer}</Text>
             </View>
           )}
         </View>
@@ -253,4 +254,25 @@ export function QuickSessionScreen() {
       </View>
     </ScrollView>
   );
+}
+
+function getStageKicker(stage?: QuickSessionQuestion['stage']): string {
+  if (stage === 'discovery') return 'Découverte guidée';
+  if (stage === 'hiragana') return 'Fondations hiragana';
+  if (stage === 'kana') return 'Entraînement kana';
+  return 'Session adaptée';
+}
+
+function getStageDescription(stage?: QuickSessionQuestion['stage']): string {
+  if (stage === 'discovery') return 'Tu n’es pas censé connaître ces signes : chaque réponse est d’abord expliquée.';
+  if (stage === 'hiragana') return 'Des signes fondamentaux, sans kanji ni grammaire avancée.';
+  if (stage === 'kana') return 'Hiragana et katakana progressifs avant le vocabulaire.';
+  return 'Kana, vocabulaire et kanji choisis selon tes acquis. La grammaire se travaille dans ses leçons dédiées.';
+}
+
+function formatQuickSkill(skill: string): string {
+  if (skill === 'kana') return 'Kana · lecture';
+  if (skill === 'vocabulary') return 'Vocabulaire · sens';
+  if (skill === 'kanji') return 'Kanji · sens';
+  return skill.replace(/_/g, ' ');
 }
