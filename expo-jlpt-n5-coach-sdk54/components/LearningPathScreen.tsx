@@ -429,13 +429,13 @@ const APTITUDE_QUESTIONS: AptitudeQuestion[] = [
 ];
 
 const LEAGUE_TIERS: LeagueTier[] = [
-  { name: 'Depart N5', minLevel: 1, symbol: 'N5' },
-  { name: 'Kana solides', minLevel: 5, symbol: 'KA' },
-  { name: 'Lexique actif', minLevel: 12, symbol: 'VO' },
-  { name: 'Grammaire claire', minLevel: 20, symbol: 'GR' },
-  { name: 'Kanji en place', minLevel: 32, symbol: 'KJ' },
-  { name: 'Simulation JLPT', minLevel: 45, symbol: 'JL' },
-  { name: 'Pret examen', minLevel: 60, symbol: 'OK' },
+  { name: 'Depart N5', minLevel: 1, symbol: '始' },
+  { name: 'Kana solides', minLevel: 5, symbol: '仮' },
+  { name: 'Lexique actif', minLevel: 12, symbol: '語' },
+  { name: 'Grammaire claire', minLevel: 20, symbol: '文' },
+  { name: 'Kanji en place', minLevel: 32, symbol: '字' },
+  { name: 'Simulation JLPT', minLevel: 45, symbol: '試' },
+  { name: 'Pret examen', minLevel: 60, symbol: '合' },
 ];
 
 export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen) => void }) {

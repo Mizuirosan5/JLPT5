@@ -719,7 +719,7 @@ function getRewardCelebrationCopy(reward: RewardToast): { kicker: string; title:
       kicker: 'Badge obtenu',
       title: reward.title,
       subtitle: 'Nouvelle recompense ajoutee a ta progression.',
-      symbol: reward.badgeCode.slice(0, 3),
+      symbol: '賞',
     };
   }
   return {
@@ -748,7 +748,6 @@ function RewardCelebrationOverlay({
 
   return (
     <Animated.View
-      pointerEvents="box-none"
       style={[
         styles.rewardCelebrationLayer,
         {
@@ -757,7 +756,6 @@ function RewardCelebrationOverlay({
       ]}
     >
       <Animated.View
-        pointerEvents="none"
         style={[
           styles.rewardCelebrationBackdrop,
           {

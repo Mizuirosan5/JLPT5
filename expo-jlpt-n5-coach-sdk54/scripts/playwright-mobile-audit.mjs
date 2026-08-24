@@ -80,7 +80,7 @@ async function tapMenuEntry(page, label) {
 }
 
 async function closeDrawerIfOpen(page) {
-  const closeButton = page.getByText('x', { exact: true }).last();
+  const closeButton = page.getByText('×', { exact: true }).last();
   if (await closeButton.isVisible().catch(() => false)) {
     await closeButton.click({ timeout: 5000 });
     await page.waitForTimeout(400);

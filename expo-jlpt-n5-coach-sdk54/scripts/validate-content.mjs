@@ -32,6 +32,11 @@ for (const file of files) {
   for (const { label, pattern } of brokenPatterns) {
     if (pattern.test(content)) failures.push(`${path.relative(root, file)}: ${label}`);
   }
+  for (const match of content.matchAll(/\b(?:icon|symbol)\s*:\s*(['"])(.*?)\1/g)) {
+    if (/[A-Za-z]/.test(match[2])) {
+      failures.push(`${path.relative(root, file)}: icone avec lettres latines (${match[2]})`);
+    }
+  }
 }
 
 const audioManifest = JSON.parse(fs.readFileSync(path.join(root, 'assets/audio/audio-pack-manifest.json'), 'utf8'));

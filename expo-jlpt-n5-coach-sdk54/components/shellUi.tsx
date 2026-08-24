@@ -4,7 +4,7 @@ import { styles } from '../appStyles';
 
 export function HeaderJapanScene() {
   return (
-    <View style={styles.headerScene} pointerEvents="none">
+    <View style={styles.headerScene}>
       <Svg width="100%" height="100%" viewBox="0 0 390 150">
         <Rect x="0" y="0" width="390" height="150" fill="#FFF8EF" />
         <Circle cx="312" cy="36" r="31" fill="#C83543" opacity="0.9" />

@@ -375,7 +375,7 @@ export function QuizScreen({
                 <Text style={styles.choiceText}>{choice.choice_text}</Text>
               )}
               {selected && isCorrect && <Text style={styles.choiceIcon}>OK</Text>}
-              {selected && isSelected && !isCorrect && <Text style={styles.choiceIcon}>X</Text>}
+              {selected && isSelected && !isCorrect && <Text style={styles.choiceIcon}>×</Text>}
             </Pressable>
           );
         })}

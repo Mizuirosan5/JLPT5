@@ -563,7 +563,7 @@ function KanjiDetailPanel({ detail, onClose }: { detail: KanjiDetail; onClose: (
           <Text style={styles.pathModuleDetailText}>{item.meaning_fr}</Text>
         </View>
         <Pressable style={styles.drawerCloseButton} onPress={onClose}>
-          <Text style={styles.drawerCloseText}>x</Text>
+          <Text style={styles.drawerCloseText}>×</Text>
         </Pressable>
       </View>
 

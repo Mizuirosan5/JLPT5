@@ -163,7 +163,7 @@ export function AppNavigation({
                   <Text style={styles.drawerTitle}>{selectedGroup.label}</Text>
                 </View>
                 <Pressable accessibilityLabel="Fermer le menu" accessibilityRole="button" style={styles.drawerCloseButton} onPress={onClose}>
-                  <Text style={styles.drawerCloseText}>x</Text>
+                  <Text style={styles.drawerCloseText}>×</Text>
                 </Pressable>
               </View>
               <Text style={styles.drawerSubtitle}>{selectedGroup.subtitle}</Text>

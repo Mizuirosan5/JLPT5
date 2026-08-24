@@ -459,7 +459,6 @@ export function KanaArcadeQuizScreen({ kanaArcadeCards, onNavigate }: KanaArcade
             </View>
             {arcadeCelebration && (
                 <Animated.View
-                  pointerEvents="none"
                   style={[
                     styles.arcadeCelebration,
                     {
