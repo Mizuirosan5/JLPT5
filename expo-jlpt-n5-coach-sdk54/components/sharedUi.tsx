@@ -142,7 +142,7 @@ export function CoachPremiumPanel({
           <View style={[styles.attendanceProgressFill, { width: `${attendanceRate}%` }]} />
         </View>
         <Text style={styles.dailyTrackingMeta}>
-          7 jours : {weekActiveDays}/7 actif{weekActiveDays > 1 ? 's' : ''}. Bonus : +60 XP aujourd'hui, +260 XP a 3 jours, +780 XP a 7 jours.
+          7 jours : {weekActiveDays}/7 actif{weekActiveDays > 1 ? 's' : ''}. Bonus : +60 XP aujourd’hui, +260 XP à 3 jours, +780 XP à 7 jours.
           {nextAttendanceMilestone
             ? ` Prochain palier : ${nextAttendanceMilestone.label}.`
             : ' Palier 7 jours obtenu.'}
@@ -154,8 +154,8 @@ export function CoachPremiumPanel({
         <View style={styles.dailyTrackingCard}>
           <View style={styles.dailyTrackingHeader}>
             <View>
-              <Text style={styles.dailyTrackingKicker}>Memoire SRS</Text>
-              <Text style={styles.dailyTrackingTitle}>{srsOverview.dueToday} revisions dues aujourd'hui</Text>
+              <Text style={styles.dailyTrackingKicker}>Mémoire SRS</Text>
+              <Text style={styles.dailyTrackingTitle}>{srsOverview.dueToday} révisions dues aujourd’hui</Text>
             </View>
             <Text style={styles.dailyTrackingBadge}>SRS</Text>
           </View>
@@ -170,15 +170,15 @@ export function CoachPremiumPanel({
             </View>
             <View style={styles.dailyTrackingStat}>
               <Text style={styles.dailyTrackingValue}>{srsOverview.mastered}</Text>
-              <Text style={styles.dailyTrackingLabel}>maitrises</Text>
+              <Text style={styles.dailyTrackingLabel}>maîtrisés</Text>
             </View>
           </View>
           <Text style={styles.dailyTrackingMeta}>
-            {srsOverview.total} elements suivis. Les erreurs reviennent plus vite, les acquis s'espacent.
+            {srsOverview.total} éléments suivis. Les erreurs reviennent plus vite, les acquis s’espacent.
           </Text>
           {onOpenReview && (
             <Pressable style={styles.dailyTrackingAction} onPress={onOpenReview}>
-              <Text style={styles.dailyTrackingActionText}>Ouvrir les revisions</Text>
+              <Text style={styles.dailyTrackingActionText}>Ouvrir les révisions</Text>
             </Pressable>
           )}
         </View>
@@ -204,7 +204,7 @@ export function CoachPremiumPanel({
 
       <QuestGroup title="Objectifs quotidiens" detail="Rapides, pour garder le rythme." quests={quests} />
       {tomorrowUnlocked && (
-        <QuestGroup title="Objectifs de demain debloques" detail="Apercu du prochain jour : nouveau theme, seuil plus ajuste." quests={nextQuests} />
+        <QuestGroup title="Objectifs de demain débloqués" detail="Aperçu du prochain jour : nouveau thème, seuil mieux ajusté." quests={nextQuests} />
       )}
     </View>
   );

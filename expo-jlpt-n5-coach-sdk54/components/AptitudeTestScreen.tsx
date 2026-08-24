@@ -17,9 +17,9 @@ export function AptitudeTestScreen({ onNavigate }: { onNavigate: (screen: Screen
       <View style={styles.pathHero}>
         <View style={styles.pathHeroInk}>
           <Text style={styles.pathHeroKicker}>Diagnostic</Text>
-          <Text style={styles.pathHeroTitle}>Test d aptitude N5</Text>
+          <Text style={styles.pathHeroTitle}>Test d’aptitude N5</Text>
           <Text style={styles.pathHeroSubtitle}>
-            Un test unique en trois niveaux pour mesurer kana, vocabulaire, kanji, grammaire et comprehension.
+            Un test unique en trois niveaux pour mesurer kana, vocabulaire, kanji, grammaire et compréhension.
           </Text>
         </View>
         <View style={styles.pathHeroBadge}>

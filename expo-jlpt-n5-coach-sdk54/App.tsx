@@ -19,6 +19,7 @@ import { LearningPreferencesScreen } from './components/LearningPreferencesScree
 import { QuickSessionScreen } from './components/QuickSessionScreen';
 import { QuizScreen } from './components/QuizScreen';
 import { ReviewQueueScreen } from './components/ReviewQueueScreen';
+import { ScreenTransition } from './components/ScreenTransition';
 import { StoryLessonScreen } from './components/StoryLessonScreen';
 import { VocabularyScreen } from './components/VocabularyScreen';
 import { WritingJournalScreen } from './components/WritingJournalScreen';
@@ -83,14 +84,10 @@ function MainApp() {
         <View style={styles.headerTextBlock}>
           <Text style={styles.kicker}>JLPT N5</Text>
           <Text style={styles.title}>Coach Japonais</Text>
-          <Text style={styles.headerSubtitle}>日本語を楽しく · Objectif reussite</Text>
-        </View>
-        <View style={styles.headerBadgeStack}>
-          <Text style={styles.badge}>N5</Text>
-          <Text style={styles.headerBadgeCaption}>mobile</Text>
+          <Text style={styles.headerSubtitle}>日本語を楽しく · Objectif réussite</Text>
         </View>
       </View>
-      <View style={styles.screenStage}>
+      <ScreenTransition screen={screen}>
         {screen === 'dashboard' && <DashboardScreen onNavigate={navigateTo} />}
         {screen === 'path' && <LearningPathScreen onNavigate={navigateTo} />}
         {screen === 'aptitudeTest' && <AptitudeTestScreen onNavigate={navigateTo} />}
@@ -104,7 +101,7 @@ function MainApp() {
         {screen === 'stories' && <StoryLessonScreen />}{screen === 'writing' && <WritingJournalScreen />}{screen === 'preferences' && <LearningPreferencesScreen />}{screen === 'quick' && <QuickSessionScreen />}
         {screen === 'quiz' && <QuizScreen backSignal={childBackSignal} onBackStateChange={setChildCanGoBack} />}
         {screen === 'exam' && <ExamScreen />}
-      </View>
+      </ScreenTransition>
       <AppNavigation
         drawerGroup={drawerGroup}
         canGoBack={canGoBack}

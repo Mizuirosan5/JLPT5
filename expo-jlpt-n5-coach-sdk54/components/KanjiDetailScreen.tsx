@@ -76,9 +76,9 @@ export function KanjiDetailScreen({ onNavigate }: { onNavigate?: (screen: Screen
       <View style={styles.grammarHero}>
         <View style={styles.grammarHeroText}>
           <Text style={styles.grammarKicker}>字 N5</Text>
-          <Text style={styles.grammarTitle}>Kanji detail</Text>
+          <Text style={styles.grammarTitle}>Détail du kanji</Text>
           <Text style={styles.grammarSubtitle}>
-            Composants, lectures, mnemoniques, confusions et mots lies pour les 80 kanji N5.
+            Composants, lectures, mnémoniques, confusions et mots lies pour les 80 kanji N5.
           </Text>
         </View>
         <View style={styles.grammarHeroBadge}>
@@ -119,7 +119,7 @@ export function KanjiDetailScreen({ onNavigate }: { onNavigate?: (screen: Screen
 
       <View style={styles.segmented}>
         <Pressable style={styles.pathActionButton} onPress={markForReview}>
-          <Text style={styles.pathActionText}>Ajouter aux revisions</Text>
+          <Text style={styles.pathActionText}>Ajouter aux révisions</Text>
         </Pressable>
         <Pressable style={styles.secondaryFullButton} onPress={() => onNavigate?.('quiz')}>
           <Text style={styles.secondaryFullButtonText}>Quiz kanji</Text>

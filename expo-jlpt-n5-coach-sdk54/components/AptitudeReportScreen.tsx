@@ -35,7 +35,7 @@ export function AptitudeReportScreen({ onNavigate }: { onNavigate: (screen: Scre
         <View style={styles.aptitudeIntroCard}>
           <Text style={styles.pathModuleDetailTitle}>Aucun rapport disponible</Text>
           <Text style={styles.pathModuleDetailText}>
-            Passe le diagnostic initial pour obtenir un rapport avec forces, faiblesses, modules recommandes et plan de travail.
+            Passe le diagnostic initial pour obtenir un rapport avec forces, faiblesses, modules recommandés et plan de travail.
           </Text>
           <Pressable style={styles.pathActionButton} onPress={() => onNavigate('aptitudeTest')}>
             <Text style={styles.pathActionText}>Lancer le diagnostic</Text>
@@ -94,7 +94,7 @@ export function AptitudeReportScreen({ onNavigate }: { onNavigate: (screen: Scre
 
       <ReportList title="Forces detectees" items={report.strengths} />
       <ReportList title="Axes d apprentissage" items={report.priorities} />
-      <ReportList title="Modules recommandes" items={report.recommendedModules} />
+      <ReportList title="Modules recommandés" items={report.recommendedModules} />
       <ReportList title="Plan 7 jours" items={report.sevenDayPlan} />
       <ReportList title="Plan 30 jours" items={report.thirtyDayPlan} />
 
@@ -129,7 +129,7 @@ function formatDomain(domain: string) {
   if (domain === 'vocabulaire') return 'Vocabulaire';
   if (domain === 'kanji') return 'Kanji';
   if (domain === 'grammaire') return 'Grammaire';
-  if (domain === 'comprehension') return 'Comprehension';
+  if (domain === 'comprehension') return 'Compréhension';
   return 'Diagnostic';
 }
 

@@ -129,7 +129,7 @@ export function WritingJournalScreen() {
               <Text style={styles.pathRequirementText}>{analysis.detectedWords.join(', ') || 'Aucun mot detecte'}</Text>
             </View>
             <View style={styles.aptitudeInsightCard}>
-              <Text style={styles.pathNextLabel}>A verifier</Text>
+              <Text style={styles.pathNextLabel}>À vérifier</Text>
               <Text style={styles.pathRequirementText}>{analysis.unknownTokens.join(', ') || 'Rien de bloquant'}</Text>
             </View>
           </View>

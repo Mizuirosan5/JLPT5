@@ -98,7 +98,7 @@ export function ImmersionReaderScreen() {
                 <View style={styles.vocabularyThemeTextBlock}>
                   <Text style={[styles.vocabularyThemeTitle, active && styles.vocabularyThemeTitleActive]}>{text.title}</Text>
                   <Text style={[styles.vocabularyThemeCount, active && styles.vocabularyThemeCountActive]}>
-                    {text.theme} · {itemProgress?.completed ? 'termine' : 'a lire'}
+                    {text.theme} · {itemProgress?.completed ? 'terminé' : 'à lire'}
                   </Text>
                 </View>
               </Pressable>

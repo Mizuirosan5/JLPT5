@@ -17,39 +17,39 @@ const NAV_GROUPS: Array<{
     id: 'path',
     label: 'Parcours',
     icon: '道',
-    subtitle: 'Suivre les progres et savoir quoi travailler.',
+    subtitle: 'Suivre les progrès et savoir quoi travailler.',
     items: [
-      { screen: 'dashboard', icon: '数', label: 'Stats', description: 'Scores, progression et points faibles.' },
-      { screen: 'path', icon: '道', label: 'Parcours guide', description: 'Etapes conseillees pour avancer.' },
+      { screen: 'dashboard', icon: '数', label: 'Statistiques', description: 'Scores, progression et points faibles.' },
+      { screen: 'path', icon: '道', label: 'Parcours guidé', description: 'Étapes conseillées pour avancer.' },
       { screen: 'aptitudeTest', icon: '診', label: 'Diagnostic', description: 'Test initial en trois niveaux.' },
-      { screen: 'aptitudeReport', icon: '報', label: 'Rapport', description: 'Forces, faiblesses et modules recommandes.' },
-      { screen: 'review', icon: '復', label: 'Revisions', description: 'File SRS du jour et notions a revoir.' },
-      { screen: 'errors', icon: '誤', label: 'Mes erreurs', description: 'Cartes creees depuis les mauvaises reponses.' },
+      { screen: 'aptitudeReport', icon: '報', label: 'Rapport', description: 'Forces, faiblesses et modules recommandés.' },
+      { screen: 'review', icon: '復', label: 'Révisions', description: 'File SRS du jour et notions à revoir.' },
+      { screen: 'errors', icon: '誤', label: 'Mes erreurs', description: 'Cartes créées depuis les mauvaises réponses.' },
     ],
   },
   {
     id: 'learn',
     label: 'Apprendre',
     icon: '学',
-    subtitle: 'Les lecons et cartes de revision N5.',
+    subtitle: 'Les leçons et cartes de révision N5.',
     items: [
-      { screen: 'kana', icon: '仮', label: 'Kana', description: 'Hiragana, katakana, cartes et trace.' },
-      { screen: 'kanjiDetail', icon: '字', label: 'Kanji', description: 'Composants, lectures et mnemoniques.' },
+      { screen: 'kana', icon: '仮', label: 'Kana', description: 'Hiragana, katakana, cartes et tracé.' },
+      { screen: 'kanjiDetail', icon: '字', label: 'Kanji', description: 'Composants, lectures et mnémoniques.' },
       { screen: 'vocabulary', icon: '語', label: 'Vocabulaire', description: 'Mots, kanji et lectures utiles.' },
-      { screen: 'grammar', icon: '文', label: 'Grammaire', description: 'Lecons, exemples et exercices.' },
-      { screen: 'immersion', icon: '読', label: 'Immersion', description: 'Textes N5 cliquables et comprehension.' },
-      { screen: 'stories', icon: '会', label: 'Stories', description: 'Dialogues N5 courts et cliquables.' },
+      { screen: 'grammar', icon: '文', label: 'Grammaire', description: 'Leçons, exemples et exercices.' },
+      { screen: 'immersion', icon: '読', label: 'Immersion', description: 'Textes N5 cliquables et compréhension.' },
+      { screen: 'stories', icon: '会', label: 'Dialogues', description: 'Dialogues N5 courts et cliquables.' },
       { screen: 'writing', icon: '書', label: 'Journal', description: 'Phrases courtes, analyse et historique.' },
     ],
   },
   {
     id: 'quiz',
-    label: "S'entrainer",
+    label: "S’entraîner",
     icon: '問',
     subtitle: 'Quiz rapides et simulation JLPT.',
     items: [
-      { screen: 'quick', icon: '速', label: '5 min', description: 'Session rapide adaptee au jour.' },
-      { screen: 'quiz', icon: '問', label: 'Quiz', description: 'Questions melangees et entrainement.' },
+      { screen: 'quick', icon: '速', label: '5 min', description: 'Session rapide adaptée au jour.' },
+      { screen: 'quiz', icon: '問', label: 'Quiz', description: 'Questions mélangées et entraînement.' },
       { screen: 'exam', icon: '試', label: 'Test JLPT', description: 'Mode examen N5 complet.' },
     ],
   },
@@ -65,10 +65,10 @@ const ALL_MENU_GROUP: {
   id: 'all',
   label: 'Tous les menus',
   icon: '☰',
-  subtitle: 'Acces direct a toutes les zones de l app.',
+  subtitle: 'Accès direct à toutes les zones de l’app.',
   items: [
     ...NAV_GROUPS.flatMap((group) => group.items),
-    { screen: 'preferences', icon: '設', label: 'Preferences', description: 'Romaji, difficulte, session et parcours.' },
+    { screen: 'preferences', icon: '設', label: 'Préférences', description: 'Romaji, difficulté, session et parcours.' },
   ],
 };
 
@@ -116,25 +116,26 @@ export function AppNavigation({
 
   return (
     <>
-      <Pressable
-        accessibilityLabel="Retour"
-        accessibilityRole="button"
-        accessibilityState={{ disabled: !canGoBack }}
-        disabled={!canGoBack}
-        onPress={onBack}
-        style={[styles.globalBackButton, !canGoBack && styles.globalBackButtonDisabled]}
-      >
-        <Text style={styles.globalBackIcon}>{'<'}</Text>
-      </Pressable>
-
-      <Pressable
-        accessibilityLabel="Ouvrir tous les menus"
-        accessibilityRole="button"
-        onPress={() => onOpen('all')}
-        style={styles.fullMenuButton}
-      >
-        <Text style={styles.fullMenuIcon}>☰</Text>
-      </Pressable>
+      <View style={styles.utilityDock}>
+        <Pressable
+          accessibilityLabel="Retour"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !canGoBack }}
+          disabled={!canGoBack}
+          onPress={onBack}
+          style={({ pressed }) => [styles.globalBackButton, !canGoBack && styles.globalBackButtonDisabled, pressed && styles.controlPressed]}
+        >
+          <Text style={styles.globalBackIcon}>‹</Text>
+        </Pressable>
+        <Pressable
+          accessibilityLabel="Ouvrir tous les menus"
+          accessibilityRole="button"
+          onPress={() => onOpen('all')}
+          style={({ pressed }) => [styles.fullMenuButton, pressed && styles.controlPressed]}
+        >
+          <Text style={styles.fullMenuIcon}>☰</Text>
+        </Pressable>
+      </View>
 
       <View style={styles.tabs}>
         {NAV_GROUPS.map((group) => (
@@ -144,7 +145,7 @@ export function AppNavigation({
             accessibilityRole="button"
             accessibilityState={{ selected: activeGroup === group.id }}
             onPress={() => onOpen(group.id)}
-            style={[styles.navGroupButton, activeGroup === group.id && styles.navGroupButtonActive]}
+            style={({ pressed }) => [styles.navGroupButton, activeGroup === group.id && styles.navGroupButtonActive, pressed && styles.controlPressed]}
           >
             <Text style={[styles.navGroupIcon, activeGroup === group.id && styles.navGroupIconActive]}>{group.icon}</Text>
             <Text style={[styles.navGroupText, activeGroup === group.id && styles.navGroupTextActive]}>{group.label}</Text>
@@ -162,7 +163,7 @@ export function AppNavigation({
                   <Text style={styles.drawerKicker}>Menu</Text>
                   <Text style={styles.drawerTitle}>{selectedGroup.label}</Text>
                 </View>
-                <Pressable accessibilityLabel="Fermer le menu" accessibilityRole="button" style={styles.drawerCloseButton} onPress={onClose}>
+                <Pressable accessibilityLabel="Fermer le menu" accessibilityRole="button" style={({ pressed }) => [styles.drawerCloseButton, pressed && styles.controlPressed]} onPress={onClose}>
                   <Text style={styles.drawerCloseText}>×</Text>
                 </Pressable>
               </View>
@@ -175,7 +176,7 @@ export function AppNavigation({
                     accessibilityRole="button"
                     accessibilityState={{ selected: screen === item.screen }}
                     onPress={() => onNavigate(item.screen)}
-                    style={[styles.drawerItem, screen === item.screen && styles.drawerItemActive]}
+                    style={({ pressed }) => [styles.drawerItem, screen === item.screen && styles.drawerItemActive, pressed && styles.controlPressed]}
                   >
                     <Text style={[styles.drawerItemIcon, screen === item.screen && styles.drawerItemIconActive]}>{item.icon}</Text>
                     <View style={styles.drawerItemBody}>

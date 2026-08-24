@@ -155,7 +155,7 @@ export function QuickSessionScreen() {
     return (
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.quickResultHero}>
-          <Text style={styles.quickKicker}>Session terminee</Text>
+          <Text style={styles.quickKicker}>Session terminée</Text>
           <Animated.View
             style={{
               opacity: rewardAnim,
@@ -169,7 +169,7 @@ export function QuickSessionScreen() {
             <Text style={styles.quickResultText}>+{result.xp} XP</Text>
           </Animated.View>
           <Text style={styles.quickResultText}>
-            {result.correct}/{result.total} reponses justes. +{result.xp} XP ajoutes a ta progression.
+            {result.correct}/{result.total} réponses justes. +{result.xp} XP ajoutés à ta progression.
           </Text>
         </View>
         <Pressable onPress={load} style={styles.primaryButton}>
@@ -234,7 +234,7 @@ export function QuickSessionScreen() {
           {selectedChoice && (
             <View style={styles.quickCorrectionBox}>
               <Text style={styles.quickCorrectionTitle}>
-                {normalizeAnswer(selectedChoice) === normalizeAnswer(current.question.correct_answer) ? 'Bonne reponse' : 'A revoir'}
+                {normalizeAnswer(selectedChoice) === normalizeAnswer(current.question.correct_answer) ? 'Bonne réponse' : 'À revoir'}
               </Text>
               <Text style={styles.quickCorrectionText}>{current.question.explanation_fr}</Text>
               <Text style={styles.quickCorrectionAnswer}>Reponse : {current.question.correct_answer}</Text>

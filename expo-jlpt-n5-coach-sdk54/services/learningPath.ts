@@ -4,8 +4,8 @@ import { clampProgress, masteryProgress } from './progress';
 const SUB_STEP_TEMPLATES = [
   {
     suffix: 'A',
-    title: 'Decouverte',
-    objective: 'Comprendre le bloc et commencer a le reconnaitre.',
+    title: 'Découverte',
+    objective: 'Comprendre le bloc et commencer à le reconnaître.',
     requirement: 'Atteindre 34% de progression sur ce module.',
     start: 0,
     end: 34,
@@ -40,7 +40,7 @@ const STAGE_DETAILS: Record<
     nextActionHint: 'Commence par le test d aptitude pour que le coach sache quoi prioriser.',
   },
   hiragana: {
-    detail: 'Tu dois reconnaitre les hiragana sans chercher longuement. Le but est de lire les sons de base, les mots simples et les consignes N5.',
+    detail: 'Tu dois reconnaître les hiragana sans chercher longuement. Le but est de lire les sons de base, les mots simples et les consignes N5.',
     checkpoints: ['Reconnaitre chaque caractere', 'Associer hiragana et romaji', 'Revoir les kana confondus jusqu a stabilisation'],
     prerequisites: ['Avoir termine le demarrage intelligent.'],
     successCriteria: ['Hiragana de base reconnus', 'Confusions marquees a revoir', 'Lecture sans hesitation excessive'],
@@ -82,7 +82,7 @@ const STAGE_DETAILS: Record<
     nextActionHint: 'Ouvre une lecon courte puis fais les exercices associes.',
   },
   kanji: {
-    detail: 'Tu apprends a reconnaitre les kanji N5 par sens et par lecture. Le but est de ne pas bloquer en lecture ou dans les quiz.',
+    detail: 'Tu apprends à reconnaître les kanji N5 par sens et par lecture. Le but est de ne pas bloquer en lecture ou dans les quiz.',
     checkpoints: ['Reconnaitre le kanji seul', 'Associer le sens francais', 'Associer au moins une lecture japonaise utile'],
     prerequisites: ['Kana stables et vocabulaire de base en construction.'],
     successCriteria: ['Kanji reconnus visuellement', 'Lectures utiles consultees', 'Cartes faibles marquees a revoir'],

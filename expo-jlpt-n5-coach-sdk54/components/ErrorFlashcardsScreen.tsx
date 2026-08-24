@@ -62,9 +62,9 @@ export function ErrorFlashcardsScreen() {
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.quickHero}>
         <View>
-          <Text style={styles.quickKicker}>Memoire d'erreurs</Text>
+          <Text style={styles.quickKicker}>Mémoire d’erreurs</Text>
           <Text style={styles.quickTitle}>Mes erreurs</Text>
-          <Text style={styles.quickText}>Les reponses ratees deviennent des cartes de revision locales.</Text>
+          <Text style={styles.quickText}>Les réponses ratées deviennent des cartes de révision locales.</Text>
         </View>
         <View style={styles.quickCounter}>
           <Text style={styles.quickCounterValue}>{visibleCards.length}</Text>
@@ -74,7 +74,7 @@ export function ErrorFlashcardsScreen() {
 
       <View style={styles.preferenceSegmentRow}>
         <SegmentButton label="Actives" active={filter === 'active'} onPress={() => setFilter('active')} />
-        <SegmentButton label="Archivees" active={filter === 'archived'} onPress={() => setFilter('archived')} />
+        <SegmentButton label="Archivées" active={filter === 'archived'} onPress={() => setFilter('archived')} />
         <SegmentButton label="Tout" active={filter === 'all'} onPress={() => setFilter('all')} />
       </View>
       <View style={styles.preferenceSegmentRow}>
@@ -89,7 +89,7 @@ export function ErrorFlashcardsScreen() {
       </View>
 
       {visibleCards.length === 0 ? (
-        <EmptyState title="Aucune erreur enregistree pour le moment." />
+        <EmptyState title="Aucune erreur enregistrée pour le moment." />
       ) : (
         <Section title="Cartes issues des erreurs">
           {visibleCards.map((card) => (
@@ -97,8 +97,8 @@ export function ErrorFlashcardsScreen() {
               <Text style={styles.preferenceOptionTitle}>{card.prompt}</Text>
               {!!card.japanese && <Text style={styles.quickJapanese}>{card.japanese}</Text>}
               {!!card.translation && <Text style={styles.preferenceOptionText}>{card.translation}</Text>}
-              <Text style={styles.quickCorrectionAnswer}>Reponse : {card.expected_answer}</Text>
-              {!!card.selected_answer && <Text style={styles.preferenceOptionText}>Ta reponse : {card.selected_answer}</Text>}
+              <Text style={styles.quickCorrectionAnswer}>Réponse : {card.expected_answer}</Text>
+              {!!card.selected_answer && <Text style={styles.preferenceOptionText}>Ta réponse : {card.selected_answer}</Text>}
               {!!card.explanation && <Text style={styles.quickCorrectionText}>{card.explanation}</Text>}
               <Pressable
                 style={[styles.wordLookupActionButton, card.archived === 1 && styles.wordLookupActionButtonDone]}

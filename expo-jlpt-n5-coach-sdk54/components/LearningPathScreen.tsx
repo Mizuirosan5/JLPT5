@@ -185,7 +185,7 @@ const APTITUDE_QUESTIONS: AptitudeQuestion[] = [
     domain: 'vocabulaire',
     prompt: 'Que signifie ce mot ?',
     display: '毎日',
-    choices: ['tous les jours', 'aujourd hui', 'demain', 'ce mois-ci'],
+    choices: ['tous les jours', 'aujourd’hui', 'demain', 'ce mois-ci'],
     answer: 'tous les jours',
     skill: 'vocabulary:n5:time',
     explanation: '毎日 signifie tous les jours. 毎 marque la repetition.',
@@ -429,13 +429,13 @@ const APTITUDE_QUESTIONS: AptitudeQuestion[] = [
 ];
 
 const LEAGUE_TIERS: LeagueTier[] = [
-  { name: 'Depart N5', minLevel: 1, symbol: '始' },
+  { name: 'Départ N5', minLevel: 1, symbol: '始' },
   { name: 'Kana solides', minLevel: 5, symbol: '仮' },
   { name: 'Lexique actif', minLevel: 12, symbol: '語' },
   { name: 'Grammaire claire', minLevel: 20, symbol: '文' },
   { name: 'Kanji en place', minLevel: 32, symbol: '字' },
   { name: 'Simulation JLPT', minLevel: 45, symbol: '試' },
-  { name: 'Pret examen', minLevel: 60, symbol: '合' },
+  { name: 'Prêt examen', minLevel: 60, symbol: '合' },
 ];
 
 export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen) => void }) {
@@ -826,7 +826,7 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
         </Section>
 
         {selectedStage.id === 'start' && (
-          <Section title="Test d aptitude initial">
+          <Section title="Test d’aptitude initial">
             <AptitudeTestPanel db={db} />
           </Section>
         )}
@@ -875,7 +875,7 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
           style={[styles.pathPanelSwitchButton, pathPanel === 'rewards' && styles.pathPanelSwitchButtonActive]}
         >
           <Text style={[styles.pathPanelSwitchText, pathPanel === 'rewards' && styles.pathPanelSwitchTextActive]}>
-            Recompenses
+            Récompenses
           </Text>
         </Pressable>
       </View>
@@ -887,14 +887,14 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
             <Text style={styles.pathEvaluationCodeLabel}>niveau actuel</Text>
           </View>
           <View style={styles.pathEvaluationBody}>
-            <Text style={styles.pathNextLabel}>Evaluation du parcours</Text>
+            <Text style={styles.pathNextLabel}>Évaluation du parcours</Text>
             <Text style={styles.pathEvaluationTitle}>{activeStage.title} - {activeSubStep.title}</Text>
             <Text style={styles.pathNextText}>{activeSubStep.objective}</Text>
             <View style={styles.pathProgressTrack}>
               <View style={[styles.pathProgressFill, { width: `${activeSubStep.progress}%` }]} />
             </View>
             <Text style={styles.pathStageCount}>
-              Sous-etapes validees : {doneSubStepCount}/{totalSubStepCount}
+              Sous-étapes validées : {doneSubStepCount}/{totalSubStepCount}
             </Text>
           </View>
         </View>
@@ -923,7 +923,7 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
       )}
 
       {pathPanel === 'rewards' && rewardState && (
-        <Section title="Recompenses et assiduite">
+        <Section title="Récompenses et assiduité">
           <CoachPremiumPanel
             examReadiness={rewardExamReadiness}
             level={rewardState.level}
@@ -1164,12 +1164,12 @@ function buildContinuitySignals(state: RewardPathState, examReadiness: number) {
     {
       label: 'Jour',
       value: `${completedToday}/${state.quests.length}`,
-      detail: 'Objectifs valides aujourd hui.',
+      detail: 'Objectifs valides aujourd’hui.',
     },
     {
-      label: 'Memoire',
+      label: 'Mémoire',
       value: `${dueReviews}`,
-      detail: dueReviews > 0 ? 'Revisions SRS a sauver.' : 'Rien en retard.',
+      detail: dueReviews > 0 ? 'Révisions SRS a sauver.' : 'Rien en retard.',
     },
     {
       label: 'N5',
@@ -1179,7 +1179,7 @@ function buildContinuitySignals(state: RewardPathState, examReadiness: number) {
     {
       label: 'Badges',
       value: `${state.unlockedBadgeCount}/${badgeTotal}`,
-      detail: 'Collection debloquee.',
+      detail: 'Collection débloquée.',
     },
   ];
 }
@@ -1265,24 +1265,24 @@ export function AptitudeTestPanel({ db, onFinished }: { db: SQLiteDatabase; onFi
         <Text style={styles.pathModuleDetailTitle}>Diagnostic N5 complet</Text>
         <Text style={styles.pathModuleDetailText}>
           Un seul test en trois niveaux. Il mesure les bases, les automatismes et les points difficiles sur kana,
-          orthographe kana, vocabulaire, kanji, grammaire et comprehension.
+          orthographe kana, vocabulaire, kanji, grammaire et compréhension.
         </Text>
         <View style={styles.pathRequirementList}>
           <View style={styles.pathRequirementItem}>
             <Text style={styles.pathRequirementIndex}>1</Text>
-            <Text style={styles.pathRequirementText}>Niveau facile : verifier les bases de lecture et de sens.</Text>
+            <Text style={styles.pathRequirementText}>Niveau facile : vérifier les bases de lecture et de sens.</Text>
           </View>
           <View style={styles.pathRequirementItem}>
             <Text style={styles.pathRequirementIndex}>2</Text>
-            <Text style={styles.pathRequirementText}>Niveau intermediaire : reperer les confusions et les acquis fragiles.</Text>
+            <Text style={styles.pathRequirementText}>Niveau intermédiaire : repérer les confusions et les acquis fragiles.</Text>
           </View>
           <View style={styles.pathRequirementItem}>
             <Text style={styles.pathRequirementIndex}>3</Text>
-            <Text style={styles.pathRequirementText}>Niveau difficile : tester analyse, pieges N5 et resistance cognitive.</Text>
+            <Text style={styles.pathRequirementText}>Niveau difficile : tester l’analyse, les pièges N5 et la résistance cognitive.</Text>
           </View>
         </View>
         <Pressable style={styles.pathActionButton} onPress={() => setStarted(true)}>
-          <Text style={styles.pathActionText}>Lancer le test d aptitude</Text>
+          <Text style={styles.pathActionText}>Lancer le test d’aptitude</Text>
         </Pressable>
       </View>
     );
@@ -1293,7 +1293,7 @@ export function AptitudeTestPanel({ db, onFinished }: { db: SQLiteDatabase; onFi
       <View style={styles.aptitudeReportCard}>
         <View style={styles.aptitudeReportHeader}>
           <View>
-            <Text style={styles.pathNextLabel}>Rapport d aptitude</Text>
+            <Text style={styles.pathNextLabel}>Rapport d’aptitude</Text>
             <Text style={styles.pathModuleDetailTitle}>{report.globalLabel}</Text>
           </View>
           <View style={styles.pathEvaluationCodeBox}>
@@ -1353,7 +1353,7 @@ export function AptitudeTestPanel({ db, onFinished }: { db: SQLiteDatabase; onFi
           </View>
         </Section>
 
-        <Section title="Modules recommandes">
+        <Section title="Modules recommandés">
           <View style={styles.pathRequirementList}>
             {report.recommendedModules.map((item, index) => (
               <View key={`module-${item}`} style={styles.pathRequirementItem}>
@@ -1487,7 +1487,7 @@ function buildAptitudeReport(questions: AptitudeQuestion[], answers: Record<stri
     ? strong.map((row) => `${formatAptitudeDomain(row.domain)} : acquis exploitable, a entretenir par rappels courts.`)
     : ['Aucun domaine n est encore stable : commencer par kana et vocabulaire de base.'];
   const priorities = weak.length
-    ? weak.map((row) => `${formatAptitudeDomain(row.domain)} : priorite d apprentissage, viser au moins 70% avant de monter de niveau.`)
+    ? weak.map((row) => `${formatAptitudeDomain(row.domain)} : priorité d apprentissage, viser au moins 70% avant de monter de niveau.`)
     : ['Continuer les questions difficiles et les examens blancs pour detecter les erreurs rares.'];
   const maintenance = strong.length
     ? strong.slice(0, 3).map((row) => `${formatAptitudeDomain(row.domain)} : ne pas abandonner, 5 minutes de rappel regulier evitent l oubli.`)
@@ -1527,7 +1527,7 @@ function formatAptitudeDomainLabel(domain: string | undefined): string {
   if (domain === 'vocabulaire') return 'Vocabulaire';
   if (domain === 'kanji') return 'Kanji';
   if (domain === 'grammaire') return 'Grammaire';
-  if (domain === 'comprehension') return 'Comprehension';
+  if (domain === 'comprehension') return 'Compréhension';
   return 'Diagnostic';
 }
 
@@ -1557,7 +1557,7 @@ function getAptitudeDomainComment(domain: AptitudeDomain, rate: number): string 
 
 function getAptitudeEstimatedLevel(score: number, level3Rate: number): string {
   if (score >= 85 && level3Rate >= 70) return 'N5 avance';
-  if (score >= 70 && level3Rate >= 45) return 'N5 intermediaire';
+  if (score >= 70 && level3Rate >= 45) return 'N5 intermédiaire';
   if (score >= 55) return 'N5 debutant solide';
   if (score >= 35) return 'N5 debutant fragile';
   return 'Fondations a reprendre';

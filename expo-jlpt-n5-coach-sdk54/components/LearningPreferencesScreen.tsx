@@ -28,7 +28,7 @@ const PLAN_OPTIONS: Array<{ value: LearningPlanMode; label: string; detail: stri
 
 const DIFFICULTY_OPTIONS: Array<{ value: QuizDifficultyPreference; label: string; detail: string }> = [
   { value: 'soft', label: 'Doux', detail: 'Plus de QCM et d aides visibles.' },
-  { value: 'normal', label: 'Normal', detail: 'Equilibre entre aide, rappel et difficulte.' },
+  { value: 'normal', label: 'Normal', detail: 'Équilibre entre aide, rappel et difficulté.' },
   { value: 'hard', label: 'Difficile', detail: 'Moins d aide, plus de production.' },
 ];
 
@@ -94,7 +94,7 @@ export function LearningPreferencesScreen() {
     try {
       const summary = await restoreLatestLocalBackupSnapshot(db);
       setBackupSummary(summary);
-      setBackupMessage(summary ? `Restauration terminee : ${summary.totalRows} lignes relues.` : 'Aucun point de restauration local disponible.');
+      setBackupMessage(summary ? `Restauration terminée : ${summary.totalRows} lignes relues.` : 'Aucun point de restauration local disponible.');
       await load();
     } catch (error) {
       console.error('Unable to restore local backup', error);
@@ -139,7 +139,7 @@ export function LearningPreferencesScreen() {
     setLoading(true);
     try {
       setPreferences(await resetLearningPreferences(db));
-      setBackupMessage('Preferences pedagogiques remises aux valeurs par defaut.');
+      setBackupMessage('Préférences pédagogiques remises aux valeurs par défaut.');
     } catch (error) {
       await recordTechnicalLog(db, 'error', 'preferences.reset', 'Unable to reset preferences', error);
       setBackupMessage('Reinitialisation impossible pour le moment.');
@@ -154,7 +154,7 @@ export function LearningPreferencesScreen() {
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.preferencesHero}>
         <Text style={styles.preferencesKicker}>Reglages locaux</Text>
-        <Text style={styles.preferencesTitle}>Preferences pedagogiques</Text>
+        <Text style={styles.preferencesTitle}>Préférences pédagogiques</Text>
         <Text style={styles.preferencesText}>
           Ces reglages restent sur ce telephone et servent a adapter les sessions sans internet.
         </Text>

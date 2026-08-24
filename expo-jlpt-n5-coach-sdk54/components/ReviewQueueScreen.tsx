@@ -167,14 +167,14 @@ export function ReviewQueueScreen() {
     return (
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.quickResultHero}>
-          <Text style={styles.quickKicker}>Revisions terminees</Text>
+          <Text style={styles.quickKicker}>Révisions terminées</Text>
           <Text style={styles.quickResultScore}>{rate}%</Text>
           <Text style={styles.quickResultText}>
-            {correctCount}/{answers.length} reponses justes. Les prochaines dates SRS ont ete mises a jour.
+            {correctCount}/{answers.length} réponses justes. Les prochaines dates SRS ont ete mises a jour.
           </Text>
         </View>
         <Pressable onPress={load} style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>Retour aux revisions</Text>
+          <Text style={styles.primaryButtonText}>Retour aux révisions</Text>
         </Pressable>
       </ScrollView>
     );
@@ -186,7 +186,7 @@ export function ReviewQueueScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.quickHero}>
           <View>
-            <Text style={styles.quickKicker}>Memoire SRS</Text>
+            <Text style={styles.quickKicker}>Mémoire SRS</Text>
             <Text style={styles.quickTitle}>Revision du jour</Text>
             <Text style={styles.quickText}>Les erreurs reviennent vite, les acquis s'espacent.</Text>
           </View>
@@ -256,7 +256,7 @@ export function ReviewQueueScreen() {
           {selectedChoice && (
             <View style={styles.quickCorrectionBox}>
               <Text style={styles.quickCorrectionTitle}>
-                {normalizeAnswer(selectedChoice) === normalizeAnswer(current.correctAnswer) ? 'Solide' : 'A revoir vite'}
+                {normalizeAnswer(selectedChoice) === normalizeAnswer(current.correctAnswer) ? 'Solide' : 'À revoir vite'}
               </Text>
               <Text style={styles.quickCorrectionText}>{current.explanationFr}</Text>
               {hasJapaneseText(current.correctAnswer) ? (
@@ -296,8 +296,8 @@ export function ReviewQueueScreen() {
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.quickHero}>
         <View>
-          <Text style={styles.quickKicker}>Memoire SRS</Text>
-          <Text style={styles.quickTitle}>A revoir</Text>
+          <Text style={styles.quickKicker}>Mémoire SRS</Text>
+          <Text style={styles.quickTitle}>À revoir</Text>
           <Text style={styles.quickText}>Une file courte pour consolider les notions qui doivent revenir.</Text>
         </View>
         <View style={styles.quickCounter}>
@@ -318,15 +318,15 @@ export function ReviewQueueScreen() {
 
       {visibleQueue.length === 0 ? (
         <View style={styles.srsEmptyState}>
-          <EmptyState title="Rien a revoir pour le moment." />
+          <EmptyState title="Rien à revoir pour le moment." />
           <Text style={styles.srsEmptyText}>
-            Ta file SRS est vide pour ce filtre. Continue un quiz, une lecon ou marque des cartes a revoir : elles reviendront ici automatiquement.
+            Ta file SRS est vide pour ce filtre. Continue un quiz, une leçon ou marque des cartes à revoir : elles reviendront ici automatiquement.
           </Text>
         </View>
       ) : (
         <>
           <Pressable onPress={startSession} style={styles.primaryButton}>
-            <Text style={styles.primaryButtonText}>Lancer 10 revisions</Text>
+            <Text style={styles.primaryButtonText}>Lancer 10 révisions</Text>
           </Pressable>
           {(['urgent', 'today', 'soon'] as SrsQueueSection[]).map((section) => (
             <Section key={section} title={`${SECTION_LABELS[section]} (${grouped[section].length})`}>

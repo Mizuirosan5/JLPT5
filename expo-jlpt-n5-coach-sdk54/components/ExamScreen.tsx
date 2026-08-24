@@ -521,7 +521,7 @@ function buildExamSectionReport(answerHistory: ExamAnswerRecord[], segments: Exa
 function getExamLevel(rate: number): string {
   if (rate >= 88) return 'Niveau tres solide : tu peux travailler la vitesse et les erreurs fines.';
   if (rate >= 72) return 'Niveau encourageant : base reelle, mais il faut stabiliser les sections faibles.';
-  if (rate >= 55) return 'Niveau intermediaire N5 : tu reconnais des elements, mais le risque examen reste eleve.';
+  if (rate >= 55) return 'Niveau intermédiaire N5 : tu reconnais des éléments, mais le risque examen reste élevé.';
   return 'Niveau fragile : priorite aux bases, puis reprise progressive en conditions examen.';
 }
 

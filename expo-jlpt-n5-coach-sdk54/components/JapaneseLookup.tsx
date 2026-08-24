@@ -126,7 +126,7 @@ export function WordLookupPanel({ entry, onClose }: { entry: WordLookupEntry | n
           style={[styles.wordLookupActionButton, reviewAdded && styles.wordLookupActionButtonDone]}
           onPress={addToReview}
         >
-          <Text style={styles.wordLookupActionText}>{reviewAdded ? 'Ajoute aux revisions' : 'Ajouter a revoir'}</Text>
+          <Text style={styles.wordLookupActionText}>{reviewAdded ? 'Ajouté aux révisions' : 'Ajouter à revoir'}</Text>
         </Pressable>
         <Text style={styles.wordLookupActionMeta}>{formatLookupSrsType(itemType)}</Text>
       </View>
@@ -246,7 +246,7 @@ export function JapaneseCorrectionDetails({
               }}
             >
               <Text style={styles.wordLookupActionText}>
-                {answerReviewAdded ? 'Ajoute aux revisions' : 'Ajouter cette reponse a revoir'}
+                {answerReviewAdded ? 'Ajouté aux révisions' : 'Ajouter cette réponse à revoir'}
               </Text>
             </Pressable>
           )}

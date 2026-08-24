@@ -300,7 +300,7 @@ export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate }: AudioQu
           {session.selected !== null && (
             <View style={styles.feedback}>
               <Text style={styles.feedbackTitle}>
-                {normalizeAnswer(session.selected) === normalizeAnswer(currentQuestion.correctAnswer) ? 'Correct' : 'A revoir'}
+                {normalizeAnswer(session.selected) === normalizeAnswer(currentQuestion.correctAnswer) ? 'Correct' : 'À revoir'}
               </Text>
               <JapaneseLookupText
                 text={currentQuestion.item.japanese}

@@ -15,47 +15,42 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 2,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    minHeight: 112,
+    minHeight: 92,
     overflow: 'hidden',
-    paddingHorizontal: 18,
-    paddingTop: 16,
-    paddingBottom: 14,
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    paddingBottom: 10,
   },
   headerScene: {
-    bottom: 0,
-    left: 0,
-    opacity: 0.34,
-    position: 'absolute',
+    borderRadius: 8,
+    height: 64,
+    marginRight: 12,
     pointerEvents: 'none',
-    right: 0,
-    top: 0,
+    width: 64,
   },
   headerTextBlock: {
     flex: 1,
-    paddingRight: 8,
+    minWidth: 0,
     zIndex: 2,
   },
   kicker: {
     color: '#C83543',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     letterSpacing: 0,
     textTransform: 'uppercase',
   },
   title: {
     color: '#152B3A',
-    fontSize: 28,
-    fontWeight: '900',
+    fontSize: 25,
+    fontWeight: '800',
     letterSpacing: 0,
-    lineHeight: 32,
-    textShadowColor: 'rgba(255, 248, 239, 0.98)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 6,
+    lineHeight: 29,
   },
   headerSubtitle: {
     color: '#405D68',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '600',
     marginTop: 3,
   },
   badge: {
@@ -64,7 +59,7 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
     elevation: 5,
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
     overflow: 'hidden',
     paddingHorizontal: 13,
     paddingVertical: 9,
@@ -83,7 +78,7 @@ export const styles = StyleSheet.create({
   headerBadgeCaption: {
     color: '#7A3036',
     fontSize: 9,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   screenStage: {
@@ -93,6 +88,10 @@ export const styles = StyleSheet.create({
     overflow: 'hidden',
     width: '100%',
   },
+  controlPressed: {
+    opacity: 0.76,
+    transform: [{ scale: 0.98 }],
+  },
   tabs: {
     alignSelf: 'stretch',
     backgroundColor: '#FFFDF8',
@@ -100,16 +99,16 @@ export const styles = StyleSheet.create({
     bottom: 0,
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
-    borderWidth: 1,
+    borderWidth: 0,
     elevation: 10,
     flexDirection: 'row',
-    gap: 10,
+    gap: 6,
     left: 0,
-    marginHorizontal: 14,
-    marginBottom: 8,
-    paddingHorizontal: 12,
-    paddingTop: 10,
-    paddingBottom: 12,
+    marginHorizontal: 12,
+    marginBottom: 7,
+    paddingHorizontal: 8,
+    paddingTop: 8,
+    paddingBottom: 9,
     position: 'absolute',
     right: 0,
     shadowColor: '#7A3B2D',
@@ -123,7 +122,7 @@ export const styles = StyleSheet.create({
   navGroupButton: {
     alignItems: 'center',
     backgroundColor: '#FFF8EF',
-    borderColor: '#E9CFB5',
+    borderColor: 'transparent',
     borderRadius: 8,
     borderWidth: 1,
     flexBasis: 0,
@@ -131,7 +130,7 @@ export const styles = StyleSheet.create({
     flexShrink: 1,
     gap: 2,
     justifyContent: 'center',
-    minHeight: 64,
+    minHeight: 58,
     minWidth: 0,
     paddingHorizontal: 6,
     paddingVertical: 8,
@@ -149,7 +148,7 @@ export const styles = StyleSheet.create({
   navGroupIcon: {
     color: '#C83543',
     fontSize: 21,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 24,
   },
   navGroupIconActive: {
@@ -158,84 +157,84 @@ export const styles = StyleSheet.create({
   navGroupText: {
     color: '#325B67',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 16,
     textAlign: 'center',
   },
   navGroupTextActive: {
     color: '#FFFFFF',
   },
+  utilityDock: {
+    backgroundColor: '#FFFDF8',
+    borderColor: '#E9CFB5',
+    borderRadius: 8,
+    borderWidth: 1,
+    bottom: 82,
+    elevation: 8,
+    flexDirection: 'row',
+    gap: 4,
+    padding: 4,
+    position: 'absolute',
+    right: 14,
+    shadowColor: '#152B3A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.14,
+    shadowRadius: 9,
+    zIndex: 21,
+  },
   globalBackButton: {
     alignItems: 'center',
     backgroundColor: '#FFFDF8',
     borderColor: '#F6C85F',
-    borderRadius: 10,
-    borderWidth: 1,
-    bottom: 144,
-    elevation: 8,
+    borderRadius: 6,
+    borderWidth: 0,
     flexDirection: 'row',
     gap: 0,
-    height: 44,
+    height: 38,
     justifyContent: 'center',
     paddingHorizontal: 0,
     paddingVertical: 0,
-    position: 'absolute',
-    right: 18,
-    shadowColor: '#152B3A',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    width: 44,
-    zIndex: 21,
+    width: 38,
   },
   globalBackButtonDisabled: {
-    opacity: 0,
+    opacity: 0.25,
   },
   globalBackIcon: {
     color: '#C83543',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 22,
   },
   globalBackText: {
     color: '#152B3A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 15,
   },
   fullMenuButton: {
     alignItems: 'center',
     backgroundColor: '#152B3A',
     borderColor: '#F6C85F',
-    borderRadius: 10,
-    borderWidth: 1,
-    bottom: 92,
-    elevation: 8,
+    borderRadius: 6,
+    borderWidth: 0,
     flexDirection: 'row',
     gap: 0,
-    height: 44,
+    height: 38,
     justifyContent: 'center',
     paddingHorizontal: 0,
     paddingVertical: 0,
-    position: 'absolute',
-    right: 18,
-    shadowColor: '#152B3A',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.22,
-    shadowRadius: 10,
-    width: 44,
-    zIndex: 21,
+    width: 38,
   },
   fullMenuIcon: {
     color: '#F6C85F',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 20,
   },
   fullMenuText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 15,
   },
   drawerOverlay: {
@@ -278,14 +277,14 @@ export const styles = StyleSheet.create({
   drawerKicker: {
     color: '#C83543',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     letterSpacing: 0,
     textTransform: 'uppercase',
   },
   drawerTitle: {
     color: '#152B3A',
     fontSize: 28,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 33,
   },
   drawerCloseButton: {
@@ -301,7 +300,7 @@ export const styles = StyleSheet.create({
   drawerCloseText: {
     color: '#152B3A',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 22,
   },
   drawerSubtitle: {
@@ -320,10 +319,10 @@ export const styles = StyleSheet.create({
   },
   drawerItem: {
     alignItems: 'center',
-    backgroundColor: '#FFF8EF',
+    backgroundColor: 'transparent',
     borderColor: '#E9CFB5',
     borderRadius: 8,
-    borderWidth: 1,
+    borderBottomWidth: 1,
     flexDirection: 'row',
     gap: 12,
     minHeight: 72,
@@ -337,7 +336,7 @@ export const styles = StyleSheet.create({
   drawerItemIcon: {
     color: '#C83543',
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 28,
     textAlign: 'center',
     width: 30,
@@ -352,7 +351,7 @@ export const styles = StyleSheet.create({
   drawerItemTitle: {
     color: '#152B3A',
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 20,
   },
   drawerItemTitleActive: {
@@ -361,7 +360,7 @@ export const styles = StyleSheet.create({
   drawerItemDescription: {
     color: '#68777A',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '600',
     lineHeight: 16,
     marginTop: 2,
   },
@@ -393,7 +392,7 @@ export const styles = StyleSheet.create({
   tabIcon: {
     color: '#C83543',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 21,
   },
   tabIconActive: {
@@ -403,7 +402,7 @@ export const styles = StyleSheet.create({
     color: '#325B67',
     flexShrink: 1,
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
   },
   tabTextActive: {
@@ -426,7 +425,7 @@ export const styles = StyleSheet.create({
   rubricButtonText: {
     color: '#52636A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
   },
   rubricButtonTextActive: {
@@ -453,7 +452,7 @@ export const styles = StyleSheet.create({
   segmentText: {
     color: '#52636A',
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   segmentTextActive: {
     color: '#FFFFFF',
@@ -462,7 +461,7 @@ export const styles = StyleSheet.create({
     alignSelf: 'stretch',
     gap: 16,
     padding: 12,
-    paddingBottom: 206,
+    paddingBottom: 184,
     backgroundColor: '#FFF8EF',
     width: '100%',
   },
@@ -507,7 +506,7 @@ export const styles = StyleSheet.create({
   vocabSmartActionText: {
     color: '#325B67',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 14,
     textAlign: 'center',
   },
@@ -517,7 +516,7 @@ export const styles = StyleSheet.create({
   vocabSmartSeenText: {
     color: '#6E7875',
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 13,
     minHeight: 13,
     textAlign: 'center',
@@ -557,7 +556,7 @@ export const styles = StyleSheet.create({
   vocabularyThemeTitle: {
     color: '#152B3A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 17,
   },
   vocabularyThemeTitleActive: {
@@ -566,7 +565,7 @@ export const styles = StyleSheet.create({
   vocabularyThemeCount: {
     color: '#647B83',
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   vocabularyThemeCountActive: {
     color: '#F6C85F',
@@ -578,7 +577,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     color: '#152B3A',
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
     minHeight: 52,
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -616,14 +615,14 @@ export const styles = StyleSheet.create({
     color: '#161616',
     flexShrink: 1,
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     maxWidth: 48,
   },
   vocabCardCornerRight: {
     color: '#161616',
     flexShrink: 1,
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     maxWidth: 48,
     textAlign: 'right',
   },
@@ -631,7 +630,7 @@ export const styles = StyleSheet.create({
     color: '#161616',
     flexShrink: 0,
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
   },
   vocabCardFrontCenter: {
@@ -654,35 +653,35 @@ export const styles = StyleSheet.create({
   vocabCardMain: {
     color: '#050505',
     fontSize: 92,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 104,
     textAlign: 'center',
   },
   vocabCardFrontMeaning: {
     color: '#121212',
     fontSize: 17,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 21,
     textAlign: 'center',
   },
   vocabCardReading: {
     color: '#111111',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 13,
     textAlign: 'center',
   },
   vocabCardBackKanji: {
     color: '#050505',
     fontSize: 42,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 47,
     textAlign: 'center',
   },
   vocabCardMeaning: {
     color: '#050505',
     fontSize: 17,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 20,
     textAlign: 'center',
   },
@@ -699,7 +698,7 @@ export const styles = StyleSheet.create({
   vocabKanjiReadingText: {
     color: '#1E1E1E',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 13,
     textAlign: 'center',
   },
@@ -714,7 +713,7 @@ export const styles = StyleSheet.create({
   vocabExampleLabel: {
     color: '#6B5A00',
     fontSize: 9,
-    fontWeight: '900',
+    fontWeight: '700',
     letterSpacing: 0,
     textAlign: 'center',
     textTransform: 'uppercase',
@@ -722,7 +721,7 @@ export const styles = StyleSheet.create({
   vocabExampleText: {
     color: '#242424',
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 12,
     textAlign: 'center',
   },
@@ -738,7 +737,7 @@ export const styles = StyleSheet.create({
     color: '#151515',
     flex: 1,
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 14,
     maxHeight: 44,
   },
@@ -746,7 +745,7 @@ export const styles = StyleSheet.create({
     color: '#151515',
     flex: 1,
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 14,
     maxHeight: 44,
     textAlign: 'right',
@@ -801,7 +800,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     color: '#FFFFFF',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     overflow: 'hidden',
     paddingHorizontal: 7,
     paddingVertical: 4,
@@ -811,7 +810,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     color: '#152B3A',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     overflow: 'hidden',
     paddingHorizontal: 7,
     paddingVertical: 4,
@@ -820,14 +819,14 @@ export const styles = StyleSheet.create({
     color: '#647B83',
     flex: 1,
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'right',
   },
   genericVocabThemeDark: {
     color: '#FFFFFF',
     flex: 1,
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'right',
   },
   genericVocabFrontCenter: {
@@ -839,20 +838,20 @@ export const styles = StyleSheet.create({
   genericVocabMain: {
     color: '#111111',
     fontSize: 42,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 52,
     textAlign: 'center',
   },
   genericVocabKana: {
     color: '#325B67',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '800',
     textAlign: 'center',
   },
   genericVocabHint: {
     color: '#8A6E12',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
   },
   genericVocabBackCenter: {
@@ -865,19 +864,16 @@ export const styles = StyleSheet.create({
   genericVocabMeaning: {
     color: '#FFFFFF',
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 29,
     textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.25)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
   },
   genericVocabReading: {
     backgroundColor: 'rgba(255,255,255,0.9)',
     borderRadius: 8,
     color: '#152B3A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 16,
     overflow: 'hidden',
     paddingHorizontal: 8,
@@ -887,7 +883,7 @@ export const styles = StyleSheet.create({
   genericVocabHintDark: {
     color: '#FFFFFF',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
     zIndex: 2,
   },
@@ -914,13 +910,13 @@ export const styles = StyleSheet.create({
   pathHeroKicker: {
     color: '#F6C85F',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   pathHeroTitle: {
     color: '#FFFFFF',
     fontSize: 27,
-    fontWeight: '900',
+    fontWeight: '800',
     letterSpacing: 0,
   },
   pathHeroSubtitle: {
@@ -944,12 +940,12 @@ export const styles = StyleSheet.create({
   pathHeroBadgeValue: {
     color: '#C83543',
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   pathHeroBadgeText: {
     color: '#325B67',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   pathSummaryGrid: {
@@ -985,13 +981,13 @@ export const styles = StyleSheet.create({
   pathEvaluationCode: {
     color: '#F6C85F',
     fontSize: 31,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 36,
   },
   pathEvaluationCodeLabel: {
     color: '#FFFFFF',
     fontSize: 9,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 12,
     textAlign: 'center',
     textTransform: 'uppercase',
@@ -1004,7 +1000,7 @@ export const styles = StyleSheet.create({
   pathEvaluationTitle: {
     color: '#152B3A',
     fontSize: 17,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 21,
   },
   pathPanelSwitchButton: {
@@ -1026,7 +1022,7 @@ export const styles = StyleSheet.create({
   pathPanelSwitchText: {
     color: '#325B67',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 16,
     textAlign: 'center',
   },
@@ -1044,13 +1040,13 @@ export const styles = StyleSheet.create({
   pathModuleDetailTitle: {
     color: '#152B3A',
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 29,
   },
   pathModuleDetailText: {
     color: '#52636A',
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 20,
   },
   pathGuidanceBox: {
@@ -1064,13 +1060,13 @@ export const styles = StyleSheet.create({
   pathGuidanceLabel: {
     color: '#152B3A',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   pathGuidanceText: {
     color: '#152B3A',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 17,
   },
   pathLockedReasonBox: {
@@ -1083,7 +1079,7 @@ export const styles = StyleSheet.create({
   pathLockedReasonText: {
     color: '#6C5B4F',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 17,
   },
   aptitudeIntroCard: {
@@ -1115,7 +1111,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     color: '#152B3A',
     fontSize: 36,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 44,
     minHeight: 92,
     padding: 16,
@@ -1155,7 +1151,7 @@ export const styles = StyleSheet.create({
   aptitudeInsightValue: {
     color: '#152B3A',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 27,
   },
   aptitudeDomainGrid: {
@@ -1192,7 +1188,7 @@ export const styles = StyleSheet.create({
     borderRadius: 7,
     color: '#F6C85F',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
     height: 28,
     lineHeight: 28,
     textAlign: 'center',
@@ -1202,7 +1198,7 @@ export const styles = StyleSheet.create({
     color: '#152B3A',
     flex: 1,
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 18,
   },
   pathDetailSubStepList: {
@@ -1224,25 +1220,25 @@ export const styles = StyleSheet.create({
   pathDetailSubStepCode: {
     color: '#152B3A',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 26,
   },
   pathDetailSubStepStatus: {
     color: '#325B67',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   pathDetailSubStepTitle: {
     color: '#152B3A',
     fontSize: 17,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 21,
   },
   pathDetailSubStepText: {
     color: '#52636A',
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 18,
   },
   pathNextCard: {
@@ -1256,13 +1252,13 @@ export const styles = StyleSheet.create({
   pathNextLabel: {
     color: '#C83543',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   pathNextTitle: {
     color: '#152B3A',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   pathNextText: {
     color: '#52636A',
@@ -1281,7 +1277,7 @@ export const styles = StyleSheet.create({
     color: '#152B3A',
     flex: 1,
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   pathActionButton: {
     backgroundColor: '#C83543',
@@ -1292,7 +1288,7 @@ export const styles = StyleSheet.create({
   pathActionText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   pathTimeline: {
     gap: 0,
@@ -1344,7 +1340,7 @@ export const styles = StyleSheet.create({
   pathStageDotText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   pathStageLine: {
     backgroundColor: '#E6D8C8',
@@ -1367,7 +1363,7 @@ export const styles = StyleSheet.create({
     color: '#152B3A',
     flex: 1,
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   pathStageStatus: {
     borderRadius: 7,
@@ -1375,7 +1371,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   pathStageStatus_done: {
@@ -1404,13 +1400,13 @@ export const styles = StyleSheet.create({
   pathStageFocus: {
     color: '#C83543',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   pathStageCount: {
     color: '#325B67',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   pathProgressTrack: {
     backgroundColor: '#E9DED1',
@@ -1455,13 +1451,13 @@ export const styles = StyleSheet.create({
   pathSubStepCode: {
     color: '#152B3A',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 18,
   },
   pathSubStepTitle: {
     color: '#556266',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 13,
   },
   pathSubStepTextDone: {
@@ -1492,13 +1488,13 @@ export const styles = StyleSheet.create({
   grammarKicker: {
     color: '#C83543',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   grammarTitle: {
     color: '#152B3A',
     fontSize: 25,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   grammarSubtitle: {
     color: '#52636A',
@@ -1519,12 +1515,12 @@ export const styles = StyleSheet.create({
   grammarHeroBadgeValue: {
     color: '#F6C85F',
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   grammarHeroBadgeText: {
     color: '#FFFFFF',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   grammarStatsRow: {
@@ -1543,12 +1539,12 @@ export const styles = StyleSheet.create({
   grammarMemoryTitle: {
     color: '#152B3A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   grammarMemoryText: {
     color: '#325B67',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 18,
   },
   grammarFolderTabs: {
@@ -1570,7 +1566,7 @@ export const styles = StyleSheet.create({
   grammarFolderText: {
     color: '#325B67',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   grammarFolderTextActive: {
     color: '#FFFFFF',
@@ -1599,7 +1595,7 @@ export const styles = StyleSheet.create({
   grammarSubfolderText: {
     color: '#52636A',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   grammarSubfolderTextActive: {
     color: '#FFFFFF',
@@ -1607,7 +1603,7 @@ export const styles = StyleSheet.create({
   grammarSubfolderCount: {
     color: '#C83543',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   grammarLessonList: {
     gap: 8,
@@ -1631,7 +1627,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     minWidth: 30,
     overflow: 'hidden',
     paddingVertical: 7,
@@ -1644,12 +1640,12 @@ export const styles = StyleSheet.create({
   grammarLessonTitle: {
     color: '#152B3A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   grammarLessonPattern: {
     color: '#647B83',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     marginTop: 2,
   },
   grammarLevelPill: {
@@ -1658,7 +1654,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 5,
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   grammarLevel_facile: {
@@ -1689,7 +1685,7 @@ export const styles = StyleSheet.create({
   grammarBackText: {
     color: '#152B3A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   grammarDetailCard: {
     backgroundColor: '#FFFFFF',
@@ -1715,7 +1711,7 @@ export const styles = StyleSheet.create({
   grammarOrderText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   grammarDetailTitleBlock: {
     flex: 1,
@@ -1723,12 +1719,12 @@ export const styles = StyleSheet.create({
   grammarDetailTitle: {
     color: '#152B3A',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   grammarDetailPattern: {
     color: '#152B3A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 2,
   },
   lessonStatusBadge: {
@@ -1746,7 +1742,7 @@ export const styles = StyleSheet.create({
   lessonStatusBadgeText: {
     color: '#FFFFFF',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   lessonStatusSelector: {
@@ -1778,7 +1774,7 @@ export const styles = StyleSheet.create({
   lessonStatusButtonText: {
     color: '#152B3A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
   },
   lessonStatusButtonTextActive: {
@@ -1801,13 +1797,13 @@ export const styles = StyleSheet.create({
   grammarInfoLabel: {
     color: '#C83543',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   grammarInfoText: {
     color: '#152B3A',
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 18,
     marginTop: 3,
   },
@@ -1822,19 +1818,19 @@ export const styles = StyleSheet.create({
   grammarFormulaTitle: {
     color: '#152B3A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   grammarFormulaPattern: {
     color: '#152B3A',
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 23,
   },
   grammarFormulaText: {
     color: '#325B67',
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 20,
   },
   grammarExplanation: {
@@ -1845,7 +1841,7 @@ export const styles = StyleSheet.create({
   },
   lookupToken: {
     color: '#0F766E',
-    fontWeight: '900',
+    fontWeight: '700',
     textDecorationLine: 'underline',
     textDecorationStyle: 'dotted',
   },
@@ -1867,13 +1863,13 @@ export const styles = StyleSheet.create({
   wordLookupKicker: {
     color: '#B45309',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   wordLookupTitle: {
     color: '#152B3A',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 28,
   },
   wordLookupClose: {
@@ -1887,19 +1883,19 @@ export const styles = StyleSheet.create({
   wordLookupCloseText: {
     color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 21,
   },
   wordLookupLine: {
     color: '#325B67',
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 18,
   },
   wordLookupMeaning: {
     color: '#152B3A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 20,
   },
   wordLookupUsage: {
@@ -1928,13 +1924,13 @@ export const styles = StyleSheet.create({
   wordLookupActionText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   wordLookupActionMeta: {
     color: '#5E6B70',
     flex: 1,
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'right',
     textTransform: 'uppercase',
   },
@@ -1949,7 +1945,7 @@ export const styles = StyleSheet.create({
   correctionInsightKicker: {
     color: '#C83543',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   correctionInsightBlock: {
@@ -1958,19 +1954,19 @@ export const styles = StyleSheet.create({
   correctionInsightLabel: {
     color: '#5E6B70',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   correctionInsightJapanese: {
     color: '#152B3A',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 25,
   },
   correctionInsightText: {
     color: '#325B67',
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 20,
   },
   grammarCourseBlock: {
@@ -1984,7 +1980,7 @@ export const styles = StyleSheet.create({
   grammarCourseTitle: {
     color: '#152B3A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   grammarCourseText: {
     color: '#52636A',
@@ -2010,7 +2006,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     color: '#FFFFFF',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     minWidth: 24,
     overflow: 'hidden',
     paddingVertical: 4,
@@ -2020,7 +2016,7 @@ export const styles = StyleSheet.create({
     color: '#52636A',
     flex: 1,
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 19,
   },
   grammarSituationCard: {
@@ -2034,13 +2030,13 @@ export const styles = StyleSheet.create({
   grammarSituationLabel: {
     color: '#284A78',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   grammarSituationText: {
     color: '#213A57',
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 20,
   },
   grammarMnemonicCard: {
@@ -2054,13 +2050,13 @@ export const styles = StyleSheet.create({
   grammarMnemonicLabel: {
     color: '#7A5517',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   grammarMnemonicText: {
     color: '#543910',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 20,
   },
   grammarTrapCard: {
@@ -2073,13 +2069,13 @@ export const styles = StyleSheet.create({
   grammarTrapLabel: {
     color: '#7A5517',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   grammarTrapText: {
     color: '#543910',
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 18,
     marginTop: 3,
   },
@@ -2089,7 +2085,7 @@ export const styles = StyleSheet.create({
   grammarExamplesTitle: {
     color: '#152B3A',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   grammarExampleCard: {
     backgroundColor: '#F9FBFA',
@@ -2106,7 +2102,7 @@ export const styles = StyleSheet.create({
   grammarExampleKana: {
     color: '#152B3A',
     fontSize: 17,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 24,
   },
   grammarExampleKanji: {
@@ -2118,7 +2114,7 @@ export const styles = StyleSheet.create({
   grammarExampleRomaji: {
     color: '#647B83',
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 18,
   },
   grammarExampleActions: {
@@ -2147,7 +2143,7 @@ export const styles = StyleSheet.create({
   grammarExampleActionText: {
     color: '#152B3A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
   },
   grammarExampleTranslateText: {
@@ -2156,7 +2152,7 @@ export const styles = StyleSheet.create({
   grammarTapHint: {
     color: '#C83543',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 2,
     textTransform: 'uppercase',
   },
@@ -2170,19 +2166,19 @@ export const styles = StyleSheet.create({
   grammarTranslation: {
     color: '#152B3A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   grammarBreakdownTitle: {
     color: '#152B3A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 8,
     textTransform: 'uppercase',
   },
   grammarBreakdownText: {
     color: '#325B67',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 18,
     marginTop: 3,
   },
@@ -2195,7 +2191,7 @@ export const styles = StyleSheet.create({
   grammarExampleAnalysis: {
     color: '#325B67',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 18,
     marginTop: 4,
   },
@@ -2210,13 +2206,13 @@ export const styles = StyleSheet.create({
   grammarPracticeTitle: {
     color: '#F6C85F',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   grammarPracticeText: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 20,
   },
   kanaIntro: {
@@ -2238,7 +2234,7 @@ export const styles = StyleSheet.create({
   kanaProgressTitle: {
     color: '#152B3A',
     fontSize: 17,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   kanaProgressHint: {
     color: '#5E6B70',
@@ -2286,7 +2282,7 @@ export const styles = StyleSheet.create({
   filterText: {
     color: '#52636A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   filterTextActive: {
     color: '#FFFFFF',
@@ -2317,7 +2313,7 @@ export const styles = StyleSheet.create({
   statusLegendText: {
     color: '#52636A',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   kanaToolbarActions: {
     flexDirection: 'row',
@@ -2338,7 +2334,7 @@ export const styles = StyleSheet.create({
   kanaQuickTitle: {
     color: '#152B3A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   kanaQuickMeta: {
     color: '#5E6B70',
@@ -2362,7 +2358,7 @@ export const styles = StyleSheet.create({
   secondaryButtonText: {
     color: '#152B3A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   secondaryButtonTextActive: {
     color: '#FFFFFF',
@@ -2379,7 +2375,7 @@ export const styles = StyleSheet.create({
   secondaryFullButtonText: {
     color: '#152B3A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   focusPanel: {
     gap: 12,
@@ -2392,7 +2388,7 @@ export const styles = StyleSheet.create({
   focusCounter: {
     color: '#152B3A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '800',
     minWidth: 58,
     textAlign: 'center',
   },
@@ -2442,14 +2438,14 @@ export const styles = StyleSheet.create({
   thumbnailScript: {
     color: '#FFFFFF',
     fontSize: 9,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 11,
     zIndex: 3,
   },
   thumbnailCount: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 14,
     zIndex: 3,
   },
@@ -2469,7 +2465,7 @@ export const styles = StyleSheet.create({
     borderRadius: 5,
     color: '#FFFFFF',
     fontSize: 8,
-    fontWeight: '900',
+    fontWeight: '800',
     left: 7,
     lineHeight: 12,
     paddingHorizontal: 5,
@@ -2492,14 +2488,11 @@ export const styles = StyleSheet.create({
   thumbnailRomaji: {
     color: '#FFFFFF',
     fontSize: 25,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 28,
     position: 'absolute',
     right: 7,
     textAlign: 'right',
-    textShadowColor: 'rgba(0,0,0,0.42)',
-    textShadowOffset: { width: 1, height: 2 },
-    textShadowRadius: 3,
     top: 8,
     zIndex: 4,
   },
@@ -2513,34 +2506,25 @@ export const styles = StyleSheet.create({
   thumbnailWordRomaji: {
     color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 20,
     textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 1, height: 2 },
-    textShadowRadius: 3,
   },
   thumbnailMeaning: {
     color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 17,
     textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 1, height: 2 },
-    textShadowRadius: 3,
   },
   thumbnailMnemonic: {
     color: '#FFFFFF',
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 11,
     marginTop: 2,
     opacity: 0.92,
     textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.45)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
   },
   viewerScreen: {
     backgroundColor: '#151D1B',
@@ -2564,13 +2548,13 @@ export const styles = StyleSheet.create({
   viewerCloseText: {
     color: '#152B3A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   viewerCounter: {
     color: '#FFFFFF',
     flex: 1,
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '800',
     textAlign: 'center',
   },
   viewerRandomButton: {
@@ -2582,7 +2566,7 @@ export const styles = StyleSheet.create({
   viewerRandomText: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   viewerCardArea: {
     flex: 1,
@@ -2614,7 +2598,7 @@ export const styles = StyleSheet.create({
   viewerModeText: {
     color: '#152B3A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   viewerModeTextActive: {
     color: '#152B3A',
@@ -2648,7 +2632,7 @@ export const styles = StyleSheet.create({
   viewerToolText: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   viewerActions: {
     flexDirection: 'row',
@@ -2668,7 +2652,7 @@ export const styles = StyleSheet.create({
   viewerNavText: {
     color: '#152B3A',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   viewerNavTextStrong: {
     color: '#152B3A',
@@ -2690,7 +2674,7 @@ export const styles = StyleSheet.create({
   traceTitle: {
     color: '#152B3A',
     fontSize: 42,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 48,
     textAlign: 'center',
   },
@@ -2725,7 +2709,7 @@ export const styles = StyleSheet.create({
   traceModeText: {
     color: '#325B67',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
   },
   traceModeTextActive: {
@@ -2750,7 +2734,7 @@ export const styles = StyleSheet.create({
   traceProgressText: {
     color: '#5E6B70',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   tracePad: {
     aspectRatio: 1,
@@ -2764,7 +2748,7 @@ export const styles = StyleSheet.create({
   traceGhost: {
     color: 'rgba(24,37,34,0.12)',
     fontSize: 210,
-    fontWeight: '900',
+    fontWeight: '700',
     left: 0,
     lineHeight: 238,
     position: 'absolute',
@@ -2810,12 +2794,12 @@ export const styles = StyleSheet.create({
   traceSelfCheckTitle: {
     color: '#152B3A',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   traceSelfCheckText: {
     color: '#52636A',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 17,
   },
   traceSelfCheckActions: {
@@ -2841,7 +2825,7 @@ export const styles = StyleSheet.create({
   traceSelfCheckButtonText: {
     color: '#325B67',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
   },
   traceSelfCheckButtonTextStrong: {
@@ -2877,19 +2861,19 @@ export const styles = StyleSheet.create({
   illustratedScript: {
     color: '#FFFFFF',
     fontSize: 9,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   illustratedCount: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 14,
   },
   illustratedRomaji: {
     color: '#FFFFFF',
     flexShrink: 0,
     fontSize: 26,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 30,
     textAlign: 'right',
   },
@@ -2901,13 +2885,10 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     color: '#FFFFFF',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     marginHorizontal: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
   },
   illustrationLayer: {
     bottom: 56,
@@ -2937,25 +2918,19 @@ export const styles = StyleSheet.create({
   mnemonicFallback: {
     color: '#FFFFFF',
     fontSize: 76,
-    fontWeight: '900',
+    fontWeight: '700',
     opacity: 0.65,
     textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.16)',
-    textShadowOffset: { width: 1, height: 2 },
-    textShadowRadius: 3,
   },
   illustratedKana: {
     color: '#FFFFFF',
     fontSize: 112,
-    fontWeight: '900',
+    fontWeight: '800',
     left: 0,
     lineHeight: 126,
     position: 'absolute',
     right: 0,
     textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.38)',
-    textShadowOffset: { width: 2, height: 3 },
-    textShadowRadius: 4,
     top: 48,
     zIndex: 3,
   },
@@ -2975,22 +2950,16 @@ export const styles = StyleSheet.create({
   illustratedWordKana: {
     color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 21,
     textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 1, height: 2 },
-    textShadowRadius: 3,
   },
   illustratedWordRomaji: {
     color: '#FFFFFF',
     fontSize: 17,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 20,
     textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 1, height: 2 },
-    textShadowRadius: 3,
   },
   illustratedWordMeaning: {
     color: '#FFFFFF',
@@ -2999,9 +2968,6 @@ export const styles = StyleSheet.create({
     lineHeight: 18,
     maxWidth: '98%',
     textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 1, height: 2 },
-    textShadowRadius: 3,
   },
   illustratedMnemonic: {
     color: '#FFFFFF',
@@ -3012,19 +2978,16 @@ export const styles = StyleSheet.create({
     maxWidth: '94%',
     opacity: 0.94,
     textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.48)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
   },
   illustratedBackRomaji: {
     color: '#FFFFFF',
     fontSize: 28,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   illustratedBackTitle: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 6,
     opacity: 0.8,
   },
@@ -3045,14 +3008,14 @@ export const styles = StyleSheet.create({
   illustratedBackKana: {
     color: '#FFFFFF',
     fontSize: 30,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 34,
     textAlign: 'center',
   },
   illustratedBackWord: {
     color: '#FFFFFF',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 26,
     marginTop: 2,
     textAlign: 'center',
@@ -3091,7 +3054,7 @@ export const styles = StyleSheet.create({
     color: '#A34B35',
     flex: 1,
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
     textTransform: 'uppercase',
   },
@@ -3125,13 +3088,13 @@ export const styles = StyleSheet.create({
   referenceKana: {
     color: '#152B3A',
     fontSize: 26,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 31,
   },
   referenceRomaji: {
     color: '#5E6B70',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   kanaCard: {
     alignItems: 'center',
@@ -3177,12 +3140,12 @@ export const styles = StyleSheet.create({
   kanaStatusText: {
     color: '#A34B35',
     fontSize: 7,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   kanaCharacter: {
     color: '#152B3A',
     fontSize: 36,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 42,
   },
   kanaScript: {
@@ -3194,13 +3157,13 @@ export const styles = StyleSheet.create({
   kanaMiniStat: {
     color: '#152B3A',
     fontSize: 8,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 3,
   },
   kanaRomaji: {
     color: '#A34B35',
     fontSize: 19,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 22,
   },
   kanaBackLabel: {
@@ -3213,7 +3176,7 @@ export const styles = StyleSheet.create({
   kanaAssociated: {
     color: '#152B3A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 1,
   },
   kanaExample: {
@@ -3244,7 +3207,7 @@ export const styles = StyleSheet.create({
   kanaActionText: {
     color: '#152B3A',
     fontSize: 8,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   kanaActionStrongText: {
     color: '#FFFFFF',
@@ -3261,13 +3224,13 @@ export const styles = StyleSheet.create({
   arcadeKicker: {
     color: '#D5B36A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   arcadeTitle: {
     color: '#FFFFFF',
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 29,
   },
   arcadeText: {
@@ -3292,12 +3255,12 @@ export const styles = StyleSheet.create({
   arcadeRuleValue: {
     color: '#B45A46',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   arcadeRuleLabel: {
     color: '#5E6B70',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
   },
   arcadeHud: {
@@ -3313,12 +3276,12 @@ export const styles = StyleSheet.create({
   arcadeHudScore: {
     color: '#152B3A',
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   arcadeHudCorrect: {
     color: '#5E6B70',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 2,
   },
   arcadeHudRight: {
@@ -3342,13 +3305,13 @@ export const styles = StyleSheet.create({
   arcadeCelebrationTitle: {
     color: '#152B3A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   arcadeCelebrationText: {
     color: '#152B3A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   arcadeRecordBanner: {
     alignItems: 'center',
@@ -3364,20 +3327,20 @@ export const styles = StyleSheet.create({
   arcadeRecordKicker: {
     color: '#F6D978',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   arcadeRecordTitle: {
     color: '#FFFFFF',
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 29,
     textAlign: 'center',
   },
   arcadeRecordScore: {
     color: '#F8F2E7',
     fontSize: 17,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   arcadeConfettiRow: {
     flexDirection: 'row',
@@ -3413,7 +3376,7 @@ export const styles = StyleSheet.create({
   arcadeBestScoreValue: {
     color: '#152B3A',
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   arcadeBestScoreMeta: {
     color: '#5E6B70',
@@ -3432,12 +3395,12 @@ export const styles = StyleSheet.create({
   quizConfigTitle: {
     color: '#152B3A',
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   quizConfigMode: {
     color: '#152B3A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   quizConfigText: {
     color: '#5E6B70',
@@ -3469,7 +3432,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     color: '#6B625A',
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '800',
     overflow: 'hidden',
     paddingHorizontal: 10,
     paddingVertical: 8,
@@ -3487,7 +3450,7 @@ export const styles = StyleSheet.create({
   grammarModeTitle: {
     color: '#152B3A',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   grammarModeTitleActive: {
     color: '#12564F',
@@ -3514,7 +3477,7 @@ export const styles = StyleSheet.create({
   grammarMatchingColumnTitle: {
     color: '#5E6B70',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     textAlign: 'center',
     textTransform: 'uppercase',
   },
@@ -3547,14 +3510,14 @@ export const styles = StyleSheet.create({
   grammarMatchJapanese: {
     color: '#152B3A',
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 22,
     textAlign: 'center',
   },
   grammarMatchFrench: {
     color: '#33423E',
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 18,
     textAlign: 'center',
   },
@@ -3574,7 +3537,7 @@ export const styles = StyleSheet.create({
   globalDomainChipText: {
     color: '#152B3A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   globalQuestionDisplay: {
     backgroundColor: '#FFFFFF',
@@ -3583,7 +3546,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     color: '#152B3A',
     fontSize: 25,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 34,
     minHeight: 104,
     padding: 16,
@@ -3603,7 +3566,7 @@ export const styles = StyleSheet.create({
   globalQuestionSkillLabel: {
     color: '#8A5C00',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   globalQuestionSkillText: {
@@ -3637,18 +3600,18 @@ export const styles = StyleSheet.create({
   globalResultDomain: {
     color: '#5E6B70',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   globalResultValue: {
     color: '#152B3A',
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   globalMatchDomain: {
     color: '#152B3A',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 4,
     textTransform: 'uppercase',
   },
@@ -3693,7 +3656,7 @@ export const styles = StyleSheet.create({
   timerToggleTitle: {
     color: '#152B3A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   timerToggleText: {
     color: '#5E6B70',
@@ -3718,7 +3681,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     color: '#6A4E13',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     overflow: 'hidden',
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -3728,7 +3691,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     color: '#152B3A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     overflow: 'hidden',
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -3740,7 +3703,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     color: '#152B3A',
     fontSize: 72,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 90,
     paddingVertical: 24,
     textAlign: 'center',
@@ -3762,23 +3725,20 @@ export const styles = StyleSheet.create({
   storyKana: {
     color: '#FFFFFF',
     fontSize: 44,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 50,
     textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.35)',
-    textShadowOffset: { width: 1, height: 2 },
-    textShadowRadius: 3,
   },
   storyRomaji: {
     color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
   },
   storyMnemonic: {
     color: '#FFFFFF',
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 14,
     marginTop: 6,
     textAlign: 'center',
@@ -3816,19 +3776,19 @@ export const styles = StyleSheet.create({
   matchingKana: {
     color: '#152B3A',
     fontSize: 34,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 40,
   },
   matchingRomaji: {
     color: '#152B3A',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 28,
   },
   matchingFooter: {
     color: '#5E6B70',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 17,
   },
   directAnswerBox: {
@@ -3841,7 +3801,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     color: '#152B3A',
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '700',
     minHeight: 64,
     paddingHorizontal: 16,
     textAlign: 'center',
@@ -3864,23 +3824,23 @@ export const styles = StyleSheet.create({
   resultKicker: {
     color: '#D5B36A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   resultScore: {
     color: '#FFFFFF',
     fontSize: 42,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   resultPercent: {
     color: '#FFF2D7',
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   resultTime: {
     color: '#D5B36A',
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   timeRankingCard: {
     backgroundColor: '#FFFFFF',
@@ -3901,19 +3861,19 @@ export const styles = StyleSheet.create({
   timeRankingRank: {
     color: '#D5B36A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     width: 32,
   },
   timeRankingTime: {
     color: '#152B3A',
     flex: 1,
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   timeRankingMeta: {
     color: '#5E6B70',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   answerReviewRow: {
     alignItems: 'center',
@@ -3928,7 +3888,7 @@ export const styles = StyleSheet.create({
   answerReviewIndex: {
     color: '#5E6B70',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     width: 24,
   },
   answerReviewText: {
@@ -3939,7 +3899,7 @@ export const styles = StyleSheet.create({
   },
   answerReviewStatus: {
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   answerOk: {
     color: '#152B3A',
@@ -3976,13 +3936,13 @@ export const styles = StyleSheet.create({
   coachKicker: {
     color: '#F6C85F',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   coachTitle: {
     color: '#FFFFFF',
     fontSize: 30,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 3,
   },
   coachSubtitle: {
@@ -4004,12 +3964,12 @@ export const styles = StyleSheet.create({
   readinessValue: {
     color: '#152B3A',
     fontSize: 28,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   readinessLabel: {
     color: '#7C5A27',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   coachStatsRow: {
@@ -4028,12 +3988,12 @@ export const styles = StyleSheet.create({
   coachMiniLabel: {
     color: '#647B83',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   coachMiniValue: {
     color: '#152B3A',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 2,
   },
   xpCard: {
@@ -4051,12 +4011,12 @@ export const styles = StyleSheet.create({
   xpTitle: {
     color: '#152B3A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   xpValue: {
     color: '#2A7A68',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   xpTrack: {
     backgroundColor: '#F2D9BF',
@@ -4078,7 +4038,7 @@ export const styles = StyleSheet.create({
   xpComfortText: {
     color: '#C83543',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 16,
   },
   dailyTrackingCard: {
@@ -4098,13 +4058,13 @@ export const styles = StyleSheet.create({
   dailyTrackingKicker: {
     color: '#C83543',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   dailyTrackingTitle: {
     color: '#152B3A',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 2,
   },
   dailyTrackingBadge: {
@@ -4114,7 +4074,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     color: '#F6C85F',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
     overflow: 'hidden',
     paddingHorizontal: 10,
     paddingVertical: 8,
@@ -4134,19 +4094,19 @@ export const styles = StyleSheet.create({
   dailyTrackingValue: {
     color: '#2A7A68',
     fontSize: 21,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   dailyTrackingLabel: {
     color: '#647B83',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 2,
     textTransform: 'uppercase',
   },
   dailyTrackingMeta: {
     color: '#6E5D52',
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 16,
   },
   dailyTrackingAction: {
@@ -4159,13 +4119,13 @@ export const styles = StyleSheet.create({
   dailyTrackingActionText: {
     color: '#F6C85F',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   dailyTrackingHint: {
     color: '#325B67',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 17,
   },
   attendanceStrip: {
@@ -4191,7 +4151,7 @@ export const styles = StyleSheet.create({
   attendanceDotText: {
     color: '#7A6F63',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   attendanceDotTextActive: {
     color: '#FFFFFF',
@@ -4224,12 +4184,12 @@ export const styles = StyleSheet.create({
   rewardSummaryValue: {
     color: '#C83543',
     fontSize: 19,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   rewardSummaryLabel: {
     color: '#647B83',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 2,
     textAlign: 'center',
     textTransform: 'uppercase',
@@ -4257,12 +4217,12 @@ export const styles = StyleSheet.create({
   questGroupTitle: {
     color: '#152B3A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   questGroupDetail: {
     color: '#647B83',
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 15,
     marginTop: 2,
   },
@@ -4271,7 +4231,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     overflow: 'hidden',
     paddingHorizontal: 10,
     paddingVertical: 7,
@@ -4298,12 +4258,12 @@ export const styles = StyleSheet.create({
     color: '#152B3A',
     flex: 1,
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   questReward: {
     color: '#C83543',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   questRewardComplete: {
     color: '#2A7A68',
@@ -4330,7 +4290,7 @@ export const styles = StyleSheet.create({
   questProgress: {
     color: '#647B83',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'right',
   },
   rewardToast: {
@@ -4353,7 +4313,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     color: '#C83543',
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '800',
     minWidth: 54,
     overflow: 'hidden',
     paddingHorizontal: 10,
@@ -4366,13 +4326,13 @@ export const styles = StyleSheet.create({
   rewardToastTitle: {
     color: '#D5B36A',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   rewardToastText: {
     color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 2,
   },
   rewardCelebrationLayer: {
@@ -4477,7 +4437,7 @@ export const styles = StyleSheet.create({
   rewardCelebrationMedalText: {
     color: '#F6C85F',
     fontSize: 38,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 46,
     textAlign: 'center',
   },
@@ -4489,14 +4449,14 @@ export const styles = StyleSheet.create({
   rewardCelebrationKicker: {
     color: '#C83543',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     textAlign: 'center',
     textTransform: 'uppercase',
   },
   rewardCelebrationTitle: {
     color: '#152B3A',
     fontSize: 30,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 36,
     textAlign: 'center',
   },
@@ -4525,7 +4485,7 @@ export const styles = StyleSheet.create({
   rewardCelebrationXp: {
     color: '#FFFFFF',
     fontSize: 28,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 32,
     textAlign: 'center',
   },
@@ -4547,19 +4507,19 @@ export const styles = StyleSheet.create({
   preferencesKicker: {
     color: '#F6C85F',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   preferencesTitle: {
     color: '#FFFFFF',
     fontSize: 28,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 34,
   },
   preferencesText: {
     color: '#DCE8E8',
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 19,
   },
   preferenceSwitchCard: {
@@ -4583,13 +4543,13 @@ export const styles = StyleSheet.create({
   preferenceOptionTitle: {
     color: '#152B3A',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 19,
   },
   preferenceOptionText: {
     color: '#647B83',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 17,
     marginTop: 3,
   },
@@ -4623,7 +4583,7 @@ export const styles = StyleSheet.create({
   preferenceHelpText: {
     color: '#647B83',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 17,
   },
   preferenceBackupGrid: {
@@ -4648,7 +4608,7 @@ export const styles = StyleSheet.create({
   preferenceDangerButtonText: {
     color: '#C83543',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 17,
     textAlign: 'center',
   },
@@ -4666,7 +4626,7 @@ export const styles = StyleSheet.create({
   preferenceLogTitle: {
     color: '#152B3A',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 14,
   },
   preferenceOptionCard: {
@@ -4693,7 +4653,7 @@ export const styles = StyleSheet.create({
   preferenceOptionCheck: {
     color: '#C83543',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     minWidth: 26,
     textAlign: 'right',
   },
@@ -4718,19 +4678,19 @@ export const styles = StyleSheet.create({
   quickKicker: {
     color: '#F6C85F',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   quickTitle: {
     color: '#FFFFFF',
     fontSize: 28,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 34,
   },
   quickText: {
     color: '#DCE8E8',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 17,
     marginTop: 3,
   },
@@ -4748,13 +4708,13 @@ export const styles = StyleSheet.create({
   quickCounterValue: {
     color: '#C83543',
     fontSize: 25,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 30,
   },
   quickCounterLabel: {
     color: '#325B67',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   quickProgressTrack: {
     backgroundColor: '#F2D9BF',
@@ -4778,7 +4738,7 @@ export const styles = StyleSheet.create({
   quickQuestionSkill: {
     color: '#C83543',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   srsReasonBox: {
@@ -4792,13 +4752,13 @@ export const styles = StyleSheet.create({
   srsReasonTitle: {
     color: '#152B3A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   srsReasonText: {
     color: '#5D6C68',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 17,
   },
   srsActionRow: {
@@ -4819,7 +4779,7 @@ export const styles = StyleSheet.create({
   srsKnownButtonText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
   },
   srsPostponeButton: {
@@ -4837,7 +4797,7 @@ export const styles = StyleSheet.create({
   srsPostponeButtonText: {
     color: '#325B67',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
   },
   srsEmptyState: {
@@ -4846,14 +4806,14 @@ export const styles = StyleSheet.create({
   srsEmptyText: {
     color: '#5D6C68',
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 20,
     textAlign: 'center',
   },
   quickPrompt: {
     color: '#152B3A',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 25,
   },
   quickJapanese: {
@@ -4863,7 +4823,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     color: '#152B3A',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 30,
     padding: 12,
     textAlign: 'center',
@@ -4892,7 +4852,7 @@ export const styles = StyleSheet.create({
   quickChoiceText: {
     color: '#152B3A',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 20,
     textAlign: 'center',
   },
@@ -4910,18 +4870,18 @@ export const styles = StyleSheet.create({
   quickCorrectionTitle: {
     color: '#152B3A',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   quickCorrectionText: {
     color: '#5D6C68',
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 19,
   },
   quickCorrectionAnswer: {
     color: '#C83543',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   quickFooterRow: {
     alignItems: 'center',
@@ -4933,7 +4893,7 @@ export const styles = StyleSheet.create({
     color: '#647B83',
     flex: 1,
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   quickResultHero: {
     alignItems: 'center',
@@ -4947,13 +4907,13 @@ export const styles = StyleSheet.create({
   quickResultScore: {
     color: '#F6C85F',
     fontSize: 64,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 72,
   },
   quickResultText: {
     color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 21,
     textAlign: 'center',
   },
@@ -4979,12 +4939,12 @@ export const styles = StyleSheet.create({
   goalCalendarTitle: {
     color: '#152B3A',
     fontSize: 17,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   goalCalendarMeta: {
     color: '#647B83',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     marginTop: 2,
   },
   goalCalendarLegend: {
@@ -5006,7 +4966,7 @@ export const styles = StyleSheet.create({
   calendarLegendText: {
     color: '#647B83',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   goalCalendarGrid: {
     flexDirection: 'row',
@@ -5038,7 +4998,7 @@ export const styles = StyleSheet.create({
   goalCalendarDayText: {
     color: '#7B7369',
     fontSize: 9,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 11,
   },
   goalCalendarDayTextActive: {
@@ -5053,7 +5013,7 @@ export const styles = StyleSheet.create({
   goalCalendarFooterText: {
     color: '#647B83',
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 16,
   },
   badgeCollectionCard: {
@@ -5076,7 +5036,7 @@ export const styles = StyleSheet.create({
   badgeCollectionTitle: {
     color: '#152B3A',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   badgeCollectionMeta: {
     color: '#647B83',
@@ -5103,13 +5063,13 @@ export const styles = StyleSheet.create({
   badgeDifficultyTitle: {
     color: '#C83543',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   badgeDifficultyCount: {
     color: '#152B3A',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 2,
   },
   badgeDifficultyMeta: {
@@ -5130,13 +5090,13 @@ export const styles = StyleSheet.create({
   badgeDomainTitle: {
     color: '#C83543',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   badgeDomainCount: {
     color: '#647B83',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   badgeGrid: {
     flexDirection: 'row',
@@ -5162,7 +5122,7 @@ export const styles = StyleSheet.create({
   badgeIcon: {
     color: '#C83543',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '800',
     minHeight: 29,
   },
   badgeIconLocked: {
@@ -5174,7 +5134,7 @@ export const styles = StyleSheet.create({
     borderRadius: 999,
     color: '#7B7369',
     fontSize: 8,
-    fontWeight: '900',
+    fontWeight: '800',
     marginBottom: 5,
     overflow: 'hidden',
     paddingHorizontal: 6,
@@ -5188,7 +5148,7 @@ export const styles = StyleSheet.create({
   badgeTitle: {
     color: '#152B3A',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 14,
   },
   badgeTitleUnlocked: {
@@ -5204,7 +5164,7 @@ export const styles = StyleSheet.create({
   badgeGateText: {
     color: '#B45A46',
     fontSize: 8,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 11,
     marginTop: 5,
   },
@@ -5234,7 +5194,7 @@ export const styles = StyleSheet.create({
   rewardLeagueSymbolText: {
     color: '#F6C85F',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   rewardLeagueCopy: {
     flex: 1,
@@ -5243,13 +5203,13 @@ export const styles = StyleSheet.create({
   rewardLeagueKicker: {
     color: '#C83543',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   rewardLeagueTitle: {
     color: '#152B3A',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 2,
   },
   rewardLeagueText: {
@@ -5277,12 +5237,12 @@ export const styles = StyleSheet.create({
   rewardLeagueMetricValue: {
     color: '#2A7A68',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   rewardLeagueMetricLabel: {
     color: '#152B3A',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 2,
     textTransform: 'uppercase',
   },
@@ -5311,7 +5271,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     color: '#F6C85F',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '800',
     minWidth: 40,
     overflow: 'hidden',
     paddingHorizontal: 8,
@@ -5329,7 +5289,7 @@ export const styles = StyleSheet.create({
   rewardTargetTitle: {
     color: '#152B3A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   rewardTargetText: {
     color: '#647B83',
@@ -5341,7 +5301,7 @@ export const styles = StyleSheet.create({
   rewardTargetGate: {
     color: '#B45A46',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 14,
     marginTop: 4,
   },
@@ -5391,12 +5351,12 @@ export const styles = StyleSheet.create({
   masteryRingValue: {
     color: '#152B3A',
     fontSize: 28,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   masteryRingLabel: {
     color: '#5E6B70',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   masteryCard: {
@@ -5416,7 +5376,7 @@ export const styles = StyleSheet.create({
   masteryTitle: {
     color: '#152B3A',
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   masterySubtitle: {
     color: '#5E6B70',
@@ -5435,7 +5395,7 @@ export const styles = StyleSheet.create({
   masteryPillValue: {
     color: '#2A7A68',
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   masteryStack: {
     backgroundColor: '#ECE6DC',
@@ -5478,17 +5438,17 @@ export const styles = StyleSheet.create({
   masteryLegendText: {
     color: '#5E6B70',
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   masteryLegendValue: {
     color: '#152B3A',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   masteryAccuracy: {
     color: '#5E6B70',
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   lineChartCard: {
     alignSelf: 'stretch',
@@ -5514,12 +5474,12 @@ export const styles = StyleSheet.create({
   lineChartValue: {
     color: '#152B3A',
     fontSize: 26,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   lineChartMeta: {
     color: '#647B83',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     paddingTop: 7,
   },
   lineChartLabels: {
@@ -5530,7 +5490,7 @@ export const styles = StyleSheet.create({
   lineChartLabel: {
     color: '#5E6B70',
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   lineChartTooltip: {
     alignItems: 'center',
@@ -5547,19 +5507,19 @@ export const styles = StyleSheet.create({
   lineChartTooltipLabel: {
     color: '#5E6B70',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   lineChartTooltipDate: {
     color: '#152B3A',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 2,
   },
   lineChartTooltipValue: {
     color: '#2A7A68',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   quizStatsHero: {
     alignItems: 'center',
@@ -5573,19 +5533,19 @@ export const styles = StyleSheet.create({
   quizStatsKicker: {
     color: '#D5B36A',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   quizStatsScore: {
     color: '#FFFFFF',
     fontSize: 42,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 48,
   },
   quizStatsMeta: {
     color: '#DDE8E3',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 17,
   },
   quizStatsBadge: {
@@ -5600,12 +5560,12 @@ export const styles = StyleSheet.create({
   quizStatsBadgeValue: {
     color: '#152B3A',
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   quizStatsBadgeLabel: {
     color: '#5E6B70',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '800',
     textAlign: 'center',
     textTransform: 'uppercase',
   },
@@ -5643,12 +5603,12 @@ export const styles = StyleSheet.create({
   quizChartRate: {
     color: '#152B3A',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   quizChartLabel: {
     color: '#5E6B70',
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   scoreTrendList: {
     gap: 9,
@@ -5666,7 +5626,7 @@ export const styles = StyleSheet.create({
   scoreTrendLabel: {
     color: '#D5B36A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     width: 34,
   },
   scoreTrendTrack: {
@@ -5683,7 +5643,7 @@ export const styles = StyleSheet.create({
   scoreTrendValue: {
     color: '#152B3A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     minWidth: 64,
     textAlign: 'right',
   },
@@ -5695,11 +5655,13 @@ export const styles = StyleSheet.create({
     textAlign: 'right',
   },
   metric: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E9CFB5',
+    backgroundColor: '#FFFDF8',
+    borderColor: 'transparent',
     borderRadius: 8,
-    borderWidth: 1,
-    elevation: 2,
+    borderLeftColor: '#F6C85F',
+    borderLeftWidth: 3,
+    borderWidth: 0,
+    elevation: 0,
     flexGrow: 1,
     flexShrink: 1,
     flexBasis: 92,
@@ -5707,7 +5669,7 @@ export const styles = StyleSheet.create({
     padding: 13,
     shadowColor: '#C96D4D',
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.09,
+    shadowOpacity: 0,
     shadowRadius: 7,
   },
   metricLabel: {
@@ -5718,27 +5680,34 @@ export const styles = StyleSheet.create({
   metricValue: {
     color: '#152B3A',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 4,
   },
   section: {
-    gap: 10,
+    gap: 12,
+    paddingVertical: 4,
   },
   sectionTitle: {
+    borderLeftColor: '#C83543',
+    borderLeftWidth: 3,
     color: '#152B3A',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
+    lineHeight: 23,
+    paddingLeft: 9,
   },
   progressRow: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E9CFB5',
+    backgroundColor: '#FFFDF8',
+    borderColor: 'transparent',
     borderRadius: 8,
-    borderWidth: 1,
-    elevation: 2,
+    borderLeftColor: '#F6C85F',
+    borderLeftWidth: 3,
+    borderWidth: 0,
+    elevation: 0,
     padding: 13,
     shadowColor: '#C96D4D',
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0,
     shadowRadius: 6,
   },
   progressHeader: {
@@ -5750,12 +5719,12 @@ export const styles = StyleSheet.create({
     color: '#152B3A',
     flex: 1,
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   progressRate: {
     color: '#C83543',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   progressTrack: {
     backgroundColor: '#F2D9BF',
@@ -5776,13 +5745,13 @@ export const styles = StyleSheet.create({
   questionMeta: {
     color: '#C83543',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   questionTitle: {
     color: '#152B3A',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 28,
   },
   japanese: {
@@ -5792,7 +5761,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     color: '#152B3A',
     fontSize: 34,
-    fontWeight: '900',
+    fontWeight: '700',
     padding: 18,
     textAlign: 'center',
   },
@@ -5832,7 +5801,7 @@ export const styles = StyleSheet.create({
   choiceIcon: {
     color: '#152B3A',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   feedback: {
     backgroundColor: '#FFFFFF',
@@ -5845,7 +5814,7 @@ export const styles = StyleSheet.create({
   feedbackTitle: {
     color: '#152B3A',
     fontSize: 17,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   feedbackText: {
     color: '#325B67',
@@ -5859,7 +5828,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     color: '#152B3A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 18,
     padding: 10,
   },
@@ -5883,7 +5852,7 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
     flexShrink: 1,
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '800',
     textAlign: 'center',
   },
   examHero: {
@@ -5894,12 +5863,12 @@ export const styles = StyleSheet.create({
   examEyebrow: {
     color: '#F3C75F',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   examHeroTitle: {
     color: '#FFFFFF',
     fontSize: 28,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 5,
   },
   examHeroText: {
@@ -5921,13 +5890,13 @@ export const styles = StyleSheet.create({
   examSimulationLabel: {
     color: '#8B5D0B',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   examSimulationTitle: {
     color: '#152B3A',
     fontSize: 28,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 34,
     marginTop: 2,
   },
@@ -5944,13 +5913,13 @@ export const styles = StyleSheet.create({
   examSimulationMetaText: {
     color: '#F3C75F',
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 28,
   },
   examSimulationMetaLabel: {
     color: '#FFFFFF',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
     textTransform: 'uppercase',
   },
@@ -5962,7 +5931,7 @@ export const styles = StyleSheet.create({
   examProgressText: {
     color: '#325B67',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   examTaskCard: {
     backgroundColor: '#FFF4D6',
@@ -5974,12 +5943,12 @@ export const styles = StyleSheet.create({
   examTaskLabel: {
     color: '#8B5D0B',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   examTaskText: {
     color: '#302817',
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 20,
     marginTop: 5,
   },
@@ -6024,14 +5993,14 @@ export const styles = StyleSheet.create({
     borderTopWidth: 1,
     color: '#102E2A',
     fontSize: 19,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 31,
     paddingTop: 16,
   },
   examTargetKanji: {
     backgroundColor: '#FFE080',
     color: '#A52735',
-    fontWeight: '900',
+    fontWeight: '800',
   },
   examZoomBadge: {
     backgroundColor: 'rgba(18, 59, 54, 0.92)',
@@ -6045,7 +6014,7 @@ export const styles = StyleSheet.create({
   examZoomBadgeText: {
     color: '#FFFFFF',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   examPageHint: {
     color: '#5E6B70',
@@ -6065,17 +6034,17 @@ export const styles = StyleSheet.create({
   examResultKicker: {
     color: '#B23B46',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   examResultScore: {
     color: '#152B3A',
     fontSize: 46,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   examResultText: {
     color: '#325B67',
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '700',
     marginBottom: 6,
   },
   examReportGrid: {
@@ -6097,19 +6066,19 @@ export const styles = StyleSheet.create({
   examReportSectionTitle: {
     color: '#325B67',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   examReportSectionScore: {
     color: '#152B3A',
     fontSize: 26,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 31,
   },
   examReportSectionText: {
     color: '#64716C',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 17,
   },
   examAnalysisCard: {
@@ -6123,13 +6092,13 @@ export const styles = StyleSheet.create({
   examAnalysisTitle: {
     color: '#152B3A',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 22,
   },
   examAnalysisText: {
     color: '#43524D',
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 19,
   },
   examCorrectionCard: {
@@ -6149,18 +6118,18 @@ export const styles = StyleSheet.create({
   examCorrectionVerdict: {
     color: '#152B3A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   examCorrectionAnswer: {
     color: '#152B3A',
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 23,
   },
   examCorrectionWhyTitle: {
     color: '#8B3038',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 3,
   },
   examCorrectionWhy: {
@@ -6178,7 +6147,7 @@ export const styles = StyleSheet.create({
   examSourceTitle: {
     color: '#152B3A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   examSourceText: {
     color: '#5E6B70',
@@ -6201,7 +6170,7 @@ export const styles = StyleSheet.create({
   examZoomTitle: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   examZoomClose: {
     backgroundColor: '#C83543',
@@ -6212,7 +6181,7 @@ export const styles = StyleSheet.create({
   examZoomCloseText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   examZoomCanvas: {
     alignItems: 'flex-start',
@@ -6242,7 +6211,7 @@ export const styles = StyleSheet.create({
   examBoxTitle: {
     color: '#152B3A',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
     textAlign: 'center',
   },
   examBoxText: {
@@ -6272,7 +6241,7 @@ export const styles = StyleSheet.create({
     borderRadius: 6,
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '800',
     overflow: 'hidden',
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -6282,7 +6251,7 @@ export const styles = StyleSheet.create({
     color: '#152B3A',
     flex: 1,
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 23,
   },
   centered: {
@@ -6300,7 +6269,7 @@ export const styles = StyleSheet.create({
   emptyTitle: {
     color: '#152B3A',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   emptyText: {
     color: '#5E6B70',

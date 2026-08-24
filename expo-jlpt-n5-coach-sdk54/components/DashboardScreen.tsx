@@ -367,12 +367,12 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
             <View style={styles.dailyTrackingHeader}>
               <View>
                 <Text style={styles.dailyTrackingKicker}>Session rapide</Text>
-                <Text style={styles.dailyTrackingTitle}>5 minutes pour aujourd'hui</Text>
+                <Text style={styles.dailyTrackingTitle}>5 minutes pour aujourd’hui</Text>
               </View>
               <Text style={styles.dailyTrackingBadge}>GO</Text>
             </View>
             <Text style={styles.dailyTrackingMeta}>
-              Melange intelligent entre revisions SRS, point faible et nouvelle notion adaptee au niveau actuel.
+              Mélange intelligent entre révisions SRS, point faible et nouvelle notion adaptée au niveau actuel.
             </Text>
           </Pressable>
 
@@ -412,7 +412,7 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
               </View>
             </View>
             <Text style={styles.dailyTrackingHint}>
-              {localLeague.promoted ? 'Promotion debloquee cette semaine. ' : ''}
+              {localLeague.promoted ? 'Promotion débloquée cette semaine. ' : ''}
               {localLeague.statusLabel} · {localLeague.statusDetail}
             </Text>
           </View>
@@ -420,7 +420,7 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
           <Pressable onPress={() => onNavigate?.('review')} style={styles.dailyTrackingCard}>
             <View style={styles.dailyTrackingHeader}>
               <View>
-                <Text style={styles.dailyTrackingKicker}>A revoir aujourd'hui</Text>
+                <Text style={styles.dailyTrackingKicker}>A revoir aujourd’hui</Text>
                 <Text style={styles.dailyTrackingTitle}>{srsOverview.dueToday} revision{srsOverview.dueToday > 1 ? 's' : ''} due{srsOverview.dueToday > 1 ? 's' : ''}</Text>
               </View>
               <Text style={styles.dailyTrackingBadge}>SRS</Text>
@@ -436,7 +436,7 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
               </View>
               <View style={styles.dailyTrackingStat}>
                 <Text style={styles.dailyTrackingValue}>{srsOverview.mastered}</Text>
-                <Text style={styles.dailyTrackingLabel}>maitrises</Text>
+                <Text style={styles.dailyTrackingLabel}>maîtrisés</Text>
               </View>
             </View>
             <Text style={styles.dailyTrackingMeta}>Ouvrir la file de revision et lancer une session courte de 10 items.</Text>
@@ -475,7 +475,7 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
                 <Text style={styles.quizStatsKicker}>Performance globale</Text>
                 <Text style={styles.quizStatsScore}>{quizSummary.rate}%</Text>
                 <Text style={styles.quizStatsMeta}>
-                  {quizSummary.correct}/{quizSummary.attempts} réponses justes · {quizSummary.todayAttempts} aujourd'hui
+                  {quizSummary.correct}/{quizSummary.attempts} réponses justes · {quizSummary.todayAttempts} aujourd’hui
                 </Text>
               </View>
               <View style={styles.quizStatsBadge}>
@@ -702,13 +702,13 @@ function getRewardCelebrationCopy(reward: RewardToast): { kicker: string; title:
     return {
       kicker: 'Palier majeur',
       title: '7 jours de suite',
-      subtitle: 'La routine est installee. Bonus de continuite debloque.',
+      subtitle: 'La routine est installée. Bonus de continuite débloqué.',
       symbol: '連七',
     };
   }
   if (kind === 'streak') {
     return {
-      kicker: 'Serie validee',
+      kicker: 'Série validée',
       title: '3 jours de suite',
       subtitle: 'Tu construis une vraie habitude de travail.',
       symbol: '連三',
@@ -718,13 +718,13 @@ function getRewardCelebrationCopy(reward: RewardToast): { kicker: string; title:
     return {
       kicker: 'Badge obtenu',
       title: reward.title,
-      subtitle: 'Nouvelle recompense ajoutee a ta progression.',
+      subtitle: 'Nouvelle récompense ajoutée à ta progression.',
       symbol: '賞',
     };
   }
   return {
     kicker: 'Jour travaille',
-    title: 'Assiduite validee',
+    title: 'Assiduité validee',
     subtitle: 'Une journee active de plus dans ton parcours N5.',
     symbol: '日',
   };

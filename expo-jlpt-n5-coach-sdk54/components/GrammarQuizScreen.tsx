@@ -774,7 +774,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
                   }}
                 >
                   <Text style={styles.wordLookupActionText}>
-                    {grammarErrorCardAdded ? 'Ajoute aux revisions' : 'Ajouter cette erreur a mes revisions'}
+                    {grammarErrorCardAdded ? 'Ajouté aux révisions' : 'Ajouter cette erreur à mes révisions'}
                   </Text>
                 </Pressable>
                 <Pressable style={styles.primaryButton} onPress={advanceGrammarQuiz}>

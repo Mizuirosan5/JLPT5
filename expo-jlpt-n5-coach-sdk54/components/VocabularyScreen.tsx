@@ -269,7 +269,7 @@ export function VocabularyScreen() {
         <View style={styles.segmented}>
           <SegmentButton label={`Toutes ${smartCardStats.total}`} active={cardFilter === 'all'} onPress={() => setCardFilter('all')} />
           <SegmentButton label={`Favoris ${smartCardStats.favorites}`} active={cardFilter === 'favorites'} onPress={() => setCardFilter('favorites')} />
-          <SegmentButton label={`A revoir ${smartCardStats.review}`} active={cardFilter === 'review'} onPress={() => setCardFilter('review')} />
+          <SegmentButton label={`À revoir ${smartCardStats.review}`} active={cardFilter === 'review'} onPress={() => setCardFilter('review')} />
         </View>
       )}
 
@@ -537,12 +537,12 @@ function VocabularySmartCardShell({
           style={[styles.vocabSmartActionButton, review && styles.vocabSmartActionButtonReview]}
         >
           <Text style={[styles.vocabSmartActionText, review && styles.vocabSmartActionTextActive]}>
-            {review ? 'A revoir' : 'Revoir'}
+            {review ? 'À revoir' : 'Revoir'}
           </Text>
         </Pressable>
         {!!onOpenDetail && (
           <Pressable onPress={onOpenDetail} style={styles.vocabSmartActionButton}>
-            <Text style={styles.vocabSmartActionText}>Detail</Text>
+            <Text style={styles.vocabSmartActionText}>Détail</Text>
           </Pressable>
         )}
         {!!audioText && <OfflineAudioButton text={audioText} label="Audio" />}
@@ -558,7 +558,7 @@ function KanjiDetailPanel({ detail, onClose }: { detail: KanjiDetail; onClose: (
     <View style={styles.aptitudeReportCard}>
       <View style={styles.aptitudeReportHeader}>
         <View>
-          <Text style={styles.pathNextLabel}>Detail kanji</Text>
+          <Text style={styles.pathNextLabel}>Détail du kanji</Text>
           <Text style={styles.pathModuleDetailTitle}>{detail.character}</Text>
           <Text style={styles.pathModuleDetailText}>{item.meaning_fr}</Text>
         </View>

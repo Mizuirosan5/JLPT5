@@ -251,11 +251,11 @@ export function KanaTracePanel({
       <View style={styles.traceSelfCheckCard}>
         <Text style={styles.traceSelfCheckTitle}>Auto-controle</Text>
         <Text style={styles.traceSelfCheckText}>
-          Verifie l'ordre, la direction, la taille et l'equilibre. Si tu hesites encore, marque la carte a revoir.
+          Vérifie l’ordre, la direction, la taille et l’équilibre. Si tu hésites encore, marque la carte à revoir.
         </Text>
         <View style={styles.traceSelfCheckActions}>
           <Pressable style={styles.traceSelfCheckButton} onPress={onReview}>
-            <Text style={styles.traceSelfCheckButtonText}>A revoir</Text>
+            <Text style={styles.traceSelfCheckButtonText}>À revoir</Text>
           </Pressable>
           <Pressable
             style={[

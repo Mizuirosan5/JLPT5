@@ -7,17 +7,17 @@ const NAV_GROUPS = [
   {
     name: 'learn',
     buttonLabel: 'Apprendre',
-    entries: ['Kana', 'Kanji', 'Vocabulaire', 'Grammaire', 'Immersion', 'Stories', 'Journal'],
+    entries: ['Kana', 'Kanji', 'Vocabulaire', 'Grammaire', 'Immersion', 'Dialogues', 'Journal'],
   },
   {
     name: 'quiz',
-    buttonLabel: "S'entrainer",
+    buttonLabel: 'S’entraîner',
     entries: ['5 min', 'Quiz', 'Test JLPT'],
   },
   {
     name: 'path',
     buttonLabel: 'Parcours',
-    entries: ['Stats', 'Parcours guide', 'Diagnostic', 'Rapport', 'Revisions', 'Mes erreurs'],
+    entries: ['Statistiques', 'Parcours guidé', 'Diagnostic', 'Rapport', 'Révisions', 'Mes erreurs'],
   },
 ];
 

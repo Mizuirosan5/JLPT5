@@ -99,7 +99,7 @@ export function StoryLessonScreen() {
                 <View style={styles.vocabularyThemeTextBlock}>
                   <Text style={[styles.vocabularyThemeTitle, active && styles.vocabularyThemeTitleActive]}>{story.title}</Text>
                   <Text style={[styles.vocabularyThemeCount, active && styles.vocabularyThemeCountActive]}>
-                    {story.theme} · {itemProgress?.completed ? 'termine' : 'a jouer'}
+                    {story.theme} · {itemProgress?.completed ? 'terminé' : 'à jouer'}
                   </Text>
                 </View>
               </Pressable>
