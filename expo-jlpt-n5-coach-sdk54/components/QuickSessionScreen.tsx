@@ -264,7 +264,7 @@ function getStageKicker(stage?: QuickSessionQuestion['stage']): string {
 }
 
 function getStageDescription(stage?: QuickSessionQuestion['stage']): string {
-  if (stage === 'discovery') return 'Tu n’es pas censé connaître ces signes : chaque réponse est d’abord expliquée.';
+  if (stage === 'discovery') return 'Tu n’es pas censé connaître ces signes : chaque correction est expliquée après ton choix.';
   if (stage === 'hiragana') return 'Des signes fondamentaux, sans kanji ni grammaire avancée.';
   if (stage === 'kana') return 'Hiragana et katakana progressifs avant le vocabulaire.';
   return 'Kana, vocabulaire et kanji choisis selon tes acquis. La grammaire se travaille dans ses leçons dédiées.';

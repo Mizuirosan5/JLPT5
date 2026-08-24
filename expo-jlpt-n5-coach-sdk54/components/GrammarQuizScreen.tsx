@@ -586,7 +586,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
               </>
             )}
             <View style={styles.grammarExampleActions}>
-              {preferences.showRomaji && !!safeGrammarQuizRomaji && (
+              {grammarQuizSession.selected !== null && preferences.showRomaji && !!safeGrammarQuizRomaji && (
                 <Pressable
                   onPress={() => setGrammarQuizRomajiVisible((visible) => !visible)}
                   style={styles.grammarExampleActionButton}
@@ -596,7 +596,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
                   </Text>
                 </Pressable>
               )}
-              {!!safeGrammarQuizFrench && (
+              {grammarQuizSession.selected !== null && !!safeGrammarQuizFrench && (
                 <Pressable
                   onPress={() => setGrammarQuizFrenchVisible((visible) => !visible)}
                   style={[styles.grammarExampleActionButton, styles.grammarExampleTranslateButton]}
@@ -610,10 +610,10 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
                 <OfflineAudioButton text={currentGrammarQuestion.japanese} slow />
               )}
             </View>
-            {preferences.showRomaji && grammarQuizRomajiVisible && !!safeGrammarQuizRomaji && (
+            {grammarQuizSession.selected !== null && preferences.showRomaji && grammarQuizRomajiVisible && !!safeGrammarQuizRomaji && (
               <Text style={styles.grammarExampleRomaji}>{safeGrammarQuizRomaji}</Text>
             )}
-            {grammarQuizFrenchVisible && !!safeGrammarQuizFrench && (
+            {grammarQuizSession.selected !== null && grammarQuizFrenchVisible && !!safeGrammarQuizFrench && (
               <View style={styles.grammarTranslationBox}>
                 <Text style={styles.grammarTranslation}>{safeGrammarQuizFrench}</Text>
               </View>
@@ -621,7 +621,6 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
             <Text style={styles.feedbackMnemonic}>
               {getExerciseInstruction(currentGrammarQuestion.exerciseFormat)} {getGrammarExerciseInstruction(currentGrammarQuestion.kind)}
             </Text>
-            <Text style={styles.feedbackText}>{currentGrammarQuestion.helper}</Text>
             {currentGrammarQuestion.choices.length > 0 ? (
               <>
               <View style={styles.choiceList}>
@@ -699,6 +698,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
                     : 'À revoir'}
                 </Text>
                 <Text style={styles.feedbackText}>Réponse : {currentGrammarQuestion.correctAnswer}</Text>
+                <Text style={styles.feedbackText}>{currentGrammarQuestion.helper}</Text>
                 <SmartCorrectionInsightCard selectedAnswer={grammarQuizSession.selected} expectedAnswer={currentGrammarQuestion.correctAnswer} explanation={currentGrammarQuestion.lesson.explanation} japanese={currentGrammarQuestion.japanese} translation={currentGrammarQuestion.french} wrongAnswerExplanations={currentGrammarQuestion.wrongAnswerExplanations} />
                 {hasJapaneseText(currentGrammarQuestion.correctAnswer) && (
                   <JapaneseLookupText

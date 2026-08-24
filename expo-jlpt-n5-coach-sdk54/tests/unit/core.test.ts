@@ -47,7 +47,7 @@ describe('moteurs metier critiques', () => {
     assert.equal(getQuickLearnerStage({ totalAttempts: 12, kanaSeen: 5, kanaMastered: 2 }), 'hiragana');
     assert.equal(getQuickLearnerStage({ totalAttempts: 55, kanaSeen: 20, kanaMastered: 12 }), 'kana');
     assert.equal(getQuickLearnerStage({ totalAttempts: 120, kanaSeen: 46, kanaMastered: 35 }), 'consolidation');
-    assert.deepEqual(keepHomogeneousChoices('がいます', ['です', 'ga imasu', 'あります', 'bonjour']), ['です', 'あります']);
+    assert.deepEqual(keepHomogeneousChoices('学校', ['です', 'ga imasu', 'あります', 'bonjour']), ['です', 'あります']);
     assert.deepEqual(keepHomogeneousChoices('ga imasu', ['です', 'ga imasu', 'arimasu']), ['ga imasu', 'arimasu']);
   });
 

@@ -1,6 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import type { LearningPreferences, QuizChoice, QuizQuestion } from '../models';
 import { shuffle } from './random';
+import { keepChoicesInWritingSystem } from './text';
 
 export type QuickSessionQuestion = {
   question: QuizQuestion;
@@ -81,14 +82,7 @@ export function getQuickLearnerStage(profile: QuickLearnerProfile): QuickLearner
 }
 
 export function keepHomogeneousChoices(correctAnswer: string, choices: string[]): string[] {
-  const expectedFamily = getAnswerFamily(correctAnswer);
-  return uniqueChoices(choices).filter((choice) => getAnswerFamily(choice) === expectedFamily);
-}
-
-function getAnswerFamily(value: string): 'japanese' | 'latin' | 'numeric' {
-  if (/[\u3040-\u30ff\u3400-\u9fff]/u.test(value)) return 'japanese';
-  if (/^[\d\s.,%+-]+$/u.test(value.trim())) return 'numeric';
-  return 'latin';
+  return keepChoicesInWritingSystem(correctAnswer, uniqueChoices(choices));
 }
 
 async function loadChoicesForQuestion(db: SQLiteDatabase, question: QuizQuestion): Promise<string[]> {
@@ -143,11 +137,15 @@ export async function buildQuickSessionQuestions(
   const stage = getQuickLearnerStage(profile);
   const limit = stage === 'discovery' ? 5 : getQuickQuestionLimit(preferences);
   const rows = await loadQuestionsForStage(db, preferences, stage, limit);
-  const selectedRows = stage === 'consolidation' ? shuffle(rows).slice(0, limit) : rows.slice(0, limit);
+  const preparedPool = rows.map(prepareKanaAnswerQuestion);
+  const preparedRows = stage === 'consolidation' ? shuffle(preparedPool).slice(0, limit) : preparedPool.slice(0, limit);
+  const kanaAnswers = preparedPool.filter((question) => question.skill_id === 'kana').map((question) => question.correct_answer);
   const withChoices = await Promise.all(
-    selectedRows.map(async (question) => ({
+    preparedRows.map(async (question) => ({
       question,
-      choices: stage === 'discovery' ? buildDiscoveryChoices(question.correct_answer) : await loadChoicesForQuestion(db, question),
+      choices: question.skill_id === 'kana'
+        ? buildJapaneseKanaChoices(question.correct_answer, kanaAnswers)
+        : await loadChoicesForQuestion(db, question),
       helper: buildQuestionHelper(question, stage),
       stage,
     }))
@@ -172,7 +170,7 @@ async function loadQuestionsForStage(
       ORDER BY instr('あいうえお', q.prompt_ja)
       `
     );
-    return vowels.map((question) => ({ ...question, prompt_fr: 'Quel son correspond à ce signe ?' }));
+    return vowels;
   }
 
   const stageFilter = stage === 'hiragana'
@@ -205,17 +203,28 @@ async function loadQuestionsForStage(
 }
 
 function buildQuestionHelper(question: QuizQuestion, stage: QuickLearnerStage): string | undefined {
-  if (stage === 'discovery') return `Découverte : ${question.prompt_ja} se lit « ${question.correct_answer} ». Choisis cette lecture pour la mémoriser.`;
-  if (stage === 'hiragana') return 'Débutant : observe le signe, puis choisis uniquement parmi des lectures en romaji.';
-  if (stage === 'kana') return 'Les réponses utilisent toutes le même format. Prends le temps de reconnaître le signe.';
+  if (stage === 'discovery') return 'Découverte : choisis un hiragana. La lecture correcte sera expliquée après ta réponse.';
+  if (stage === 'hiragana') return 'Débutant : les choix sont uniquement en écriture japonaise. La correction apparaîtra après ton choix.';
+  if (stage === 'kana') return 'Les réponses restent en écriture japonaise, sans distracteur en romaji.';
   return undefined;
 }
 
-function buildDiscoveryChoices(correctAnswer: string): string[] {
-  const vowels = ['a', 'i', 'u', 'e', 'o'];
-  const correctIndex = vowels.indexOf(correctAnswer);
-  if (correctIndex < 0) return [correctAnswer];
-  return [correctAnswer, ...vowels.filter((value) => value !== correctAnswer).slice(correctIndex % 2, correctIndex % 2 + 3)];
+function prepareKanaAnswerQuestion(question: QuizQuestion): QuizQuestion {
+  if (question.skill_id !== 'kana' || !question.prompt_ja) return question;
+  const character = question.prompt_ja;
+  const reading = question.correct_answer;
+  return {
+    ...question,
+    prompt_fr: `Quel kana correspond au son « ${reading} » ?`,
+    prompt_ja: null,
+    correct_answer: character,
+    explanation_fr: `${character} se lit « ${reading} » en romaji.`,
+  };
+}
+
+function buildJapaneseKanaChoices(correctAnswer: string, availableAnswers: string[]): string[] {
+  const alternatives = uniqueChoices(availableAnswers).filter((value) => value !== correctAnswer);
+  return [correctAnswer, ...alternatives.slice(0, 3)];
 }
 
 export function calculateQuickSessionResult(correct: number, total: number): QuickSessionResult {

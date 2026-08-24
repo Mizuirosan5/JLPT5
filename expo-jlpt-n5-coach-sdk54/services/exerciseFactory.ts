@@ -1,5 +1,6 @@
 import type { ExerciseFormat, GlobalQuizFormat, GlobalQuizMode, GrammarExerciseKind, GrammarQuizMode } from '../models';
 import { shuffle } from './random';
+import { keepChoicesInWritingSystem } from './text';
 
 export type ExerciseChoiceOptions = {
   correctAnswer: string;
@@ -21,7 +22,7 @@ export function buildExerciseChoices({ correctAnswer, alternatives, direct }: Ex
   const clean = [correctAnswer, ...alternatives]
     .map((choice) => choice.trim())
     .filter(Boolean);
-  const unique = Array.from(new Set(clean));
+  const unique = keepChoicesInWritingSystem(correctAnswer, Array.from(new Set(clean)));
   const distractors = unique.filter((choice) => choice !== correctAnswer);
   return shuffle([correctAnswer, ...shuffle(distractors).slice(0, 3)]).filter(Boolean);
 }

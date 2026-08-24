@@ -24,7 +24,7 @@ import {
   getCombinedKanaExamplePreset,
   normalizeKanaRomaji,
 } from '../services/kanaVisual';
-import { hasJapaneseText, normalizeAnswer } from '../services/text';
+import { hasJapaneseText, keepChoicesInWritingSystem, normalizeAnswer } from '../services/text';
 import { loadKanjiItems } from '../services/vocabulary';
 import { shuffle } from '../services/random';
 import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../services/preferences';
@@ -151,8 +151,18 @@ export function QuizScreen({
         `,
           next.question_id
         );
-        if (generatedChoices.length > 0) {
-          setChoices(generatedChoices);
+        const compatibleGenerated = keepChoicesInWritingSystem(
+          next.correct_answer,
+          generatedChoices.map((choice) => choice.choice_text)
+        );
+        if (compatibleGenerated.length >= 2) {
+          setChoices(
+            compatibleGenerated.map((choiceText, index) => ({
+              id: `${next.question_id}-compatible-${index}`,
+              choice_text: choiceText,
+              is_correct: normalizeAnswer(choiceText) === normalizeAnswer(next.correct_answer) ? 1 : 0,
+            }))
+          );
         } else {
           const distractors = await db.getAllAsync<{ choice_text: string }>(
             `
@@ -172,19 +182,18 @@ export function QuizScreen({
             next.question_type,
             next.correct_answer
           );
+          const compatibleFallback = keepChoicesInWritingSystem(
+            next.correct_answer,
+            [next.correct_answer, ...distractors.map((choice) => choice.choice_text)]
+          );
           setChoices(
-            shuffle([
-              {
-                id: `${next.question_id}-correct`,
-                choice_text: next.correct_answer,
-                is_correct: 1,
-              },
-              ...shuffle(distractors).slice(0, 3).map((choice, index) => ({
+            shuffle(
+              compatibleFallback.slice(0, 4).map((choiceText, index) => ({
                 id: `${next.question_id}-fallback-${index}`,
-                choice_text: choice.choice_text,
-                is_correct: 0,
-              })),
-            ])
+                choice_text: choiceText,
+                is_correct: normalizeAnswer(choiceText) === normalizeAnswer(next.correct_answer) ? 1 : 0,
+              }))
+            )
           );
         }
       } else {
