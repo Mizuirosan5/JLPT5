@@ -21,10 +21,10 @@ const NAV_GROUPS: Array<{
     items: [
       { screen: 'dashboard', icon: '数', label: 'Stats', description: 'Scores, progression et points faibles.' },
       { screen: 'path', icon: '道', label: 'Parcours guide', description: 'Etapes conseillees pour avancer.' },
-      { screen: 'aptitudeTest', icon: 'DIA', label: 'Diagnostic', description: 'Test initial en trois niveaux.' },
-      { screen: 'aptitudeReport', icon: 'REP', label: 'Rapport', description: 'Forces, faiblesses et modules recommandes.' },
-      { screen: 'review', icon: '記', label: 'Revisions', description: 'File SRS du jour et notions a revoir.' },
-      { screen: 'errors', icon: 'ERR', label: 'Mes erreurs', description: 'Cartes creees depuis les mauvaises reponses.' },
+      { screen: 'aptitudeTest', icon: '診', label: 'Diagnostic', description: 'Test initial en trois niveaux.' },
+      { screen: 'aptitudeReport', icon: '報', label: 'Rapport', description: 'Forces, faiblesses et modules recommandes.' },
+      { screen: 'review', icon: '復', label: 'Revisions', description: 'File SRS du jour et notions a revoir.' },
+      { screen: 'errors', icon: '誤', label: 'Mes erreurs', description: 'Cartes creees depuis les mauvaises reponses.' },
     ],
   },
   {
