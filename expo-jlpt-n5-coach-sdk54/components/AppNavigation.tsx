@@ -19,6 +19,7 @@ const NAV_GROUPS: Array<{
     icon: '道',
     subtitle: 'Suivre les progrès et savoir quoi travailler.',
     items: [
+      { screen: 'today', icon: '今', label: 'Aujourd’hui', description: 'Session recommandée et priorités du jour.' },
       { screen: 'dashboard', icon: '数', label: 'Statistiques', description: 'Scores, progression et points faibles.' },
       { screen: 'path', icon: '道', label: 'Parcours guidé', description: 'Étapes conseillées pour avancer.' },
       { screen: 'aptitudeTest', icon: '診', label: 'Diagnostic', description: 'Test initial en trois niveaux.' },
@@ -74,6 +75,7 @@ const ALL_MENU_GROUP: {
 
 function getActiveGroup(screen: Screen): NavGroupId {
   if (
+    screen === 'today' ||
     screen === 'dashboard' ||
     screen === 'path' ||
     screen === 'aptitudeTest' ||

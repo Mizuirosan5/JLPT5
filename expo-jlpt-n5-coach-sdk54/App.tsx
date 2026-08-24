@@ -21,6 +21,7 @@ import { QuizScreen } from './components/QuizScreen';
 import { ReviewQueueScreen } from './components/ReviewQueueScreen';
 import { ScreenTransition } from './components/ScreenTransition';
 import { StoryLessonScreen } from './components/StoryLessonScreen';
+import { TodayScreen } from './components/TodayScreen';
 import { VocabularyScreen } from './components/VocabularyScreen';
 import { WritingJournalScreen } from './components/WritingJournalScreen';
 import { HeaderJapanScene } from './components/shellUi';
@@ -41,7 +42,7 @@ export default function App() {
   );
 }
 function MainApp() {
-  const [screen, setScreen] = useState<Screen>('dashboard');
+  const [screen, setScreen] = useState<Screen>('today');
   const [screenHistory, setScreenHistory] = useState<Screen[]>([]);
   const [drawerGroup, setDrawerGroup] = useState<NavGroupId | null>(null);
   const [childCanGoBack, setChildCanGoBack] = useState(false);
@@ -69,12 +70,12 @@ function MainApp() {
       return;
     }
     setScreenHistory((history) => {
-      const previous = history[history.length - 1] ?? 'dashboard';
+      const previous = history[history.length - 1] ?? 'today';
       setScreen(previous);
       return history.slice(0, -1);
     });
   }, [childCanGoBack, drawerGroup]);
-  const canGoBack = !!drawerGroup || childCanGoBack || screenHistory.length > 0 || screen !== 'dashboard';
+  const canGoBack = !!drawerGroup || childCanGoBack || screenHistory.length > 0 || screen !== 'today';
   useHardwareBack(canGoBack, goBack);
   return (
     <SafeAreaView style={styles.app}>
@@ -88,6 +89,7 @@ function MainApp() {
         </View>
       </View>
       <ScreenTransition screen={screen}>
+        {screen === 'today' && <TodayScreen onNavigate={navigateTo} />}
         {screen === 'dashboard' && <DashboardScreen onNavigate={navigateTo} />}
         {screen === 'path' && <LearningPathScreen onNavigate={navigateTo} />}
         {screen === 'aptitudeTest' && <AptitudeTestScreen onNavigate={navigateTo} />}

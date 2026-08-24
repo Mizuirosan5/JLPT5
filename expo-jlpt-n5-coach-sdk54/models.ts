@@ -1,6 +1,7 @@
 // Shared app models and small static configs used across screens.
 
 export type Screen =
+  | 'today'
   | 'dashboard'
   | 'path'
   | 'aptitudeTest'

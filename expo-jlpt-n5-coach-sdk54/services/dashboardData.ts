@@ -73,9 +73,9 @@ type AttendanceBonus = {
 };
 
 const ATTENDANCE_BONUSES = [
-  { id: 'attendance-day-1', title: 'Jour travaille', rewardXp: 60, badgeCode: 'ASSIDUITE-1', streakTarget: 1, repeat: 'daily' },
-  { id: 'attendance-streak-3', title: 'Serie 3 jours', rewardXp: 260, badgeCode: 'ASSIDUITE-3', streakTarget: 3, repeat: 'once' },
-  { id: 'attendance-streak-7', title: 'Serie 7 jours', rewardXp: 780, badgeCode: 'ASSIDUITE-7', streakTarget: 7, repeat: 'once' },
+  { id: 'attendance-day-1', title: 'Jour travaillé', rewardXp: 60, badgeCode: 'ASSIDUITE-1', streakTarget: 1, repeat: 'daily' },
+  { id: 'attendance-streak-3', title: 'Série 3 jours', rewardXp: 260, badgeCode: 'ASSIDUITE-3', streakTarget: 3, repeat: 'once' },
+  { id: 'attendance-streak-7', title: 'Série 7 jours', rewardXp: 780, badgeCode: 'ASSIDUITE-7', streakTarget: 7, repeat: 'once' },
 ] as const;
 
 const DAILY_GOAL_MATERIALIZATION_DAYS = 186;
@@ -250,20 +250,20 @@ function buildAdaptiveDailyGoals(day: string, dayIndex: number, profile: DailyGo
   const rewardBase = 90 + difficulty * 35;
   const dayCode = day.replace(/-/g, '');
   const questionVariants = [
-    ['Mission ciblage', `Repondre a ${questionTarget} questions, avec priorite ${domain}.`, 'focus'],
-    ['Revision active', `Faire ${questionTarget} reponses pour consolider les acquis fragiles.`, 'review'],
+    ['Mission ciblage', `Répondre à ${questionTarget} questions, avec priorité ${domain}.`, 'focus'],
+    ['Révision active', `Faire ${questionTarget} réponses pour consolider les acquis fragiles.`, 'review'],
     ['Endurance N5', `Tenir ${questionTarget} questions sans casser le rythme.`, 'endurance'],
     ['Exploration mixte', `Explorer ${questionTarget} questions sur plusieurs familles N5.`, 'question'],
   ];
   const precisionVariants = [
-    ['Precision propre', `Atteindre ${precisionTarget}% avec au moins ${minimumPrecisionAnswers} reponses.`, 'precision'],
-    ['Zero hasard', `Viser ${precisionTarget}% : lis avant de repondre, surtout en ${domain}.`, 'precision'],
-    ['Controle qualite', `Garder ${precisionTarget}% de reussite minimum aujourd hui.`, 'precision'],
+    ['Précision propre', `Atteindre ${precisionTarget}% avec au moins ${minimumPrecisionAnswers} réponses.`, 'precision'],
+    ['Zéro hasard', `Viser ${precisionTarget}% : lis avant de répondre, surtout en ${domain}.`, 'precision'],
+    ['Contrôle qualité', `Garder ${precisionTarget}% de réussite minimum aujourd’hui.`, 'precision'],
   ];
   const sessionVariants = [
-    ['Session guidee', `Terminer ${sessionTarget} session quiz ou grammaire adaptee au niveau ${profile.level}.`, 'session'],
-    [`Atelier ${domain}`, `Finir ${sessionTarget} activite quiz/grammaire orientee ${domain}.`, 'quiz'],
-    ['Bloc application', `Valider ${sessionTarget} entrainement complet apres la revision.`, 'grammar'],
+    ['Session guidée', `Terminer ${sessionTarget} session quiz ou grammaire adaptée au niveau ${profile.level}.`, 'session'],
+    [`Atelier ${domain}`, `Finir ${sessionTarget} activité quiz/grammaire orientée ${domain}.`, 'quiz'],
+    ['Bloc application', `Valider ${sessionTarget} entraînement complet après la révision.`, 'grammar'],
   ];
   const question = questionVariants[dayIndex % questionVariants.length];
   const precision = precisionVariants[(dayIndex + difficulty) % precisionVariants.length];
@@ -296,7 +296,7 @@ function buildAdaptiveDailyGoals(day: string, dayIndex: number, profile: DailyGo
       target: sessionTarget,
       rewardXp: rewardBase + 80,
       badgeCode: 'XP',
-      unit: 'activite',
+      unit: 'activité',
       period: 'daily',
     },
   ];
@@ -304,10 +304,10 @@ function buildAdaptiveDailyGoals(day: string, dayIndex: number, profile: DailyGo
 
 function pickDailyDomain(weakDomain: string, learningPlanMode: LearningPlanMode, dayIndex: number): string {
   const rotations: Record<LearningPlanMode, string[]> = {
-    balanced: [weakDomain, 'kana', 'vocabulaire', 'grammaire', 'kanji', 'comprehension', 'JLPT mixte'],
-    kana_first: ['kana', 'orthographe kana', weakDomain, 'kana', 'vocabulaire', 'kana', 'comprehension'],
-    grammar_intensive: ['grammaire', weakDomain, 'particules', 'phrases N5', 'grammaire', 'comprehension', 'vocabulaire'],
-    exam_revision: ['JLPT mixte', 'comprehension', weakDomain, 'kanji', 'grammaire', 'vocabulaire', 'test blanc'],
+    balanced: [weakDomain, 'kana', 'vocabulaire', 'grammaire', 'kanji', 'compréhension', 'JLPT mixte'],
+    kana_first: ['kana', 'orthographe kana', weakDomain, 'kana', 'vocabulaire', 'kana', 'compréhension'],
+    grammar_intensive: ['grammaire', weakDomain, 'particules', 'phrases N5', 'grammaire', 'compréhension', 'vocabulaire'],
+    exam_revision: ['JLPT mixte', 'compréhension', weakDomain, 'kanji', 'grammaire', 'vocabulaire', 'test blanc'],
   };
   const rotation = rotations[learningPlanMode];
   return rotation[dayIndex % rotation.length] ?? weakDomain;

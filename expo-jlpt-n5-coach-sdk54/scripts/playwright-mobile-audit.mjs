@@ -17,7 +17,7 @@ const NAV_GROUPS = [
   {
     name: 'path',
     buttonLabel: 'Parcours',
-    entries: ['Statistiques', 'Parcours guidé', 'Diagnostic', 'Rapport', 'Révisions', 'Mes erreurs'],
+    entries: ['Aujourd’hui', 'Statistiques', 'Parcours guidé', 'Diagnostic', 'Rapport', 'Révisions', 'Mes erreurs'],
   },
 ];
 
@@ -29,11 +29,11 @@ const normalizeName = (value) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 
-async function waitForDashboard(page) {
+async function waitForHome(page) {
   await page.waitForFunction(
     () => {
       const text = document.body?.innerText ?? '';
-      return text.includes('Performance Quiz') || text.includes('ERREUR DÉTECTÉE');
+      return text.includes('Commencer ma session') || text.includes('ERREUR DÉTECTÉE');
     },
     null,
     { timeout: 70000 }
@@ -116,8 +116,8 @@ async function run() {
     });
     page.on('pageerror', (error) => logs.push(`${viewport.name}:pageerror: ${error.message}`));
     await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await waitForDashboard(page);
-    await snapshot(page, `${viewport.name}-dashboard`, checkpoints);
+    await waitForHome(page);
+    await snapshot(page, `${viewport.name}-today`, checkpoints);
 
     for (const group of NAV_GROUPS) {
       await closeDrawerIfOpen(page);
