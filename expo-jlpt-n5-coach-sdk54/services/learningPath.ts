@@ -1,5 +1,7 @@
 import type { LearningPathStage, LearningPathSubStep, MasteryDomainStats } from '../models';
 import { clampProgress, masteryProgress } from './progress';
+import { CURRICULUM_UNITS } from '../data/curriculum';
+import type { CurriculumProfile } from './curriculum';
 
 const SUB_STEP_TEMPLATES = [
   {
@@ -299,4 +301,62 @@ function getLockedReason(stages: Omit<LearningPathStage, 'status'>[], order: num
   const previous = stages[order - 2];
   if (!previous) return 'Ce module sera debloque apres le module precedent.';
   return `A debloquer apres "${previous.title}" : vise 95% sur ce module precedent.`;
+}
+
+const CURRICULUM_PHASES = [
+  { title: 'Fondations hiragana', subtitle: 'Construire une lecture sûre, sans contenu prématuré.', focus: 'Hiragana', screen: 'kana' as const },
+  { title: 'Lecture hiragana', subtitle: 'Lire les mots simples et commencer les actions polies.', focus: 'Hiragana', screen: 'kana' as const },
+  { title: 'Katakana et phrase', subtitle: 'Compléter les kana puis lire une phrase courte.', focus: 'Katakana', screen: 'kana' as const },
+  { title: 'Nombres et consignes', subtitle: 'Compter, dater et comprendre les premières consignes.', focus: 'Socle N5', screen: 'vocabulary' as const },
+  { title: 'Vie quotidienne', subtitle: 'Parler de sa routine, de ses goûts et de sa famille.', focus: 'Vocabulaire', screen: 'vocabulary' as const },
+  { title: 'Phrase développée', subtitle: 'Décrire, relier et proposer avec des formes connues.', focus: 'Grammaire', screen: 'grammar' as const },
+  { title: 'Compréhension pratique', subtitle: 'Raconter, comparer et poser des questions précises.', focus: 'Compréhension', screen: 'quiz' as const },
+  { title: 'Lecture N5', subtitle: 'Nuancer et reconnaître les formes courtes fréquentes.', focus: 'Lecture', screen: 'quiz' as const },
+  { title: 'Expression structurée', subtitle: 'Parler d’expérience, de changement et d’opinion.', focus: 'Expression', screen: 'quiz' as const },
+  { title: 'Validation JLPT N5', subtitle: 'Mobiliser toutes les compétences dans des tâches complètes.', focus: 'JLPT N5', screen: 'exam' as const },
+];
+
+export function buildCurriculumLearningPathStages(profile: CurriculumProfile): LearningPathStage[] {
+  const currentIndex = profile.completedUnits;
+  return CURRICULUM_PHASES.map((phase, phaseIndex) => {
+    const units = CURRICULUM_UNITS.slice(phaseIndex * 3, phaseIndex * 3 + 3);
+    const subSteps: LearningPathSubStep[] = units.map((curriculumUnit, subIndex) => {
+      const unitIndex = phaseIndex * 3 + subIndex;
+      const status: LearningPathSubStep['status'] = unitIndex < currentIndex ? 'done' : unitIndex === currentIndex ? 'active' : 'locked';
+      return {
+        id: `curriculum-${curriculumUnit.code.toLowerCase()}`,
+        code: curriculumUnit.code,
+        title: curriculumUnit.title,
+        objective: curriculumUnit.canDo,
+        requirement: `${curriculumUnit.targetItems} notions maîtrisées, ${curriculumUnit.minimumAttempts} réponses et ${curriculumUnit.minimumAccuracy}% de réussite minimum.`,
+        progress: status === 'done' ? 100 : status === 'active' ? profile.progress : 0,
+        status,
+      };
+    });
+    const activeSubStep = subSteps.find((step) => step.status === 'active');
+    const doneCount = subSteps.filter((step) => step.status === 'done').length;
+    const phaseProgress = Math.round((doneCount * 100 + (activeSubStep?.progress ?? 0)) / 3);
+    const status: LearningPathStage['status'] = doneCount === 3 ? 'done' : activeSubStep ? 'active' : 'locked';
+    return {
+      id: `curriculum-phase-${phaseIndex + 1}`,
+      order: phaseIndex + 1,
+      title: phase.title,
+      subtitle: phase.subtitle,
+      focus: phase.focus,
+      progress: phaseProgress,
+      done: doneCount,
+      total: 3,
+      status,
+      reward: 'Validation pédagogique',
+      screen: phase.screen,
+      actionLabel: status === 'locked' ? 'Niveau verrouillé' : 'Continuer ce niveau',
+      subSteps,
+      detail: units.map((item) => `${item.code} : ${item.canDo}`).join('\n'),
+      checkpoints: units.map((item) => `${item.code} — ${item.title}`),
+      prerequisites: phaseIndex === 0 ? ['Aucun prérequis.'] : [`Avoir validé le niveau ${phaseIndex}C.`],
+      successCriteria: units.map((item) => `${item.code} : ${item.minimumAccuracy}% minimum avec ${item.targetItems} notions maîtrisées.`),
+      lockedReason: status === 'locked' ? `Valide d’abord le niveau ${phaseIndex}C.` : undefined,
+      nextActionHint: activeSubStep ? `${activeSubStep.code} — ${activeSubStep.objective}` : 'Module validé.',
+    };
+  });
 }

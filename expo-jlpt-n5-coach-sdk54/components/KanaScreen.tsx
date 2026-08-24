@@ -13,6 +13,7 @@ import { buildDailyKanaDeck, buildSmartKanaDeck, getKanaPriority } from '../serv
 import { shuffle } from '../services/random';
 import { normalizeAnswer } from '../services/text';
 import { recordSrsReviewForQuestionAttempt } from '../services/srs';
+import { filterKanaForCurriculum, filterVocabularyForCurriculum, loadCurriculumProfile } from '../services/curriculum';
 import { detectOfflineAudio, speakJapanese as speakOfflineJapanese, stopOfflineAudio, type OfflineAudioState } from '../services/audio';
 import type {
   KanaCard,
@@ -28,6 +29,7 @@ import type {
   KanaTimeRecord,
   KanaViewerPanel,
   VocabularyExample,
+  VocabularyItem,
 } from '../models';
 import {
   HIRAGANA_BY_KATAKANA,
@@ -125,17 +127,20 @@ export function KanaScreen() {
             ? new Set(KATAKANA_STANDARD.flat().filter(Boolean))
             : null;
 
+      const curriculum = await loadCurriculumProfile(db);
+      const levelRows = filterKanaForCurriculum(rows, curriculum.currentCode);
       const filteredRows = validCharacters
-        ? rows.filter((row) => validCharacters.has(row.character))
-        : rows.filter((row) => !row.character.includes('?'));
+        ? levelRows.filter((row) => validCharacters.has(row.character))
+        : levelRows.filter((row) => !row.character.includes('?'));
 
       const enriched = await Promise.all(
         filteredRows.map(async (row) => {
           const lookupCharacter = HIRAGANA_BY_KATAKANA.get(row.character) ?? row.character;
           const preferredExample = PREFERRED_N5_EXAMPLES[lookupCharacter] ?? '';
-          const dbExamples = await db.getAllAsync<VocabularyExample>(
+          const dbExamples = await db.getAllAsync<VocabularyItem>(
             `
-            SELECT id, japanese, kana, kanji, romaji, meaning_fr
+            SELECT id, japanese, kana, kanji, romaji, meaning_fr, theme, importance,
+                   part_of_speech, jlpt_level, '' AS category
             FROM canonical_vocabulary
             WHERE jlpt_level = 'N5'
               AND kana IS NOT NULL
@@ -153,7 +158,7 @@ export function KanaScreen() {
               importance DESC,
               difficulty ASC,
               length(kana) ASC
-            LIMIT 1
+            LIMIT 12
             `,
             preferredExample,
             preferredExample,
@@ -169,7 +174,7 @@ export function KanaScreen() {
           const examples =
             row.character.length > 1 && combinedPreset
               ? [buildCombinedKanaVocabularyExample(row.character, combinedPreset)]
-              : dbExamples;
+              : filterVocabularyForCurriculum(dbExamples, curriculum.currentCode).slice(0, 1);
           return {
             ...row,
             script: row.script as 'hiragana' | 'katakana',
@@ -292,8 +297,9 @@ export function KanaScreen() {
       tab
     );
 
+    const curriculum = await loadCurriculumProfile(db);
     return sortKanaCards(
-      rows.map((row) => {
+      filterKanaForCurriculum(rows, curriculum.currentCode).map((row) => {
         const combinedPreset = getCombinedKanaExamplePreset(row.romaji);
         return {
           ...row,

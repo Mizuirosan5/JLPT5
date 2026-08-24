@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { SQLiteProvider } from 'expo-sqlite';
 import { useCallback, useEffect, useState } from 'react';
-import { Keyboard, SafeAreaView, Text, View } from 'react-native';
+import { Keyboard, Platform, SafeAreaView, Text, View } from 'react-native';
 import { styles } from './appStyles';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { AppNavigation } from './components/AppNavigation';
@@ -25,6 +25,7 @@ import { TodayScreen } from './components/TodayScreen';
 import { VocabularyScreen } from './components/VocabularyScreen';
 import { WritingJournalScreen } from './components/WritingJournalScreen';
 import { HeaderJapanScene } from './components/shellUi';
+import { CurriculumGate } from './components/CurriculumGate';
 import { DATABASE_NAME, initializeDatabase } from './services/database';
 import { useHardwareBack } from './services/useHardwareBack';
 import type { Screen } from './models'; type NavGroupId = 'all' | 'path' | 'learn' | 'quiz' | 'settings';
@@ -57,7 +58,7 @@ function MainApp() {
     setDrawerGroup(null);
   }, []);
   useEffect(() => {
-    if (screen !== 'quiz') setChildCanGoBack(false);
+    if (screen !== 'quiz') setChildCanGoBack(false); if (Platform.OS === 'web' && typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' });
   }, [screen]);
   const goBack = useCallback(() => {
     Keyboard.dismiss();
@@ -96,11 +97,11 @@ function MainApp() {
         {screen === 'aptitudeReport' && <AptitudeReportScreen onNavigate={navigateTo} />}
         {screen === 'review' && <ReviewQueueScreen />}{screen === 'errors' && <ErrorFlashcardsScreen />}
         {screen === 'kana' && <KanaScreen />}
-        {screen === 'kanjiDetail' && <KanjiDetailScreen onNavigate={navigateTo} />}
-        {screen === 'vocabulary' && <VocabularyScreen />}
-        {screen === 'grammar' && <GrammarLessonsScreen />}
-        {screen === 'immersion' && <ImmersionReaderScreen />}
-        {screen === 'stories' && <StoryLessonScreen />}{screen === 'writing' && <WritingJournalScreen />}{screen === 'preferences' && <LearningPreferencesScreen />}{screen === 'quick' && <QuickSessionScreen />}
+        {screen === 'kanjiDetail' && <CurriculumGate minimum="4A"><KanjiDetailScreen onNavigate={navigateTo} /></CurriculumGate>}
+        {screen === 'vocabulary' && <CurriculumGate minimum="3C"><VocabularyScreen /></CurriculumGate>}
+        {screen === 'grammar' && <CurriculumGate minimum="2A"><GrammarLessonsScreen /></CurriculumGate>}
+        {screen === 'immersion' && <CurriculumGate minimum="9A"><ImmersionReaderScreen /></CurriculumGate>}
+        {screen === 'stories' && <CurriculumGate minimum="6C"><StoryLessonScreen /></CurriculumGate>}{screen === 'writing' && <CurriculumGate minimum="5B"><WritingJournalScreen /></CurriculumGate>}{screen === 'preferences' && <LearningPreferencesScreen />}{screen === 'quick' && <QuickSessionScreen />}
         {screen === 'quiz' && <QuizScreen backSignal={childBackSignal} onBackStateChange={setChildCanGoBack} />}
         {screen === 'exam' && <ExamScreen />}
       </ScreenTransition>

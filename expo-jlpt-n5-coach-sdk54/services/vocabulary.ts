@@ -204,7 +204,8 @@ export async function loadVocabularyItems(db: SQLiteDatabase): Promise<Vocabular
 async function loadVocabularyItemsFromDatabase(db: SQLiteDatabase): Promise<VocabularyLoadResult> {
   try {
     const rows = await db.getAllAsync<VocabularyItem>(`
-      SELECT id, japanese, kana, kanji, romaji, meaning_fr, part_of_speech, theme, COALESCE(jlpt_level, 'N5') AS jlpt_level
+      SELECT id, japanese, kana, kanji, romaji, meaning_fr, part_of_speech, theme, importance,
+             COALESCE(jlpt_level, 'N5') AS jlpt_level
       FROM canonical_vocabulary
       ORDER BY CASE WHEN kana IS NULL OR kana = '' THEN japanese ELSE kana END
       LIMIT 2500

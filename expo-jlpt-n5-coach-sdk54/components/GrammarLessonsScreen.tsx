@@ -63,28 +63,32 @@ import {
   isGrammarAnswerCorrect,
 } from '../services/grammarPedagogy';
 import { shuffle } from '../services/random';
+import { filterGrammarForCurriculum, loadCurriculumProfile } from '../services/curriculum';
+import type { CurriculumCode } from '../data/curriculum';
 
 export function GrammarLessonsScreen() {
   const db = useSQLiteContext();
   const vocabularyLookupEntries = useVocabularyLookupIndex(db);
+  const [curriculumCode, setCurriculumCode] = useState<CurriculumCode>('1A');
+  const curriculumLessons = useMemo(() => filterGrammarForCurriculum(ALL_GRAMMAR_LESSONS, curriculumCode), [curriculumCode]);
   const folders = useMemo(
-    () => GRAMMAR_MAIN_MENUS.filter((menu) => ALL_GRAMMAR_LESSONS.some((lesson) => getGrammarMainMenu(lesson) === menu)),
-    []
+    () => GRAMMAR_MAIN_MENUS.filter((menu) => curriculumLessons.some((lesson) => getGrammarMainMenu(lesson) === menu)),
+    [curriculumLessons]
   );
   const [selectedFolder, setSelectedFolder] = useState<string>(folders[0] ?? 'Particules');
   const [selectedSubfolder, setSelectedSubfolder] = useState<string | null>(null);
   const [grammarMode, setGrammarMode] = useState<GrammarMode>('learn');
   const [memoryGrammarCount, setMemoryGrammarCount] = useState(0);
   const folderLessons = useMemo(
-    () => ALL_GRAMMAR_LESSONS.filter((lesson) => getGrammarMainMenu(lesson) === selectedFolder).sort((a, b) => a.order - b.order),
-    [selectedFolder]
+    () => curriculumLessons.filter((lesson) => getGrammarMainMenu(lesson) === selectedFolder).sort((a, b) => a.order - b.order),
+    [curriculumLessons, selectedFolder]
   );
   const visibleLessons = useMemo(
     () =>
       folderLessons.filter((lesson) => !selectedSubfolder || lesson.subfolder === selectedSubfolder),
     [folderLessons, selectedSubfolder]
   );
-  const [selectedLessonId, setSelectedLessonId] = useState(visibleLessons[0]?.id ?? ALL_GRAMMAR_LESSONS[0]?.id);
+  const [selectedLessonId, setSelectedLessonId] = useState(visibleLessons[0]?.id ?? curriculumLessons[0]?.id);
   const [openedLessonId, setOpenedLessonId] = useState<string | null>(null);
   const [revealedRomajiExampleId, setRevealedRomajiExampleId] = useState<string | null>(null);
   const [revealedTranslationExampleId, setRevealedTranslationExampleId] = useState<string | null>(null);
@@ -101,12 +105,12 @@ export function GrammarLessonsScreen() {
   const [selectedWordLookupAnchorId, setSelectedWordLookupAnchorId] = useState<string | null>(null);
   const [lessonStatusById, setLessonStatusById] = useState<Record<string, GrammarLessonStatus>>({});
   const selectedLesson =
-    ALL_GRAMMAR_LESSONS.find((lesson) => lesson.id === selectedLessonId) ?? visibleLessons[0] ?? ALL_GRAMMAR_LESSONS[0];
+    curriculumLessons.find((lesson) => lesson.id === selectedLessonId) ?? visibleLessons[0] ?? curriculumLessons[0];
   const selectedLessonStatus = lessonStatusById[selectedLesson.id] ?? 'neutral';
   const currentFolderLessons = visibleLessons.length > 0 ? visibleLessons : folderLessons;
   const subfolders = Array.from(new Set(folderLessons.map((lesson) => lesson.subfolder)));
-  const easyCount = ALL_GRAMMAR_LESSONS.filter((lesson) => lesson.level === 'facile').length;
-  const advancedCount = ALL_GRAMMAR_LESSONS.filter((lesson) => lesson.level === 'avance').length;
+  const easyCount = curriculumLessons.filter((lesson) => lesson.level === 'facile').length;
+  const advancedCount = curriculumLessons.filter((lesson) => lesson.level === 'avance').length;
 
   useEffect(() => {
     let mounted = true;
@@ -114,12 +118,14 @@ export function GrammarLessonsScreen() {
       db.getFirstAsync<{ count: number }>(`SELECT COUNT(*) AS count FROM canonical_grammar WHERE jlpt_level = 'N5'`),
       loadGrammarProgressSummary(db, ALL_GRAMMAR_LESSONS, getGrammarMainMenu),
       loadGrammarLessonStatusById(db, ALL_GRAMMAR_LESSONS),
+      loadCurriculumProfile(db),
     ])
-      .then(([row, progress, statuses]) => {
+      .then(([row, progress, statuses, curriculum]) => {
         if (!mounted) return;
         setMemoryGrammarCount(row?.count ?? 0);
         setGrammarProgress(progress);
         setLessonStatusById(statuses);
+        setCurriculumCode(curriculum.currentCode);
       })
       .catch(() => {
         if (mounted) {
@@ -133,7 +139,7 @@ export function GrammarLessonsScreen() {
   }, [db]);
 
   const selectFolder = (folder: string) => {
-    const folderItems = ALL_GRAMMAR_LESSONS.filter((lesson) => getGrammarMainMenu(lesson) === folder).sort((a, b) => a.order - b.order);
+    const folderItems = curriculumLessons.filter((lesson) => getGrammarMainMenu(lesson) === folder).sort((a, b) => a.order - b.order);
     const first = folderItems[0];
     setSelectedFolder(folder);
     setSelectedSubfolder(null);
@@ -184,7 +190,7 @@ export function GrammarLessonsScreen() {
   };
 
   const lessonExerciseExample = selectedLesson.examples[0];
-  const exerciseDistractor = ALL_GRAMMAR_LESSONS.find(
+  const exerciseDistractor = curriculumLessons.find(
     (lesson) => lesson.id !== selectedLesson.id && lesson.examples[0]?.fr !== lessonExerciseExample?.fr
   )?.examples[0]?.fr;
   const lessonExerciseChoices = lessonExerciseExample
@@ -855,7 +861,7 @@ export function GrammarLessonsScreen() {
           </Text>
         </View>
         <View style={styles.grammarHeroBadge}>
-          <Text style={styles.grammarHeroBadgeValue}>{ALL_GRAMMAR_LESSONS.length}</Text>
+          <Text style={styles.grammarHeroBadgeValue}>{curriculumLessons.length}</Text>
           <Text style={styles.grammarHeroBadgeText}>leçons</Text>
         </View>
       </View>

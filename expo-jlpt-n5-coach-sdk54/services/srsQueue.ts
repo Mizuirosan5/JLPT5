@@ -3,6 +3,7 @@ import type { SrsItemType, SrsStatus } from './srs';
 import { recordSrsReviewForQuestionAttempt } from './srs';
 import { shuffle } from './random';
 import { getWritingSystem, keepChoicesInWritingSystem } from './text';
+import { getJapaneseTextCurriculumCode, getQuestionCurriculumCode, isCurriculumAccessible, loadCurriculumCatalog, loadCurriculumProfile } from './curriculum';
 
 export type SrsQueueSection = 'urgent' | 'today' | 'soon';
 
@@ -44,10 +45,13 @@ type SrsQueueRow = {
   prompt_ja: string | null;
   correct_answer: string | null;
   explanation_fr: string | null;
+  question_item_type: string | null;
+  question_item_id: string | null;
 };
 
 export async function loadDueSrsItems(db: SQLiteDatabase, limit = 30): Promise<SrsQueueItem[]> {
   await ensureSrsQueueTables(db);
+  const [curriculum, curriculumCatalog] = await Promise.all([loadCurriculumProfile(db), loadCurriculumCatalog(db)]);
 
   const rows = await db.getAllAsync<SrsQueueRow>(
     `
@@ -68,6 +72,8 @@ export async function loadDueSrsItems(db: SQLiteDatabase, limit = 30): Promise<S
       q.prompt_ja,
       q.correct_answer,
       q.explanation_fr
+      , q.item_type AS question_item_type
+      , q.item_id AS question_item_id
     FROM app_srs_item_state s
     LEFT JOIN app_question_bank q ON q.question_id = s.item_id OR q.skill_id = s.item_id
     WHERE s.due_at <= datetime('now', '+3 days')
@@ -89,6 +95,14 @@ export async function loadDueSrsItems(db: SQLiteDatabase, limit = 30): Promise<S
   const items: SrsQueueItem[] = [];
   for (const row of rows) {
     if (!row.question_id || !row.skill_id || !row.prompt_fr || !row.correct_answer) continue;
+    const itemCode = getQuestionCurriculumCode({
+      question_id: row.question_id,
+      item_type: row.question_item_type,
+      item_id: row.question_item_id,
+      skill_id: row.skill_id,
+      prompt_ja: row.prompt_ja,
+    }, curriculumCatalog);
+    if (!itemCode || !isCurriculumAccessible(itemCode, curriculum.currentCode)) continue;
     items.push({
       itemId: row.item_id,
       itemType: row.item_type,
@@ -138,6 +152,8 @@ export async function loadDueSrsItems(db: SQLiteDatabase, limit = 30): Promise<S
       e.japanese AS prompt_ja,
       e.expected_answer AS correct_answer,
       e.explanation AS explanation_fr,
+      NULL AS question_item_type,
+      NULL AS question_item_id,
       e.prompt,
       e.japanese,
       e.translation,
@@ -158,6 +174,8 @@ export async function loadDueSrsItems(db: SQLiteDatabase, limit = 30): Promise<S
 
   for (const row of errorRows) {
     if (!row.question_id || !row.skill_id || !row.prompt_fr || !row.correct_answer) continue;
+    const textCode = getJapaneseTextCurriculumCode(`${row.prompt_ja ?? ''} ${row.correct_answer}`);
+    if (!textCode || !isCurriculumAccessible(textCode, curriculum.currentCode)) continue;
     items.push({
       itemId: row.item_id,
       itemType: row.item_type,

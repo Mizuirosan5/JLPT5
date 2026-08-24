@@ -24,14 +24,15 @@ import { recordTechnicalLog } from '../services/technicalLog';
 import { useManagedTimers } from '../services/useManagedTimers';
 import type { GlobalQuizScreenProps, GlobalQuizSnapshot } from './globalQuizModels';
 import type { KanjiAnswerTarget } from '../services/globalQuizFactory';
+import { getCurriculumIndex } from '../services/curriculum';
 
 const GLOBAL_QUIZ_SESSION_KEY = 'quiz:global';
-
 export function GlobalQuizScreen({
   initialScope,
   kanaArcadeCards,
   vocabularyLookupEntries,
   globalKanjiItems,
+  curriculumCode,
   onNavigate,
 }: GlobalQuizScreenProps) {
   const db = useSQLiteContext();
@@ -48,11 +49,9 @@ export function GlobalQuizScreen({
   const [sessionHydrated, setSessionHydrated] = useState(false);
   const answerInFlight = useRef(false);
   const schedule = useManagedTimers();
-
   useEffect(() => {
     setKnowledgeQuizScope(initialScope);
   }, [initialScope]);
-
   useEffect(() => {
     loadLearningPreferences(db)
       .then((loadedPreferences) => {
@@ -64,11 +63,10 @@ export function GlobalQuizScreen({
         console.error('Unable to load global quiz preferences', error);
       });
   }, [db]);
-
   useEffect(() => {
     loadSession<GlobalQuizSnapshot>(db, GLOBAL_QUIZ_SESSION_KEY)
       .then((snapshot) => {
-        if (!snapshot) return;
+        if (!snapshot || snapshot.curriculumCode !== curriculumCode) return;
         setKnowledgeQuizScope(snapshot.scope);
         setGlobalQuizMode(snapshot.mode);
         setGlobalQuizSize(snapshot.size);
@@ -79,7 +77,6 @@ export function GlobalQuizScreen({
       .catch((error) => recordTechnicalLog(db, 'error', 'global_quiz_restore', error instanceof Error ? error.message : String(error)))
       .finally(() => setSessionHydrated(true));
   }, [db]);
-
   useEffect(() => {
     if (!sessionHydrated) return;
     if (!globalQuizSession && !globalMatchingSession) {
@@ -93,9 +90,9 @@ export function GlobalQuizScreen({
       quizSession: globalQuizSession,
       matchingSession: globalMatchingSession,
       kanjiAnswerTarget,
+      curriculumCode,
     }).catch((error) => recordTechnicalLog(db, 'error', 'global_quiz_save', error instanceof Error ? error.message : String(error)));
-  }, [db, globalMatchingSession, globalQuizMode, globalQuizSession, globalQuizSize, kanjiAnswerTarget, knowledgeQuizScope, sessionHydrated]);
-
+  }, [curriculumCode, db, globalMatchingSession, globalQuizMode, globalQuizSession, globalQuizSize, kanjiAnswerTarget, knowledgeQuizScope, sessionHydrated]);
   const startGlobalQuiz = () => {
     setGlobalDirectInput('');
     setSelectedWordLookup(null);
@@ -103,7 +100,7 @@ export function GlobalQuizScreen({
     if (globalQuizMode === 'matching') {
       setGlobalQuizSession(null);
       setGlobalMatchingSession(
-        buildGlobalMatchingSession(kanaArcadeCards, vocabularyLookupEntries, globalKanjiItems, knowledgeQuizScope)
+        buildGlobalMatchingSession(kanaArcadeCards, vocabularyLookupEntries, globalKanjiItems, knowledgeQuizScope, curriculumCode)
       );
       return;
     }
@@ -118,7 +115,7 @@ export function GlobalQuizScreen({
           globalKanjiItems,
           knowledgeQuizScope,
           kanjiAnswerTarget,
-          preferences
+          { ...preferences, curriculumCode }
         )
       )
     );
@@ -131,7 +128,6 @@ export function GlobalQuizScreen({
     setSelectedWordLookup(null);
     setGlobalMatchMessage('Choisis un élément, puis sa correspondance.');
   };
-
   const openKnowledgeQuizScope = (scope: KnowledgeQuizScope) => {
     setKnowledgeQuizScope(scope);
     setGlobalQuizSession(null);
@@ -302,13 +298,19 @@ export function GlobalQuizScreen({
   };
 
   {
-    const activeMode = getKnowledgeQuizModeCopy(globalQuizMode, knowledgeQuizScope);
     const scopeLabel =
       knowledgeQuizScope === 'all'
         ? 'Global'
         : getGlobalDomainLabel(knowledgeQuizScope);
-    const scopedDomains: GlobalQuizDomain[] =
-      knowledgeQuizScope === 'all' ? ['kana', 'vocabulary', 'grammar', 'kanji'] : [knowledgeQuizScope];
+    const availableDomains: GlobalQuizDomain[] = [
+      ...(kanaArcadeCards.length >= 4 ? ['kana' as const] : []),
+      ...(vocabularyLookupEntries.length >= 4 ? ['vocabulary' as const] : []),
+      ...(getCurriculumIndex(curriculumCode) >= getCurriculumIndex('2A') ? ['grammar' as const] : []),
+      ...(globalKanjiItems.length >= 4 ? ['kanji' as const] : []),
+    ];
+    const effectiveScope = knowledgeQuizScope === 'all' && availableDomains.length === 1 ? availableDomains[0] ?? 'all' : knowledgeQuizScope;
+    const activeMode = getKnowledgeQuizModeCopy(globalQuizMode, effectiveScope);
+    const scopedDomains = knowledgeQuizScope === 'all' ? availableDomains : availableDomains.filter((domain) => domain === knowledgeQuizScope);
     const currentQuestion = globalQuizSession?.questions[globalQuizSession.currentIndex] ?? null;
     const currentRound = globalMatchingSession?.rounds[globalMatchingSession.currentRound] ?? null;
     const matchingTotal = globalMatchingSession
@@ -316,7 +318,7 @@ export function GlobalQuizScreen({
       : 0;
     const ready =
       knowledgeQuizScope === 'all'
-        ? kanaArcadeCards.length >= 4 && vocabularyLookupEntries.length >= 4 && globalKanjiItems.length >= 4
+        ? availableDomains.length > 0
         : knowledgeQuizScope === 'kana'
           ? kanaArcadeCards.length >= 4
           : knowledgeQuizScope === 'vocabulary'
@@ -330,7 +332,6 @@ export function GlobalQuizScreen({
       const mistakes = globalQuizSession?.mistakes.filter((mistake) => mistake.question.domain === domain) ?? [];
       return { domain, total: questions.length, correct: questions.length - mistakes.length };
     });
-
     return (
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.segmented}>
@@ -352,11 +353,11 @@ export function GlobalQuizScreen({
             <View style={styles.arcadeHero}>
               <Text style={styles.arcadeKicker}>総合 Quiz {scopeLabel}</Text>
               <Text style={styles.arcadeTitle}>
-                {knowledgeQuizScope === 'all' ? 'Toute ta maîtrise N5 dans une session' : `Entraînement complet · ${scopeLabel}`}
+                {knowledgeQuizScope === 'all' ? `Entraînement guidé · niveau ${curriculumCode}` : `Entraînement complet · ${scopeLabel}`}
               </Text>
               <Text style={styles.arcadeText}>
                 {knowledgeQuizScope === 'all'
-                  ? 'Kana, vocabulaire, grammaire et 80 kanji sont distribués équitablement pour révéler ton niveau réel.'
+                  ? 'Uniquement les notions déjà acquises et celles du niveau actuel, sans contenu futur.'
                   : `Les cinq configurations d’exercice sont appliquées uniquement au domaine ${scopeLabel}.`}
               </Text>
             </View>
@@ -372,7 +373,7 @@ export function GlobalQuizScreen({
               <View style={styles.grammarModeGrid}>
                 {GLOBAL_QUIZ_MODES.map((mode) => {
                   const active = globalQuizMode === mode.id;
-                  const copy = getKnowledgeQuizModeCopy(mode.id, knowledgeQuizScope);
+                  const copy = getKnowledgeQuizModeCopy(mode.id, effectiveScope);
                   return (
                     <Pressable
                       key={mode.id}
@@ -425,7 +426,7 @@ export function GlobalQuizScreen({
                 <Text style={styles.quizConfigText}>{activeMode.subtitle}</Text>
                 <Text style={styles.quizConfigText}>
                   {knowledgeQuizScope === 'all'
-                    ? 'Chaque domaine revient régulièrement : aucun sujet maîtrisé ou difficile n’est laissé de côté.'
+                    ? `Domaines disponibles au niveau ${curriculumCode} : ${availableDomains.map(getGlobalDomainLabel).join(', ')}.`
                     : `Toutes les questions portent sur ${scopeLabel}, avec un nouveau tirage à chaque session.`}
                 </Text>
               </View>

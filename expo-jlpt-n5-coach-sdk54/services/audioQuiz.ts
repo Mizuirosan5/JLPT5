@@ -5,13 +5,15 @@ import { STORY_LESSONS } from '../data/storyLessons';
 import { ALL_GRAMMAR_LESSONS } from './grammarCourse';
 import { buildExerciseChoices } from './exerciseFactory';
 import { shuffle } from './random';
+import { filterGrammarForCurriculum, getJapaneseTextCurriculumCode, getCurriculumIndex, isCurriculumAccessible } from './curriculum';
+import type { CurriculumCode } from '../data/curriculum';
 
 const MAX_DYNAMIC_VOCABULARY = 120;
 const MAX_DYNAMIC_GRAMMAR = 60;
 const MAX_DYNAMIC_STORIES = 90;
 const MAX_DYNAMIC_IMMERSION = 60;
 
-export function buildEmbeddedAudioPack(vocabulary: WordLookupEntry[] = []): AudioPackItem[] {
+export function buildEmbeddedAudioPack(vocabulary: WordLookupEntry[] = [], currentCode: CurriculumCode = '10C'): AudioPackItem[] {
   const vocabularyItems = vocabulary
     .filter((item, index, list) =>
       Boolean(item.meaning_fr && (item.kanji || item.japanese || item.kana)) &&
@@ -29,7 +31,7 @@ export function buildEmbeddedAudioPack(vocabulary: WordLookupEntry[] = []): Audi
       assetKind: 'tts_local',
     }));
 
-  const grammarItems = ALL_GRAMMAR_LESSONS.flatMap((lesson) =>
+  const grammarItems = filterGrammarForCurriculum(ALL_GRAMMAR_LESSONS, currentCode).flatMap((lesson) =>
     lesson.examples.slice(0, 1).map<AudioPackItem>((example) => ({
       id: `grammar-${lesson.id}-${example.id}`,
       category: 'grammar',
@@ -64,21 +66,23 @@ export function buildEmbeddedAudioPack(vocabulary: WordLookupEntry[] = []): Audi
     assetKind: 'tts_local',
   })).slice(0, MAX_DYNAMIC_IMMERSION);
 
+  const coreItems = CORE_AUDIO_PACK.filter((item) => isAudioItemAccessible(item, currentCode));
   return dedupeAudioItems([
-    ...CORE_AUDIO_PACK,
+    ...coreItems,
     ...vocabularyItems,
     ...grammarItems,
-    ...storyItems,
-    ...immersionItems,
+    ...(getCurriculumIndex(currentCode) >= getCurriculumIndex('9A') ? storyItems.filter((item) => isAudioItemAccessible(item, currentCode)) : []),
+    ...(getCurriculumIndex(currentCode) >= getCurriculumIndex('10A') ? immersionItems.filter((item) => isAudioItemAccessible(item, currentCode)) : []),
   ]);
 }
 
 export function buildAudioQuizQuestions(
   vocabulary: WordLookupEntry[],
   size: 10 | 20,
-  mode: AudioQuizMode
+  mode: AudioQuizMode,
+  currentCode: CurriculumCode = '10C',
 ): AudioQuizQuestion[] {
-  const pack = buildEmbeddedAudioPack(vocabulary);
+  const pack = buildEmbeddedAudioPack(vocabulary, currentCode);
   const pool = shuffle(pack).slice(0, size);
   return pool.map((item, index) => {
     const correctAnswer = mode === 'listen_japanese' ? item.kana || item.japanese : item.meaningFr;
@@ -100,6 +104,16 @@ export function buildAudioQuizQuestions(
       explanation: `${item.japanese} se lit ${item.kana}${item.romaji ? ` (${item.romaji})` : ''}. Sens : ${item.meaningFr}`,
     };
   });
+}
+
+function isAudioItemAccessible(item: AudioPackItem, currentCode: CurriculumCode): boolean {
+  const writingCode = getJapaneseTextCurriculumCode(`${item.japanese} ${item.kana ?? ''}`);
+  if (!writingCode || !isCurriculumAccessible(writingCode, currentCode)) return false;
+  const categoryFloor: Partial<Record<AudioPackItem['category'], CurriculumCode>> = {
+    greeting: '2C', number: '4A', classroom: '4C', daily: '5C', grammar: '6A', story: '9A', immersion: '10A',
+  };
+  const floor = categoryFloor[item.category] ?? '1A';
+  return isCurriculumAccessible(floor, currentCode);
 }
 
 export function createAudioQuizSession(questions: AudioQuizQuestion[]): AudioQuizSession {

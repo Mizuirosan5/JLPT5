@@ -261,7 +261,7 @@ function buildAdaptiveDailyGoals(day: string, dayIndex: number, profile: DailyGo
     ['Contrôle qualité', `Garder ${precisionTarget}% de réussite minimum aujourd’hui.`, 'precision'],
   ];
   const sessionVariants = [
-    ['Session guidée', `Terminer ${sessionTarget} session quiz ou grammaire adaptée au niveau ${profile.level}.`, 'session'],
+    ['Session guidée', `Terminer ${sessionTarget} session guidée adaptée au niveau pédagogique actuel.`, 'session'],
     [`Atelier ${domain}`, `Finir ${sessionTarget} activité quiz/grammaire orientée ${domain}.`, 'quiz'],
     ['Bloc application', `Valider ${sessionTarget} entraînement complet après la révision.`, 'grammar'],
   ];
@@ -335,7 +335,9 @@ async function loadPlannedDailyDefinitions(db: SQLiteDatabase, day: string, fall
   return rows.map((row) => ({
     id: row.goal_id,
     title: row.title,
-    description: row.description,
+    description: row.description
+      .replace(/session quiz ou grammaire adaptée au niveau \d+/i, 'session guidée adaptée au niveau pédagogique actuel')
+      .replace(/niveau \d+/gi, 'niveau pédagogique actuel'),
     target: row.target,
     rewardXp: row.reward_xp,
     badgeCode: row.badge_code,

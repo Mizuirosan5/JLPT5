@@ -25,13 +25,15 @@ import { getGrammarStreakMultiplier } from '../services/grammarPedagogy';
 import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../services/preferences';
 import { recordSrsReviewForQuestionAttempt } from '../services/srs';
 import { hasJapaneseText, normalizeAnswer } from '../services/text';
+import type { CurriculumCode } from '../data/curriculum';
 
 type AudioQuizScreenProps = {
   vocabularyLookupEntries: WordLookupEntry[];
   onNavigate: (mode: MainQuizMode, scope?: KnowledgeQuizScope) => void;
+  curriculumCode: CurriculumCode;
 };
 
-export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate }: AudioQuizScreenProps) {
+export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate, curriculumCode }: AudioQuizScreenProps) {
   const db = useSQLiteContext();
   const [audio, setAudio] = useState<OfflineAudioState>({ available: false, japaneseVoiceId: null });
   const [audioEnabled, setAudioEnabled] = useState(DEFAULT_LEARNING_PREFERENCES.audioEnabled);
@@ -40,7 +42,7 @@ export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate }: AudioQu
   const [session, setSession] = useState<AudioQuizSession | null>(null);
   const [selectedWordLookup, setSelectedWordLookup] = useState<WordLookupEntry | null>(null);
 
-  const pack = useMemo(() => buildEmbeddedAudioPack(vocabularyLookupEntries), [vocabularyLookupEntries]);
+  const pack = useMemo(() => buildEmbeddedAudioPack(vocabularyLookupEntries, curriculumCode), [curriculumCode, vocabularyLookupEntries]);
   const categoryCounts = useMemo(() => {
     return pack.reduce<Record<string, number>>((acc, item) => {
       acc[item.category] = (acc[item.category] ?? 0) + 1;
@@ -87,7 +89,7 @@ export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate }: AudioQu
   }, [canPlayAudio, currentQuestion, playCurrentAudio, session?.finished, session?.selected]);
 
   const startAudioQuiz = () => {
-    const questions = buildAudioQuizQuestions(vocabularyLookupEntries, quizSize, quizMode);
+    const questions = buildAudioQuizQuestions(vocabularyLookupEntries, quizSize, quizMode, curriculumCode);
     setSelectedWordLookup(null);
     setSession(createAudioQuizSession(questions));
   };

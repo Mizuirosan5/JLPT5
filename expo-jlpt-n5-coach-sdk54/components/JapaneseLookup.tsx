@@ -22,8 +22,8 @@ export function useVocabularyLookupIndex(db: SQLiteDatabase): WordLookupEntry[] 
 
   useEffect(() => {
     let mounted = true;
-    db.getAllAsync<VocabularyExample>(`
-      SELECT id, japanese, kana, kanji, romaji, meaning_fr
+    db.getAllAsync<VocabularyExample & { theme: string | null; importance: number | null }>(`
+      SELECT id, japanese, kana, kanji, romaji, meaning_fr, theme, importance
       FROM canonical_vocabulary
       ORDER BY length(COALESCE(kanji, japanese, kana)) DESC
       LIMIT 2500

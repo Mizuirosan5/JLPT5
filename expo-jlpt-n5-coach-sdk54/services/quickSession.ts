@@ -2,6 +2,13 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import type { LearningPreferences, QuizChoice, QuizQuestion } from '../models';
 import { shuffle } from './random';
 import { keepChoicesInWritingSystem } from './text';
+import {
+  filterQuestionsForCurriculum,
+  getQuestionCurriculumCode,
+  getCurriculumIndex,
+  loadCurriculumCatalog,
+  loadCurriculumProfile,
+} from './curriculum';
 
 export type QuickSessionQuestion = {
   question: QuizQuestion;
@@ -85,7 +92,11 @@ export function keepHomogeneousChoices(correctAnswer: string, choices: string[])
   return keepChoicesInWritingSystem(correctAnswer, uniqueChoices(choices));
 }
 
-async function loadChoicesForQuestion(db: SQLiteDatabase, question: QuizQuestion): Promise<string[]> {
+async function loadChoicesForQuestion(
+  db: SQLiteDatabase,
+  question: QuizQuestion,
+  allowedAnswers: string[],
+): Promise<string[]> {
   const generatedChoices = await db.getAllAsync<QuizChoice>(
     `
     SELECT id, choice_text, is_correct
@@ -96,27 +107,15 @@ async function loadChoicesForQuestion(db: SQLiteDatabase, question: QuizQuestion
     question.question_id
   );
   if (generatedChoices.length > 0) {
-    const homogeneous = keepHomogeneousChoices(question.correct_answer, generatedChoices.map((choice) => choice.choice_text));
+    const allowed = new Set(allowedAnswers);
+    const homogeneous = keepHomogeneousChoices(
+      question.correct_answer,
+      generatedChoices.map((choice) => choice.choice_text).filter((choice) => allowed.has(choice)),
+    );
     if (homogeneous.includes(question.correct_answer) && homogeneous.length >= 2) return homogeneous.slice(0, 4);
   }
 
-  const distractors = await db.getAllAsync<{ choice_text: string }>(
-    `
-    SELECT correct_answer AS choice_text
-    FROM app_question_bank
-    WHERE question_id != ?
-      AND skill_id = ?
-      AND question_type = ?
-      AND correct_answer IS NOT NULL
-      AND correct_answer != ''
-    ORDER BY question_id
-    LIMIT 12
-    `,
-    question.question_id,
-    question.skill_id,
-    question.question_type
-  );
-  return shuffle(keepHomogeneousChoices(question.correct_answer, [question.correct_answer, ...distractors.map((choice) => choice.choice_text)])).slice(0, 4);
+  return shuffle(keepHomogeneousChoices(question.correct_answer, [question.correct_answer, ...allowedAnswers])).slice(0, 4);
 }
 
 export async function buildQuickSessionQuestions(
@@ -134,18 +133,30 @@ export async function buildQuickSessionQuestions(
     kanaSeen: profileRow?.kanaSeen ?? 0,
     kanaMastered: profileRow?.kanaMastered ?? 0,
   };
-  const stage = getQuickLearnerStage(profile);
+  const curriculum = await loadCurriculumProfile(db);
+  const catalog = await loadCurriculumCatalog(db);
+  const stage: QuickLearnerStage = getCurriculumIndex(curriculum.currentCode) === 0
+    ? 'discovery'
+    : getCurriculumIndex(curriculum.currentCode) <= getCurriculumIndex('1C')
+      ? 'hiragana'
+      : getCurriculumIndex(curriculum.currentCode) <= getCurriculumIndex('3C')
+        ? 'kana'
+        : 'consolidation';
   const limit = stage === 'discovery' ? 5 : getQuickQuestionLimit(preferences);
   const rows = await loadQuestionsForStage(db, preferences, stage, limit);
-  const preparedPool = rows.map(prepareKanaAnswerQuestion);
+  const eligible = filterQuestionsForCurriculum(rows, catalog, curriculum.currentCode);
+  const currentItems = eligible.filter((question) => getQuestionCurriculumCode(question, catalog) === curriculum.currentCode);
+  const reviewItems = eligible.filter((question) => getQuestionCurriculumCode(question, catalog) !== curriculum.currentCode);
+  const preparedPool = [...shuffle(currentItems), ...shuffle(reviewItems)].map(prepareKanaAnswerQuestion);
   const preparedRows = stage === 'consolidation' ? shuffle(preparedPool).slice(0, limit) : preparedPool.slice(0, limit);
   const kanaAnswers = preparedPool.filter((question) => question.skill_id === 'kana').map((question) => question.correct_answer);
+  const allowedAnswers = preparedPool.map((question) => question.correct_answer);
   const withChoices = await Promise.all(
     preparedRows.map(async (question) => ({
       question,
       choices: question.skill_id === 'kana'
         ? buildJapaneseKanaChoices(question.correct_answer, kanaAnswers)
-        : await loadChoicesForQuestion(db, question),
+        : await loadChoicesForQuestion(db, question, allowedAnswers),
       helper: buildQuestionHelper(question, stage),
       stage,
     }))
@@ -163,7 +174,7 @@ async function loadQuestionsForStage(
   if (stage === 'discovery') {
     const vowels = await db.getAllAsync<QuizQuestion>(
       `
-      SELECT q.question_id, q.question_origin, q.skill_id, q.question_type,
+      SELECT q.question_id, q.question_origin, q.item_type, q.item_id, q.skill_id, q.question_type,
              q.prompt_fr, q.prompt_ja, q.correct_answer, q.explanation_fr
       FROM app_question_bank q
       WHERE q.question_type = 'kana_to_romaji' AND q.prompt_ja IN ('あ', 'い', 'う', 'え', 'お')
@@ -176,11 +187,11 @@ async function loadQuestionsForStage(
   const stageFilter = stage === 'hiragana'
     ? `q.question_type = 'kana_to_romaji' AND k.script = 'hiragana'`
     : stage === 'kana'
-      ? `q.question_type = 'kana_to_romaji'`
+      ? `(q.question_type = 'kana_to_romaji' OR q.question_type = 'vocabulary_japanese_to_french' OR q.question_type = 'vocabulary_french_to_japanese')`
       : `(q.question_type = 'kana_to_romaji' OR q.question_type = 'vocabulary_japanese_to_french' OR q.question_type = 'kanji_to_french')`;
   return db.getAllAsync<QuizQuestion>(
     `
-    SELECT q.question_id, q.question_origin, q.skill_id, q.question_type,
+    SELECT q.question_id, q.question_origin, q.item_type, q.item_id, q.skill_id, q.question_type,
            q.prompt_fr, q.prompt_ja, q.correct_answer, q.explanation_fr
     FROM app_question_bank q
     JOIN app_adaptive_question_priority p ON p.question_id = q.question_id
@@ -198,14 +209,14 @@ async function loadQuestionsForStage(
     ${getDifficultyClause(preferences)}
     LIMIT ?
     `,
-    limit * 3
+    limit * 20
   );
 }
 
 function buildQuestionHelper(question: QuizQuestion, stage: QuickLearnerStage): string | undefined {
   if (stage === 'discovery') return 'Découverte : choisis un hiragana. La lecture correcte sera expliquée après ta réponse.';
   if (stage === 'hiragana') return 'Débutant : les choix sont uniquement en écriture japonaise. La correction apparaîtra après ton choix.';
-  if (stage === 'kana') return 'Les réponses restent en écriture japonaise, sans distracteur en romaji.';
+  if (stage === 'kana') return 'Chaque série garde une écriture cohérente, sans romaji parmi les réponses japonaises.';
   return undefined;
 }
 

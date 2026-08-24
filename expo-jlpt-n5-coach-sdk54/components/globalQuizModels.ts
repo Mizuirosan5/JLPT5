@@ -9,6 +9,7 @@ import type {
   WordLookupEntry,
 } from '../models';
 import type { KanjiAnswerTarget } from '../services/globalQuizFactory';
+import type { CurriculumCode } from '../data/curriculum';
 
 export type GlobalQuizSnapshot = {
   scope: KnowledgeQuizScope;
@@ -17,6 +18,7 @@ export type GlobalQuizSnapshot = {
   quizSession: GlobalQuizSession | null;
   matchingSession: GlobalMatchingSession | null;
   kanjiAnswerTarget: KanjiAnswerTarget;
+  curriculumCode?: CurriculumCode;
 };
 
 export type GlobalQuizScreenProps = {
@@ -24,5 +26,6 @@ export type GlobalQuizScreenProps = {
   kanaArcadeCards: KanaCard[];
   vocabularyLookupEntries: WordLookupEntry[];
   globalKanjiItems: KanjiItem[];
+  curriculumCode: CurriculumCode;
   onNavigate: (mode: MainQuizMode, scope?: KnowledgeQuizScope) => void;
 };

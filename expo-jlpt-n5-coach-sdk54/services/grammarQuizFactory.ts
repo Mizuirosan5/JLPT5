@@ -391,9 +391,10 @@ export function uniqueChoices(values: string[], fallback: string[]): string[] {
 
 export function buildGrammarQuizQuestions(
   size: 10 | 20,
-  mode: Exclude<GrammarQuizMode, 'matching' | 'question_answer'> = 'arcade'
+  mode: Exclude<GrammarQuizMode, 'matching' | 'question_answer'> = 'arcade',
+  lessons: GrammarLesson[] = ALL_GRAMMAR_LESSONS,
 ): GrammarQuizQuestion[] {
-  const pool = shuffle(ALL_GRAMMAR_LESSONS).slice(0, size);
+  const pool = shuffle(lessons).slice(0, size);
   const exerciseCycle: GrammarExerciseKind[] =
     mode === 'direct_input'
       ? ['blank_input', 'keyword_input']
@@ -417,7 +418,7 @@ export function buildGrammarQuizQuestions(
     const formulaChoices = uniqueChoices(
       [
         formula,
-        ...shuffle(ALL_GRAMMAR_LESSONS.filter((item) => item.id !== lesson.id)).map((item) => humanizeGrammarPattern(item)),
+        ...shuffle(lessons.filter((item) => item.id !== lesson.id)).map((item) => humanizeGrammarPattern(item)),
       ],
       GRAMMAR_KEY_TOKENS
     );
@@ -435,7 +436,7 @@ export function buildGrammarQuizQuestions(
         helper: `Indice règle : ${lesson.title}`,
         correctAnswer: example.fr,
         choices: uniqueChoices(
-          [example.fr, ...shuffle(ALL_GRAMMAR_LESSONS).map((item) => item.examples[0]?.fr ?? '')],
+          [example.fr, ...shuffle(lessons).map((item) => item.examples[0]?.fr ?? '')],
           ['Je vais à l’école.', 'C’est un livre.', 'Je mange du riz.', 'Il fait beau.']
         ),
       };
@@ -488,26 +489,29 @@ export function buildGrammarQuizQuestions(
         helper: 'Pense à ce que tu veux faire dans la phrase, pas seulement aux mots.',
         correctAnswer: lesson.title,
         choices: uniqueChoices(
-          [lesson.title, ...shuffle(ALL_GRAMMAR_LESSONS.filter((item) => item.id !== lesson.id)).map((item) => item.title)],
+          [lesson.title, ...shuffle(lessons.filter((item) => item.id !== lesson.id)).map((item) => item.title)],
           ['は / thème', 'を / objet', 'です / phrase polie', 'か / question']
         ),
       };
     }
     if (kind === 'dialogue_response_qcm') {
-      const dialogue = GRAMMAR_DIALOGUE_PROMPTS[index % GRAMMAR_DIALOGUE_PROMPTS.length];
+      const japanese = example.kanji || example.kana;
+      const alternatives = lessons
+        .filter((item) => item.id !== lesson.id)
+        .map((item) => item.examples[0]?.kanji || item.examples[0]?.kana || '');
       return {
         id: `${lesson.id}-dialogue-${index}`,
         kind,
         exerciseFormat,
         lesson,
-        prompt: `Quelle est la meilleure réponse ? ${dialogue.situation}`,
-        japanese: dialogue.cue,
-        kanaJapanese: dialogue.cue,
-        romaji: dialogue.romaji,
-        french: dialogue.cueFr,
-        helper: dialogue.helper,
-        correctAnswer: dialogue.answer,
-        choices: shuffle(dialogue.choices),
+        prompt: `Quelle phrase japonaise correspond à : « ${example.fr} » ?`,
+        japanese: '',
+        kanaJapanese: '',
+        romaji: example.romaji,
+        french: example.fr,
+        helper: `La correction expliquera la structure ${lesson.title}.`,
+        correctAnswer: japanese,
+        choices: buildExerciseChoices({ correctAnswer: japanese, alternatives }),
       };
     }
     return {
@@ -527,26 +531,30 @@ export function buildGrammarQuizQuestions(
   }).map(addGrammarWrongAnswerExplanations);
 }
 
-export function buildGrammarQuestionAnswerQuiz(size: 10 | 20): GrammarQuizQuestion[] {
-  const responseLesson =
-    ALL_GRAMMAR_LESSONS.find((lesson) => lesson.order === 147) ??
-    ALL_GRAMMAR_LESSONS.find((lesson) => lesson.title.includes('réponses naturelles')) ??
-    ALL_GRAMMAR_LESSONS[0];
+export function buildGrammarQuestionAnswerQuiz(
+  size: 10 | 20,
+  lessons: GrammarLesson[] = ALL_GRAMMAR_LESSONS,
+): GrammarQuizQuestion[] {
+  const examples = lessons.flatMap((lesson) => lesson.examples.map((example) => ({ lesson, example })));
   return Array.from<unknown, GrammarQuizQuestion>({ length: size }, (_, index) => {
-    const dialogue = GRAMMAR_DIALOGUE_PROMPTS[index % GRAMMAR_DIALOGUE_PROMPTS.length];
+    const current = examples[index % examples.length];
+    const japanese = current.example.kanji || current.example.kana;
+    const alternatives = examples
+      .filter((item) => item.lesson.id !== current.lesson.id)
+      .map((item) => item.example.kanji || item.example.kana);
     return {
-      id: `grammar-response-${index}-${dialogue.answer}`,
+      id: `grammar-response-${index}-${current.example.id}`,
       kind: 'dialogue_response_qcm' as const,
       exerciseFormat: getGrammarExerciseFormat('question_answer', 'dialogue_response_qcm'),
-      lesson: responseLesson,
-      prompt: `Choisis la réponse la plus naturelle. ${dialogue.situation}`,
-      japanese: dialogue.cue,
-      kanaJapanese: dialogue.cue,
-      romaji: dialogue.romaji,
-      french: dialogue.cueFr,
-      helper: dialogue.helper,
-      correctAnswer: dialogue.answer,
-      choices: shuffle(dialogue.choices),
+      lesson: current.lesson,
+      prompt: `Quelle phrase japonaise correspond à : « ${current.example.fr} » ?`,
+      japanese: '',
+      kanaJapanese: '',
+      romaji: current.example.romaji,
+      french: current.example.fr,
+      helper: `La correction expliquera la structure ${current.lesson.title}.`,
+      correctAnswer: japanese,
+      choices: buildExerciseChoices({ correctAnswer: japanese, alternatives }),
     };
   }).map(addGrammarWrongAnswerExplanations);
 }
@@ -589,9 +597,9 @@ function hasKanaOrKanji(value: string): boolean {
   return /[\u3040-\u30ff\u3400-\u9fff]/.test(value);
 }
 
-function buildGrammarMatchingRounds(roundCount = 3, pairsPerRound = 5): GrammarMatchingRound[] {
+function buildGrammarMatchingRounds(lessonsSource = ALL_GRAMMAR_LESSONS, roundCount = 3, pairsPerRound = 5): GrammarMatchingRound[] {
   const lessons = shuffle(
-    ALL_GRAMMAR_LESSONS.filter((lesson) => lesson.examples.some((example) => example.fr && (example.kanji || example.kana)))
+    lessonsSource.filter((lesson) => lesson.examples.some((example) => example.fr && (example.kanji || example.kana)))
   );
   return Array.from({ length: roundCount }, (_, roundIndex) => {
     const pairs = Array.from({ length: pairsPerRound }, (_, pairIndex) => {
@@ -608,9 +616,9 @@ function buildGrammarMatchingRounds(roundCount = 3, pairsPerRound = 5): GrammarM
   });
 }
 
-export function createGrammarMatchingSession(): GrammarMatchingSession {
+export function createGrammarMatchingSession(lessons: GrammarLesson[] = ALL_GRAMMAR_LESSONS): GrammarMatchingSession {
   return {
-    rounds: buildGrammarMatchingRounds(),
+    rounds: buildGrammarMatchingRounds(lessons),
     currentRound: 0,
     selectedLeftId: null,
     selectedRightId: null,

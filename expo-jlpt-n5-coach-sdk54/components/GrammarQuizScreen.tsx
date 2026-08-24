@@ -20,6 +20,8 @@ import { saveErrorFlashcard } from '../services/errorFlashcards';
 import { clearSession, loadSession, saveSession } from '../services/sessionPersistence';
 import { recordTechnicalLog } from '../services/technicalLog';
 import { useManagedTimers } from '../services/useManagedTimers';
+import { filterGrammarForCurriculum, loadCurriculumProfile } from '../services/curriculum';
+import type { CurriculumCode } from '../data/curriculum';
 import type { GrammarQuizScreenProps, GrammarQuizSnapshot } from './grammarQuizModels';
 const GRAMMAR_QUIZ_SESSION_KEY = 'quiz:grammar';
 export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: GrammarQuizScreenProps) {
@@ -38,12 +40,16 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
   const [preferences, setPreferences] = useState<LearningPreferences>(DEFAULT_LEARNING_PREFERENCES);
   const [grammarErrorCardAdded, setGrammarErrorCardAdded] = useState(false);
   const [sessionHydrated, setSessionHydrated] = useState(false);
+  const [availableLessons, setAvailableLessons] = useState<GrammarLesson[]>(() => filterGrammarForCurriculum(ALL_GRAMMAR_LESSONS, '1A'));
+  const [curriculumCode, setCurriculumCode] = useState<CurriculumCode>('1A');
   const answerInFlight = useRef(false);
   const schedule = useManagedTimers();
   useEffect(() => {
-    loadLearningPreferences(db)
-      .then((loadedPreferences) => {
+    Promise.all([loadLearningPreferences(db), loadCurriculumProfile(db)])
+      .then(([loadedPreferences, curriculum]) => {
         setPreferences(loadedPreferences);
+        setAvailableLessons(filterGrammarForCurriculum(ALL_GRAMMAR_LESSONS, curriculum.currentCode));
+        setCurriculumCode(curriculum.currentCode);
         setGrammarQuizRomajiVisible(loadedPreferences.showRomaji);
         setGrammarQuizFrenchVisible(loadedPreferences.showTranslationFirst);
       })
@@ -52,7 +58,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
   useEffect(() => {
     loadSession<GrammarQuizSnapshot>(db, GRAMMAR_QUIZ_SESSION_KEY)
       .then((snapshot) => {
-        if (!snapshot) return;
+        if (!snapshot || snapshot.curriculumCode !== curriculumCode) return;
         setGrammarQuizMode(snapshot.mode);
         setGrammarQuizSize(snapshot.size);
         setGrammarQuizSession(snapshot.quizSession);
@@ -72,18 +78,19 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
       size: grammarQuizSize,
       quizSession: grammarQuizSession,
       matchingSession: grammarMatchingSession,
+      curriculumCode,
     }).catch((error) => recordTechnicalLog(db, 'error', 'grammar_quiz_save', error instanceof Error ? error.message : String(error)));
-  }, [db, grammarMatchingSession, grammarQuizMode, grammarQuizSession, grammarQuizSize, sessionHydrated]);
+  }, [curriculumCode, db, grammarMatchingSession, grammarQuizMode, grammarQuizSession, grammarQuizSize, sessionHydrated]);
   const startGrammarQuiz = () => {
     if (grammarQuizMode === 'matching') {
       setGrammarQuizSession(null);
-      setGrammarMatchingSession(createGrammarMatchingSession());
+      setGrammarMatchingSession(createGrammarMatchingSession(availableLessons));
       setGrammarMatchMessage('Choisis une phrase, puis sa traduction.');
     } else {
       const questions =
         grammarQuizMode === 'question_answer'
-          ? buildGrammarQuestionAnswerQuiz(grammarQuizSize)
-          : buildGrammarQuizQuestions(grammarQuizSize, grammarQuizMode);
+          ? buildGrammarQuestionAnswerQuiz(grammarQuizSize, availableLessons)
+          : buildGrammarQuizQuestions(grammarQuizSize, grammarQuizMode, availableLessons);
       setGrammarMatchingSession(null);
       setGrammarQuizSession(createGrammarSession(questions));
     }
@@ -106,7 +113,6 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
     setSelectedWordLookupAnchorId(null);
     setGrammarErrorCardAdded(false);
   };
-
   const answerGrammarQuiz = async (choice: string) => {
     if (!grammarQuizSession || grammarQuizSession.selected || grammarQuizSession.finished || answerInFlight.current) return;
     const current = grammarQuizSession.questions[grammarQuizSession.currentIndex];
@@ -136,7 +142,6 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
     });
     setGrammarDirectInput('');
   };
-
   const advanceGrammarQuiz = () => {
     if (!grammarQuizSession) return;
     const nextIndex = grammarQuizSession.currentIndex + 1;
@@ -154,7 +159,6 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
     setSelectedWordLookupAnchorId(null);
     setGrammarErrorCardAdded(false);
   };
-
   const quitGrammarQuiz = () => {
     setGrammarQuizSession(null);
     setGrammarMatchingSession(null);
@@ -167,7 +171,6 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
     setSelectedWordLookupAnchorId(null);
     setGrammarErrorCardAdded(false);
   };
-
   const selectGrammarMatchLeft = (pairId: string) => {
     if (!grammarMatchingSession || grammarMatchingSession.finished || grammarMatchingSession.locked) return;
     if (grammarMatchingSession.matchedIds.includes(pairId)) return;
@@ -178,7 +181,6 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
     });
     setGrammarMatchMessage('Maintenant, choisis la traduction correspondante.');
   };
-
   const answerGrammarMatchRight = async (pairId: string) => {
     if (
       !grammarMatchingSession ||
@@ -266,7 +268,6 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
       });
     }, isCorrect ? 450 : 650);
   };
-
   {
     const currentGrammarQuestion = grammarQuizSession?.questions[grammarQuizSession.currentIndex] ?? null;
     const grammarTotal = grammarQuizSession?.questions.length ?? grammarQuizSize;
@@ -296,7 +297,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
       ? Math.round(((grammarMatchingSession.attempts - grammarMatchingSession.errors) / grammarMatchingSession.attempts) * 100)
       : 100;
     const activeGrammarMode = GRAMMAR_QUIZ_MODES.find((mode) => mode.id === grammarQuizMode) ?? GRAMMAR_QUIZ_MODES[0];
-
+    if (!availableLessons.length) return <EmptyState title="La grammaire se débloque au niveau 2A." />;
     return (
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.segmented}>
@@ -312,14 +313,13 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
         <View style={styles.segmented}>
           <SegmentButton label="Audio" active={false} onPress={() => onNavigate('audio')} />
         </View>
-
         {!grammarQuizSession && !grammarMatchingSession ? (
           <>
             <View style={styles.arcadeHero}>
               <Text style={styles.arcadeKicker}>文法 Quiz</Text>
               <Text style={styles.arcadeTitle}>Grammaire N5 active</Text>
               <Text style={styles.arcadeText}>
-                Cinq entraînements distincts sur les {ALL_GRAMMAR_LESSONS.length} leçons : écriture, QCM,
+                Cinq entraînements distincts sur les {availableLessons.length} leçons de ton niveau : écriture, QCM,
                 associations, dialogues et défi à score.
               </Text>
             </View>

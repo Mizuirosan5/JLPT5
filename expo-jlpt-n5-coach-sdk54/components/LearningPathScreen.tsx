@@ -10,7 +10,8 @@ import {
   buildGrammarMasteryDomain,
   loadGrammarProgressSummary,
 } from '../services/grammarProgress';
-import { buildLearningPathStages } from '../services/learningPath';
+import { buildCurriculumLearningPathStages } from '../services/learningPath';
+import { loadCurriculumProfile } from '../services/curriculum';
 import { loadLatestAptitudeResult, saveAptitudeResult, type AptitudeResultSnapshot } from '../services/aptitudeTest';
 import {
   ensureDailyGoalPlan,
@@ -579,15 +580,11 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
         ...(combinedKana ? [combinedKana] : []),
         ...adjustedContentRows,
       ];
-      const nextStages = buildLearningPathStages(allDomains, {
-        attempts: activity?.attempts ?? 0,
-        quizAttempts: activity?.quizAttempts ?? 0,
-        examAttempts: activity?.examAttempts ?? 0,
-        bestScore: activity?.bestScore ?? 0,
-      });
+      const curriculum = await loadCurriculumProfile(db);
+      const nextStages = buildCurriculumLearningPathStages(curriculum);
       const active = nextStages.find((stage) => stage.status === 'active') ?? nextStages[nextStages.length - 1];
-      const mastered = allDomains.reduce((total, domain) => total + domain.mastered, 0);
-      const total = allDomains.reduce((sum, domain) => sum + domain.total, 0);
+      const mastered = curriculum.completedUnits;
+      const total = 30;
       const routeProgress =
         nextStages.length > 0
           ? Math.round(
@@ -724,13 +721,13 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
           </View>
           {!!selectedStage.nextActionHint && (
             <View style={styles.pathGuidanceBox}>
-              <Text style={styles.pathGuidanceLabel}>Action conseillee</Text>
+              <Text style={styles.pathGuidanceLabel}>Action conseillée</Text>
               <Text style={styles.pathGuidanceText}>{selectedStage.nextActionHint}</Text>
             </View>
           )}
         </View>
 
-        <Section title="Prerequis">
+        <Section title="Prérequis">
           <View style={styles.pathRequirementList}>
             {(selectedStage.prerequisites ?? []).map((prerequisite, index) => (
               <View key={`${selectedStage.id}-prerequisite-${index}`} style={styles.pathRequirementItem}>
@@ -741,7 +738,7 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
           </View>
         </Section>
 
-        <Section title="Ce qu on attend de toi">
+        <Section title="Ce qu’on attend de toi">
           <View style={styles.pathRequirementList}>
             {(selectedStage.checkpoints ?? []).map((checkpoint, index) => (
               <View key={`${selectedStage.id}-checkpoint-${index}`} style={styles.pathRequirementItem}>
@@ -887,7 +884,7 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
             <Text style={styles.pathEvaluationCodeLabel}>niveau actuel</Text>
           </View>
           <View style={styles.pathEvaluationBody}>
-            <Text style={styles.pathNextLabel}>Évaluation du parcours</Text>
+            <Text style={styles.pathNextLabel}>Évaluation</Text>
             <Text style={styles.pathEvaluationTitle}>{activeStage.title} - {activeSubStep.title}</Text>
             <Text style={styles.pathNextText}>{activeSubStep.objective}</Text>
             <View style={styles.pathProgressTrack}>

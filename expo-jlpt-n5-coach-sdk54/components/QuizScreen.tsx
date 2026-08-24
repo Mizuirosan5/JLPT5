@@ -30,6 +30,8 @@ import { shuffle } from '../services/random';
 import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../services/preferences';
 import { buildQuizFeedbackInsights } from '../services/quizFeedback';
 import { recordSrsReviewForQuestionAttempt } from '../services/srs';
+import { filterKanaForCurriculum, filterKanjiForCurriculum, filterQuestionsForCurriculum, filterVocabularyForCurriculum, getQuestionCurriculumCode, loadCurriculumCatalog, loadCurriculumProfile } from '../services/curriculum';
+import type { CurriculumCode } from '../data/curriculum';
 
 type QuizLocation = { mode: MainQuizMode; scope: KnowledgeQuizScope };
 
@@ -54,10 +56,12 @@ export function QuizScreen({
   const [selectedWordLookupAnchorId, setSelectedWordLookupAnchorId] = useState<string | null>(null);
   const [kanaArcadeCards, setKanaArcadeCards] = useState<KanaCard[]>([]);
   const [preferences, setPreferences] = useState<LearningPreferences>(DEFAULT_LEARNING_PREFERENCES);
+  const [curriculumCode, setCurriculumCode] = useState<CurriculumCode>('1A');
+  const curriculumVocabularyEntries = useMemo(() => filterVocabularyForCurriculum(vocabularyLookupEntries, curriculumCode), [curriculumCode, vocabularyLookupEntries]);
 
   useEffect(() => {
-    loadLearningPreferences(db)
-      .then(setPreferences)
+    Promise.all([loadLearningPreferences(db), loadCurriculumProfile(db)])
+      .then(([loaded, curriculum]) => { setPreferences(loaded); setCurriculumCode(curriculum.currentCode); })
       .catch((error) => console.error('Unable to load quiz preferences', error));
   }, [db]);
 
@@ -80,7 +84,7 @@ export function QuizScreen({
         ORDER BY k.script, length(k.character), k.romaji
         `
       );
-      setKanaArcadeCards(
+      setKanaArcadeCards(filterKanaForCurriculum(
         rows.map((row) => {
           const combinedPreset = getCombinedKanaExamplePreset(row.romaji);
           return {
@@ -89,24 +93,23 @@ export function QuizScreen({
             romaji: normalizeKanaRomaji(row.character, row.romaji),
             examples: combinedPreset ? [buildCombinedKanaVocabularyExample(row.character, combinedPreset)] : [],
           };
-        })
-      );
+        }), curriculumCode));
     } catch (error) {
       console.error('Unable to load kana arcade cards', error);
       setKanaArcadeCards([]);
     }
-  }, [db]);
+  }, [db, curriculumCode]);
 
   useEffect(() => {
     loadKanaArcadeCards();
   }, [loadKanaArcadeCards]);
 
   useEffect(() => {
-    loadKanjiItems(db).then(setGlobalKanjiItems).catch((error) => {
+    loadKanjiItems(db).then((items) => setGlobalKanjiItems(filterKanjiForCurriculum(items, curriculumCode))).catch((error) => {
       console.error('Unable to load global quiz kanji', error);
       setGlobalKanjiItems([]);
     });
-  }, [db]);
+  }, [db, curriculumCode]);
 
   const loadQuestion = useCallback(async () => {
     setLoading(true);
@@ -115,7 +118,7 @@ export function QuizScreen({
     setSelectedWordLookupAnchorId(null);
     try {
       const candidates = await db.getAllAsync<QuizQuestion>(`
-        SELECT q.question_id, q.question_origin, q.skill_id, q.question_type,
+        SELECT q.question_id, q.question_origin, q.item_type, q.item_id, q.skill_id, q.question_type,
                q.prompt_fr, q.prompt_ja, q.correct_answer, q.explanation_fr
         FROM app_question_bank q
         JOIN app_adaptive_question_priority p ON p.question_id = q.question_id
@@ -136,9 +139,12 @@ export function QuizScreen({
           END DESC,
           COALESCE(a.last_answered_at, '1970-01-01') ASC,
           q.question_id
-        LIMIT 12
+        LIMIT 240
       `);
-      const next = shuffle(candidates.slice(0, 8))[0] ?? null;
+      const catalog = await loadCurriculumCatalog(db);
+      const eligibleCandidates = filterQuestionsForCurriculum(candidates, catalog, curriculumCode);
+      const currentCandidates = eligibleCandidates.filter((candidate) => getQuestionCurriculumCode(candidate, catalog) === curriculumCode);
+      const next = shuffle((currentCandidates.length ? currentCandidates : eligibleCandidates).slice(0, 8))[0] ?? null;
       setQuestion(next ?? null);
 
       if (next) {
@@ -151,9 +157,10 @@ export function QuizScreen({
         `,
           next.question_id
         );
+        const allowedAnswers = new Set(eligibleCandidates.map((candidate) => candidate.correct_answer));
         const compatibleGenerated = keepChoicesInWritingSystem(
           next.correct_answer,
-          generatedChoices.map((choice) => choice.choice_text)
+          generatedChoices.map((choice) => choice.choice_text).filter((choice) => allowedAnswers.has(choice))
         );
         if (compatibleGenerated.length >= 2) {
           setChoices(
@@ -164,27 +171,9 @@ export function QuizScreen({
             }))
           );
         } else {
-          const distractors = await db.getAllAsync<{ choice_text: string }>(
-            `
-            SELECT correct_answer AS choice_text
-            FROM app_question_bank
-            WHERE question_id != ?
-              AND skill_id = ?
-              AND question_type = ?
-              AND correct_answer IS NOT NULL
-              AND correct_answer != ?
-            GROUP BY correct_answer
-            ORDER BY correct_answer
-            LIMIT 12
-            `,
-            next.question_id,
-            next.skill_id,
-            next.question_type,
-            next.correct_answer
-          );
           const compatibleFallback = keepChoicesInWritingSystem(
             next.correct_answer,
-            [next.correct_answer, ...distractors.map((choice) => choice.choice_text)]
+            [next.correct_answer, ...eligibleCandidates.map((candidate) => candidate.correct_answer)]
           );
           setChoices(
             shuffle(
@@ -206,7 +195,7 @@ export function QuizScreen({
     } finally {
       setLoading(false);
     }
-  }, [db]);
+  }, [db, curriculumCode]);
 
   useEffect(() => {
     loadQuestion();
@@ -277,8 +266,9 @@ export function QuizScreen({
       <GlobalQuizScreen
         initialScope={knowledgeQuizScope}
         kanaArcadeCards={kanaArcadeCards}
-        vocabularyLookupEntries={vocabularyLookupEntries}
+        vocabularyLookupEntries={curriculumVocabularyEntries}
         globalKanjiItems={globalKanjiItems}
+        curriculumCode={curriculumCode}
         onNavigate={navigateQuiz}
       />
     );
@@ -287,7 +277,7 @@ export function QuizScreen({
   if (quizMode === 'grammar') {
     return (
       <GrammarQuizScreen
-        vocabularyLookupEntries={vocabularyLookupEntries}
+        vocabularyLookupEntries={curriculumVocabularyEntries}
         onNavigate={navigateQuiz}
       />
     );
@@ -305,7 +295,8 @@ export function QuizScreen({
   if (quizMode === 'audio') {
     return (
       <AudioQuizScreen
-        vocabularyLookupEntries={vocabularyLookupEntries}
+        vocabularyLookupEntries={curriculumVocabularyEntries}
+        curriculumCode={curriculumCode}
         onNavigate={navigateQuiz}
       />
     );

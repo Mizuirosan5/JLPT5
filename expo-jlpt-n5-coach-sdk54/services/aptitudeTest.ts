@@ -1,4 +1,5 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
+import { applyDiagnosticCurriculumPlacement } from './curriculum';
 
 type AptitudeDomainRow = {
   domain: string;
@@ -66,6 +67,7 @@ export async function saveAptitudeResult(
     JSON.stringify(answers),
     JSON.stringify(report)
   );
+  await applyDiagnosticCurriculumPlacement(db, report.score);
 }
 
 export async function loadLatestAptitudeResult(db: SQLiteDatabase): Promise<AptitudeResultSnapshot | null> {

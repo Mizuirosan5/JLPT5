@@ -547,6 +547,7 @@ export type VocabularyItem = VocabularyExample & {
   jlpt_level?: string | null;
   part_of_speech?: string | null;
   theme?: string | null;
+  importance?: number | null;
 };
 
 export type KanjiItem = {
@@ -573,6 +574,9 @@ export type VocabularyCardData = {
 
 export type WordLookupEntry = VocabularyExample & {
   usage: string;
+  theme?: string | null;
+  importance?: number | null;
+  category?: string;
 };
 
 export type JapaneseTextToken = {

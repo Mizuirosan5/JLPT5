@@ -39,7 +39,7 @@ yarn-error.*
 AGENTS.md
 CLAUDE.md
 preview/
-playwright-v2-*.png
+playwright-*.png
 .release-local/
 examAssets.ts
 assets/exams/official_2012/

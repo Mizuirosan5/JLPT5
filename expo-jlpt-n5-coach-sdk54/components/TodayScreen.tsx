@@ -8,8 +8,9 @@ import { ensureDailyGoalPlan, loadDashboardGoalData, loadDashboardMasteryDomains
 import { ALL_GRAMMAR_LESSONS, getGrammarMainMenu } from '../services/grammarCourse';
 import { loadGrammarProgressSummary } from '../services/grammarProgress';
 import { buildQuests, formatDateKey, isQuestComplete } from '../services/goals';
-import { calculateStudyStreak, emptyStats, formatSkillLabel, getLevelProgressFromXp } from '../services/progress';
+import { calculateStudyStreak, emptyStats, formatSkillLabel } from '../services/progress';
 import { loadSrsOverview } from '../services/srs';
+import { loadCurriculumProfile, type CurriculumProfile } from '../services/curriculum';
 import { DailyQuestCard, LoadingView, Section } from './sharedUi';
 
 const EMPTY_SRS: SrsOverview = { dueToday: 0, fragile: 0, known: 0, solid: 0, mastered: 0, total: 0, nextDueAt: null };
@@ -28,17 +29,19 @@ export function TodayScreen({ onNavigate }: { onNavigate: (screen: Screen) => vo
   const [rewardXp, setRewardXp] = useState(0);
   const [srs, setSrs] = useState<SrsOverview>(EMPTY_SRS);
   const [loadError, setLoadError] = useState(false);
+  const [curriculum, setCurriculum] = useState<CurriculumProfile | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError(false);
     try {
       const grammar = await loadGrammarProgressSummary(db, ALL_GRAMMAR_LESSONS, getGrammarMainMenu);
-      const [overview, quiz, mastery, srsData] = await Promise.all([
+      const [overview, quiz, mastery, srsData, curriculumData] = await Promise.all([
         loadDashboardOverviewData(db, grammar.total),
         loadDashboardQuizData(db),
         loadDashboardMasteryDomains(db, grammar),
         loadSrsOverview(db),
+        loadCurriculumProfile(db),
       ]);
       await ensureDailyGoalPlan(db, DAILY_GOAL_DEFINITIONS, 2);
       const goals = await loadDashboardGoalData(
@@ -56,6 +59,7 @@ export function TodayScreen({ onNavigate }: { onNavigate: (screen: Screen) => vo
       setGoalDefinitions(goals.todayDefinitions);
       setRewardXp(goals.rewardSummary.xp);
       setSrs(srsData);
+      setCurriculum(curriculumData);
     } catch (error) {
       console.error('Unable to load today screen', error);
       setLoadError(true);
@@ -71,9 +75,8 @@ export function TodayScreen({ onNavigate }: { onNavigate: (screen: Screen) => vo
   const streakDays = calculateStudyStreak(dailyProgress);
   const mastery = masteryDomains.reduce((sum, domain) => sum + domain.mastered, 0);
   const known = masteryDomains.reduce((sum, domain) => sum + domain.known, 0);
-  const level = getLevelProgressFromXp(stats.correctRate * 3 + stats.attempts * 10 + mastery * 25 + known * 8 + quizSummary.bestScore + rewardXp).level;
   const priority = masteryDomains.slice().sort((a, b) => b.review - a.review || b.unseen - a.unseen || (b.total - b.mastered) - (a.total - a.mastered))[0] ?? null;
-  const weakSkill = priority?.label ?? 'fondamentaux N5';
+  const weakSkill = curriculum?.unit.title ?? priority?.label ?? 'fondamentaux N5';
   const todayLabel = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
 
   if (loading) return <LoadingView />;
@@ -113,7 +116,7 @@ export function TodayScreen({ onNavigate }: { onNavigate: (screen: Screen) => vo
       <View style={styles.todayPulseRow}>
         <View style={styles.todayPulseItem}><Text style={styles.todayPulseValue}>{streakDays} j</Text><Text style={styles.todayPulseLabel}>assiduité</Text></View>
         <View style={styles.todayPulseDivider} />
-        <View style={styles.todayPulseItem}><Text style={styles.todayPulseValue}>Niv. {level}</Text><Text style={styles.todayPulseLabel}>progression</Text></View>
+        <View style={styles.todayPulseItem}><Text style={styles.todayPulseValue}>Niv. {curriculum?.currentCode ?? '1A'}</Text><Text style={styles.todayPulseLabel}>progression</Text></View>
         <View style={styles.todayPulseDivider} />
         <View style={styles.todayPulseItem}><Text style={styles.todayPulseValue}>{completedGoals}/3</Text><Text style={styles.todayPulseLabel}>objectifs</Text></View>
       </View>
@@ -139,7 +142,7 @@ export function TodayScreen({ onNavigate }: { onNavigate: (screen: Screen) => vo
             <Text style={styles.todayFocusRate}>{priority ? `${priority.rate}%` : 'N5'}</Text>
           </View>
           <Text style={styles.todayFocusTitle}>{weakSkill}</Text>
-          <Text style={styles.todayFocusText}>{priority ? `${priority.review} à revoir · ${priority.unseen} encore à découvrir` : 'Commence une première session pour obtenir une recommandation précise.'}</Text>
+          <Text style={styles.todayFocusText}>{curriculum?.unit.canDo ?? (priority ? `${priority.review} à revoir · ${priority.unseen} encore à découvrir` : 'Commence une première session pour obtenir une recommandation précise.')}</Text>
           <View style={styles.todayFocusActions}>
             <Pressable accessibilityRole="button" onPress={() => onNavigate(getDomainScreen(priority?.id))} style={({ pressed }) => [styles.todaySecondaryAction, pressed && styles.controlPressed]}><Text style={styles.todaySecondaryActionText}>Travailler ce point</Text></Pressable>
             <Pressable accessibilityRole="button" onPress={() => onNavigate('path')} style={({ pressed }) => [styles.todayTextAction, pressed && styles.controlPressed]}><Text style={styles.todayTextActionText}>Voir le parcours</Text></Pressable>

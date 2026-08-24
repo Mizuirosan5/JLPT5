@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it, mock } from 'node:test';
 import type { LearningPreferences, MasteryDomainStats } from '../../models';
 import { buildDateRange, formatDateKey, getGoalProgress } from '../../services/goals';
-import { buildLearningPathStages } from '../../services/learningPath';
+import { buildCurriculumLearningPathStages, buildLearningPathStages } from '../../services/learningPath';
 import { getLevelProgressFromXp, masteryProgress } from '../../services/progress';
 import { getQuickLearnerStage, getQuickQuestionLimit, keepHomogeneousChoices, uniqueChoices } from '../../services/quickSession';
 import { shuffle } from '../../services/random';
@@ -10,6 +10,8 @@ import { buildNextSrsState, inferSrsItemType } from '../../services/srs';
 import { hasJapaneseText, normalizeAnswer } from '../../services/text';
 import { normalizeAptitudeReport } from '../../services/aptitudeTest';
 import { assertMigrationCounts, getCommonMigrationColumns } from '../../services/databaseMigration';
+import { filterGrammarForCurriculum, getKanaCurriculumCode, getKanjiCurriculumCode, getVocabularyCurriculumPlacement, isCurriculumAccessible } from '../../services/curriculum';
+import { ALL_GRAMMAR_LESSONS } from '../../services/grammarCourse';
 
 const preferences: LearningPreferences = {
   showRomaji: true,
@@ -102,6 +104,33 @@ describe('moteurs metier critiques', () => {
     assert.equal(stages[0]!.status, 'done');
     assert.equal(stages[1]!.status, 'active');
     assert.equal(stages[1]!.subSteps?.length, 3);
+  });
+
+  it('verrouille strictement les contenus pedagogiques futurs', () => {
+    assert.equal(isCurriculumAccessible('1A', '1A'), true);
+    assert.equal(isCurriculumAccessible('4A', '3C'), false);
+    assert.equal(getKanaCurriculumCode({ character: 'あ', script: 'hiragana' }), '1A');
+    assert.equal(getKanaCurriculumCode({ character: 'きゃ', script: 'hiragana' }), '2C');
+    assert.equal(getKanjiCurriculumCode({ character: '一' }), '4A');
+    assert.equal(getKanjiCurriculumCode({ character: '学' }), '6B');
+  });
+
+  it('ecarte du parcours guide le lexique hors socle ou insuffisamment valide', () => {
+    const core = getVocabularyCurriculumPlacement({ id: 'core', japanese: 'ありがとう', kana: 'ありがとう', kanji: null, romaji: 'arigatou', meaning_fr: 'merci', theme: 'salutations_formules', importance: 5 });
+    const reference = getVocabularyCurriculumPlacement({ id: 'ref', japanese: '抽象', kana: 'ちゅうしょう', kanji: '抽象', romaji: 'chuushou', meaning_fr: 'abstraction', theme: 'general', importance: 3 });
+    assert.equal(core.track, 'guided');
+    assert.equal(reference.track, 'reference');
+  });
+
+  it('construit trente vrais sous-niveaux et masque la grammaire avancee', () => {
+    const beginnerLessons = filterGrammarForCurriculum(ALL_GRAMMAR_LESSONS, '2A');
+    assert.ok(beginnerLessons.length >= 1);
+    assert.equal(beginnerLessons.some((lesson) => lesson.title.includes('Passif')), false);
+    const stages = buildCurriculumLearningPathStages({ currentCode: '1B', unit: { code: '1B', title: 'Premiers mots', canDo: 'Lire.', focus: ['kana'], targetItems: 12, minimumAttempts: 12, minimumAccuracy: 80 }, completedUnits: 1, progress: 40, attempts: 5, accuracy: 80, masteredItems: 4 });
+    assert.equal(stages.length, 10);
+    assert.equal(stages.flatMap((stage) => stage.subSteps ?? []).length, 30);
+    assert.equal(stages[0]?.subSteps?.[1]?.status, 'active');
+    assert.equal(stages[1]?.status, 'locked');
   });
 
   it('borne les niveaux et l XP restante', () => {

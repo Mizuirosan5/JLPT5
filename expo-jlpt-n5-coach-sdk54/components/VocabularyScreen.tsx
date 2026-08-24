@@ -22,6 +22,8 @@ import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../servic
 import { EmptyState, Metric, Section } from './sharedUi';
 import { SegmentButton } from './formControls';
 import { OfflineAudioButton } from './OfflineAudioButton';
+import { filterKanjiForCurriculum, filterVocabularyForCurriculum, loadCurriculumProfile } from '../services/curriculum';
+import type { CurriculumCode } from '../data/curriculum';
 
 function getCompactReading(value: string | null | undefined) {
   if (!value?.trim()) return '-';
@@ -83,11 +85,12 @@ export function VocabularyScreen() {
   const [preferences, setPreferences] = useState<LearningPreferences>(DEFAULT_LEARNING_PREFERENCES);
   const [selectedKanjiDetail, setSelectedKanjiDetail] = useState<KanjiDetail | null>(null);
   const [cardPage, setCardPage] = useState(0);
+  const [curriculumCode, setCurriculumCode] = useState<CurriculumCode>('1A');
 
   useEffect(() => {
     let mounted = true;
-    Promise.all([loadVocabularyItems(db), loadKanjiItems(db), loadVocabularyCardStates(db), loadLearningPreferences(db)])
-      .then(([{ rows, total, n5 }, kanjiRows, stateRows, loadedPreferences]) => {
+    Promise.all([loadVocabularyItems(db), loadKanjiItems(db), loadVocabularyCardStates(db), loadLearningPreferences(db), loadCurriculumProfile(db)])
+      .then(([{ rows, total, n5 }, kanjiRows, stateRows, loadedPreferences, curriculum]) => {
         if (!mounted) return;
         setTotalCount(total);
         setN5Count(n5);
@@ -95,6 +98,7 @@ export function VocabularyScreen() {
         setKanjiItems(kanjiRows);
         setCardStates(indexVocabularyCardStates(stateRows));
         setPreferences(loadedPreferences);
+        setCurriculumCode(curriculum.currentCode);
       })
       .catch((error) => {
         console.error('Unable to load vocabulary', error);
@@ -112,8 +116,8 @@ export function VocabularyScreen() {
 
   const scopedItems = useMemo(() => {
     if (scope === 'all') return items;
-    return items.filter((item) => (item.jlpt_level ?? 'N5').toUpperCase() === 'N5');
-  }, [items, scope]);
+    return filterVocabularyForCurriculum(items, curriculumCode);
+  }, [items, scope, curriculumCode]);
 
   const vocabularyThemeGroups = useMemo(() => {
     const groups = new Map<string, VocabularyItem[]>();
@@ -160,8 +164,8 @@ export function VocabularyScreen() {
 
   const scopedKanjiItems = useMemo(() => {
     if (scope === 'all') return kanjiItems;
-    return kanjiItems.filter((item) => item.jlpt_level.toUpperCase() === 'N5');
-  }, [kanjiItems, scope]);
+    return filterKanjiForCurriculum(kanjiItems, curriculumCode);
+  }, [kanjiItems, scope, curriculumCode]);
 
   const n5VocabularyCards = useMemo(
     () => buildVocabularyCards(scopedItems, scopedKanjiItems).filter((card) => !!card.kanji),

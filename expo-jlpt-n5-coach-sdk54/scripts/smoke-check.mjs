@@ -17,6 +17,7 @@ const requiredFiles = [
   'components/DashboardScreen.tsx',
   'components/ExamScreen.tsx',
   'components/AudioQuizScreen.tsx',
+  'components/CurriculumGate.tsx',
   'components/GlobalQuizScreen.tsx',
   'components/GrammarLessonsScreen.tsx',
   'components/GrammarQuizScreen.tsx',
@@ -28,6 +29,7 @@ const requiredFiles = [
   'components/SmartCorrectionInsightCard.tsx',
   'components/VocabularyScreen.tsx',
   'services/database.ts',
+  'services/curriculum.ts',
   'services/embeddedAudio.ts',
   'services/globalQuizFactory.ts',
   'services/grammarCourse.ts',
@@ -39,11 +41,14 @@ const requiredFiles = [
   'services/srsQueue.ts',
   'services/vocabulary.ts',
   'data/grammarLessons.ts',
+  'data/curriculum.ts',
   'data/audioAssetRegistry.ts',
   'assets/audio/audio-pack-manifest.json',
   'scripts/sync-audio-registry.mjs',
   'scripts/validate-audio-pack.mjs',
   'docs/AUDIO_PACK_OFFLINE.md',
+  'docs/CURRICULUM_PEDAGOGIQUE_N5.md',
+  'scripts/audit-curriculum.ts',
   'data/kanaTables.ts',
   'dist/index.html',
   'dist/metadata.json',
@@ -185,6 +190,18 @@ for (const requiredGrammarFeedbackToken of [
 const quickSessionSource = read('services/quickSession.ts');
 if (!quickSessionSource.includes("q.question_origin != 'exam'")) {
   fail('Quick sessions must exclude image-dependent exam questions');
+}
+
+const curriculumSource = read('services/curriculum.ts');
+for (const requiredCurriculumToken of [
+  'loadCurriculumProfile',
+  'filterQuestionsForCurriculum',
+  'filterGrammarForCurriculum',
+  'applyDiagnosticCurriculumPlacement',
+]) {
+  if (!curriculumSource.includes(requiredCurriculumToken)) {
+    fail(`Curriculum token missing: ${requiredCurriculumToken}`);
+  }
 }
 
 console.log('Smoke check passed.');

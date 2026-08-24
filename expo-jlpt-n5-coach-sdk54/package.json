@@ -24,7 +24,8 @@
     "test:integration": "node --import ./scripts/register-typescript-test-loader.mjs --test tests/integration/persistence.test.ts",
     "test:e2e": "npm run audit:mobile",
     "test:content": "node scripts/validate-content.mjs",
-    "test:release": "npm run typecheck && npm run test:unit && npm run test:integration && npm run test:content && npm run db:validate && npm run smoke && npm run export:web && npm run audio:check"
+    "test:curriculum": "node --import ./scripts/register-typescript-test-loader.mjs scripts/audit-curriculum.ts",
+    "test:release": "npm run typecheck && npm run test:unit && npm run test:integration && npm run test:content && npm run test:curriculum && npm run db:validate && npm run smoke && npm run export:web && npm run audio:check"
   },
   "dependencies": {
     "expo": "~54.0.35",

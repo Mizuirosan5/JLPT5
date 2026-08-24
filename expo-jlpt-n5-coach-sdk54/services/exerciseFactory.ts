@@ -38,12 +38,12 @@ export function buildWordOrderDisplay(sentence: string): string {
 }
 
 export function getExerciseInstruction(format: ExerciseFormat): string {
-  if (format === 'direct_input') return 'Ecris la reponse exacte.';
-  if (format === 'reverse') return 'Pars de l indice et retrouve la reponse japonaise.';
-  if (format === 'matching') return 'Relie chaque element a sa correspondance.';
+  if (format === 'direct_input') return 'Écris la réponse exacte.';
+  if (format === 'reverse') return 'Pars de l’indice et retrouve la réponse japonaise.';
+  if (format === 'matching') return 'Relie chaque élément à sa correspondance.';
   if (format === 'blank') return 'Complete le trou avec la forme correcte.';
   if (format === 'word_order') return 'Remets mentalement les elements dans le bon ordre.';
-  return 'Choisis la bonne reponse.';
+  return 'Choisis la bonne réponse.';
 }
 
 export function getGrammarExerciseFormat(mode: GrammarQuizMode, kind: GrammarExerciseKind): ExerciseFormat {

@@ -19,9 +19,11 @@ import { GRAMMAR_KEY_TOKENS, buildGrammarWhy, getGrammarKeyword } from './gramma
 import { maskGrammarKeyword } from './grammarQuizFactory';
 import { getKanjiComponentDetail } from './kanjiComponents';
 import { shuffle } from './random';
+import { filterGrammarForCurriculum } from './curriculum';
+import type { CurriculumCode } from '../data/curriculum';
 
 export type KanjiAnswerTarget = 'french' | 'japanese' | 'components';
-type GlobalQuizBuildOptions = Pick<LearningPreferences, 'japaneseAnswerMode' | 'quizDifficulty'>;
+type GlobalQuizBuildOptions = Pick<LearningPreferences, 'japaneseAnswerMode' | 'quizDifficulty'> & { curriculumCode: CurriculumCode };
 
 export function getGlobalDomainLabel(domain: GlobalQuizDomain): string {
   if (domain === 'kana') return 'Kana';
@@ -64,18 +66,18 @@ function getGlobalFormatLabel(format: GlobalQuizFormat): string {
 
 function getMeasuredSkill(format: GlobalQuizFormat): string {
   if (format === 'kana_reading') return 'Lire un kana et produire son romaji.';
-  if (format === 'kana_recognition') return 'Reconnaitre le signe correspondant a un son.';
+  if (format === 'kana_recognition') return 'Reconnaître le signe correspondant à un son.';
   if (format === 'vocabulary_meaning') return 'Comprendre un mot japonais en contexte court.';
   if (format === 'vocabulary_reading') return 'Retrouver la lecture d un mot affiche en japonais.';
-  if (format === 'vocabulary_japanese') return 'Produire le mot japonais depuis le francais.';
-  if (format === 'kanji_meaning') return 'Associer un kanji a son sens principal.';
+  if (format === 'vocabulary_japanese') return 'Produire le mot japonais depuis le français.';
+  if (format === 'kanji_meaning') return 'Associer un kanji à son sens principal.';
   if (format === 'kanji_reading') return 'Retrouver une lecture N5 utile du kanji.';
   if (format === 'kanji_japanese_word') return 'Repondre en japonais a partir du kanji.';
   if (format === 'kanji_components') return 'Identifier les composants visuels qui aident a memoriser le kanji.';
   if (format === 'grammar_blank') return 'Choisir la particule ou forme manquante.';
-  if (format === 'grammar_rule') return 'Identifier la regle adaptee a une intention.';
+  if (format === 'grammar_rule') return 'Identifier la règle adaptée à une intention.';
   if (format === 'grammar_translation') return 'Comprendre le sens global de la phrase.';
-  return 'Choisir la reponse naturelle selon la situation.';
+  return 'Choisir la réponse naturelle selon la situation.';
 }
 
 function withFormat(
@@ -91,7 +93,7 @@ function withFormat(
   };
 }
 
-export function getKnowledgeQuizModeCopy(mode: GlobalQuizMode, scope: KnowledgeQuizScope) {
+export function getKnowledgeQuizModeCopy(mode: GlobalQuizMode, scope: KnowledgeQuizScope | GlobalQuizDomain) {
   const base = GLOBAL_QUIZ_MODES.find((item) => item.id === mode) ?? GLOBAL_QUIZ_MODES[0];
   if (scope === 'all') return base;
   const domain = getGlobalDomainLabel(scope);
@@ -118,9 +120,18 @@ export function buildGlobalQuizQuestions(
       Boolean(item.japanese && item.meaning_fr) && list.findIndex((candidate) => candidate.japanese === item.japanese) === index
     )
   ).slice(0, Math.max(size, 20));
-  const grammarPool = shuffle(ALL_GRAMMAR_LESSONS).slice(0, Math.max(size, 20));
+  const grammarPool = shuffle(
+    options.curriculumCode ? filterGrammarForCurriculum(ALL_GRAMMAR_LESSONS, options.curriculumCode) : ALL_GRAMMAR_LESSONS,
+  ).slice(0, Math.max(size, 20));
   const kanjiPool = shuffle(kanjiItems).slice(0, Math.max(size, 20));
-  const domains: GlobalQuizDomain[] = scope === 'all' ? ['kana', 'vocabulary', 'grammar', 'kanji'] : [scope];
+  const availableDomains: GlobalQuizDomain[] = [
+    ...(kanaPool.length ? ['kana' as const] : []),
+    ...(vocabularyPool.length ? ['vocabulary' as const] : []),
+    ...(grammarPool.length ? ['grammar' as const] : []),
+    ...(kanjiPool.length ? ['kanji' as const] : []),
+  ];
+  const domains: GlobalQuizDomain[] = scope === 'all' ? availableDomains : availableDomains.filter((domain) => domain === scope);
+  if (!domains.length) return [];
 
   return Array.from({ length: size }, (_, index) => {
     const domain = domains[index % domains.length];
@@ -128,14 +139,14 @@ export function buildGlobalQuizQuestions(
     const direct = mode === 'direct_input';
     if (domain === 'kana') {
       const item = kanaPool[index % kanaPool.length];
-      const answer = reverse ? item.character : item.romaji;
-      const alternatives = kanaPool.map((candidate) => (reverse ? candidate.character : candidate.romaji));
+      const answer = item.character;
+      const alternatives = kanaPool.map((candidate) => candidate.character);
       return withFormat({
         id: `global-kana-${index}-${item.id}`,
         domain,
-        format: reverse ? 'kana_recognition' : 'kana_reading',
-        prompt: reverse ? 'Quel kana correspond à ce romaji ?' : 'Quelle est la lecture en romaji ?',
-        display: reverse ? item.romaji : item.character,
+        format: 'kana_recognition',
+        prompt: 'Quel kana correspond à ce son ?',
+        display: item.romaji,
         correctAnswer: answer,
         choices: buildExerciseChoices({ correctAnswer: answer, alternatives, direct }),
         explanation: `${item.character} se lit ${item.romaji}.`,
@@ -152,7 +163,7 @@ export function buildGlobalQuizQuestions(
           ? ['vocabulary_japanese', 'vocabulary_reading']
           : ['vocabulary_meaning', 'vocabulary_reading', 'vocabulary_japanese'];
       const format = pickCycleItem(formatCycle, index);
-      const directAnswer = item.romaji || item.kana || item.meaning_fr;
+      const directAnswer = item.kana || item.japanese;
       const answer =
         format === 'vocabulary_meaning'
           ? item.meaning_fr
@@ -164,7 +175,7 @@ export function buildGlobalQuizQuestions(
           ? candidate.meaning_fr
           : format === 'vocabulary_japanese'
             ? getPreferredJapaneseWord(candidate)
-            : candidate.romaji || candidate.kana || candidate.meaning_fr
+            : candidate.kana || candidate.japanese
       );
       return withFormat({
         id: `global-vocabulary-${index}-${item.id}`,
@@ -213,11 +224,11 @@ export function buildGlobalQuizQuestions(
         format,
         prompt:
           format === 'grammar_translation'
-            ? 'Choisis la bonne traduction francaise.'
+            ? 'Choisis la bonne traduction française.'
             : format === 'grammar_rule'
-              ? 'Quelle regle correspond a cette phrase ?'
+              ? 'Quelle règle correspond à cette phrase ?'
               : format === 'grammar_situation'
-                ? 'Quelle regle repond a cette intention ?'
+                ? 'Quelle règle répond à cette intention ?'
                 : 'Complete la phrase avec la forme grammaticale correcte.',
         display:
           format === 'grammar_situation'
@@ -299,41 +310,34 @@ export function buildGlobalMatchingSession(
   kanaCards: KanaCard[],
   vocabulary: WordLookupEntry[],
   kanjiItems: KanjiItem[],
-  scope: KnowledgeQuizScope = 'all'
+  scope: KnowledgeQuizScope = 'all',
+  curriculumCode: CurriculumCode = '10C',
 ): GlobalMatchingSession {
   const kanaPool = shuffle(kanaCards);
   const vocabularyPool = shuffle(vocabulary.filter((item) => item.japanese && item.meaning_fr));
-  const grammarPool = shuffle(ALL_GRAMMAR_LESSONS);
+  const grammarPool = shuffle(filterGrammarForCurriculum(ALL_GRAMMAR_LESSONS, curriculumCode));
   const kanjiPool = shuffle(kanjiItems);
   const rounds = Array.from({ length: 3 }, (_, roundIndex) => {
-    const kana = kanaPool[roundIndex % kanaPool.length];
-    const word = vocabularyPool[roundIndex % vocabularyPool.length];
-    const grammar = grammarPool[roundIndex % grammarPool.length];
-    const example = grammar.examples[roundIndex % grammar.examples.length] ?? grammar.examples[0];
-    const kanji = kanjiPool[roundIndex % kanjiPool.length];
-    const extraWord = vocabularyPool[(roundIndex + 3) % vocabularyPool.length];
-    const allPairs: GlobalMatchingPair[] = [
-      ...Array.from({ length: 5 }, (_, index) => {
+    const allPairs: GlobalMatchingPair[] = shuffle([
+      ...(kanaPool.length ? Array.from({ length: 5 }, (_, index) => {
         const item = kanaPool[(roundIndex * 5 + index) % kanaPool.length];
         return { id: `global-match-${roundIndex}-kana-${index}`, domain: 'kana' as const, left: item.character, right: item.romaji };
-      }),
-      ...Array.from({ length: 5 }, (_, index) => {
+      }) : []),
+      ...(vocabularyPool.length ? Array.from({ length: 5 }, (_, index) => {
         const item = vocabularyPool[(roundIndex * 5 + index) % vocabularyPool.length];
         return { id: `global-match-${roundIndex}-vocab-${index}`, domain: 'vocabulary' as const, left: getPreferredJapaneseWord(item), right: item.meaning_fr };
-      }),
-      ...Array.from({ length: 5 }, (_, index) => {
+      }) : []),
+      ...(grammarPool.length ? Array.from({ length: 5 }, (_, index) => {
+        const lesson = grammarPool[(roundIndex * 5 + index) % grammarPool.length];
+        const example = lesson.examples[index % lesson.examples.length] ?? lesson.examples[0];
+        return { id: `global-match-${roundIndex}-grammar-${index}`, domain: 'grammar' as const, left: example.kanji || example.kana, right: example.fr };
+      }) : []),
+      ...(kanjiPool.length ? Array.from({ length: 5 }, (_, index) => {
         const item = kanjiPool[(roundIndex * 5 + index) % kanjiPool.length];
         return { id: `global-match-${roundIndex}-kanji-${index}`, domain: 'kanji' as const, left: item.character, right: item.meaning_fr };
-      }),
-    ];
-    const mixedPairs: GlobalMatchingPair[] = [
-      { id: `global-match-${roundIndex}-kana`, domain: 'kana', left: kana.character, right: kana.romaji },
-      { id: `global-match-${roundIndex}-vocab`, domain: 'vocabulary', left: getPreferredJapaneseWord(word), right: word.meaning_fr },
-      { id: `global-match-${roundIndex}-grammar`, domain: 'grammar', left: example.kanji || example.kana, right: example.fr },
-      { id: `global-match-${roundIndex}-kanji`, domain: 'kanji', left: kanji.character, right: kanji.meaning_fr },
-      { id: `global-match-${roundIndex}-extra`, domain: 'vocabulary', left: getPreferredJapaneseWord(extraWord), right: extraWord.meaning_fr },
-    ];
-    const pairs = scope === 'all' ? mixedPairs : allPairs.filter((pair) => pair.domain === scope).slice(0, 5);
+      }) : []),
+    ]);
+    const pairs = (scope === 'all' ? allPairs : allPairs.filter((pair) => pair.domain === scope)).slice(0, 5);
     return { pairs, rightOrder: shuffle(pairs.map((pair) => pair.id)) };
   });
   return {
