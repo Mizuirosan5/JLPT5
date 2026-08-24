@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View, type StyleProp, type TextStyle } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import Svg, { Circle, Defs, G, Line, LinearGradient, Path, Rect, Stop, Text as SvgText } from 'react-native-svg';
 import { styles } from '../appStyles';
@@ -24,47 +24,7 @@ import { SegmentButton } from './formControls';
 import { OfflineAudioButton } from './OfflineAudioButton';
 import { filterKanjiForCurriculum, filterVocabularyForCurriculum, loadCurriculumProfile } from '../services/curriculum';
 import type { CurriculumCode } from '../data/curriculum';
-
-function getCompactReading(value: string | null | undefined) {
-  if (!value?.trim()) return '-';
-  return value
-    .split(/[、,;；/]/)
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .slice(0, 3)
-    .join('\n');
-}
-
-function formatCardReading(values: string[]) {
-  const compact = values
-    .flatMap((value) => value.split(/[;,/、]/))
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .slice(0, 5);
-  if (!compact.length) return 'lecture';
-  const [first, second, ...rest] = compact;
-  return [first?.toUpperCase(), second?.toUpperCase(), rest.length ? `/ ${rest.join(', ')}` : '']
-    .filter(Boolean)
-    .join(', ');
-}
-
-function formatCardMeaning(values: string[]) {
-  return values
-    .flatMap((value) => value.split(/[;,/]/))
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .slice(0, 4)
-    .join(', ');
-}
-
-function getKanjiCardTextStyle(
-  baseStyle: StyleProp<TextStyle>,
-  value: string,
-  singleSize: number,
-  compactSize: number,
-): StyleProp<TextStyle> {
-  return [baseStyle, value.length <= 1 ? { fontSize: singleSize } : { fontSize: compactSize }];
-}
+import { KANJI_READING_CARDS } from '../data/kanjiReadingCards';
 
 type VocabularyCardFilter = 'all' | 'favorites' | 'review';
 const CARD_PAGE_SIZE = 24;
@@ -343,7 +303,7 @@ export function VocabularyScreen() {
         <Section title={scope === 'n5' ? 'Flashcards JLPT N5' : `Flashcards · ${selectedVocabularyTheme ?? 'Tout vocabulaire'}`}>
           <Text style={styles.quizConfigText}>
             {scope === 'n5'
-              ? 'Format carte physique : recto pour reconnaître le kanji, verso pour vérifier les lectures et les mots liés.'
+              ? 'Recto : le kanji seul. Verso : toutes ses lectures utiles, leur romaji et un mot traduit pour chacune.'
               : 'Chaque carte montre le mot au recto. Au verso, le dessin représente le mot, avec lecture et traduction.'}
           </Text>
           <View style={styles.vocabularyDeckGrid}>
@@ -351,6 +311,7 @@ export function VocabularyScreen() {
               ? visibleDeckItems.map((item, index) => (
                   <VocabularySmartCardShell
                     key={item.id}
+                    wide
                     favorite={!!cardStates[item.id]?.favorite}
                     review={!!cardStates[item.id]?.review}
                     seenCount={cardStates[item.id]?.seen_count ?? 0}
@@ -363,7 +324,6 @@ export function VocabularyScreen() {
                       card={item}
                       index={cardPage * CARD_PAGE_SIZE + index}
                       flipped={flippedIds.has(item.id)}
-                      showRomaji={preferences.showRomaji}
                       onPress={() => toggleVocabularyCard(item.id)}
                     />
                   </VocabularySmartCardShell>
@@ -447,21 +407,15 @@ function VocabularyFlashCard({
   card,
   index: _index,
   flipped,
-  showRomaji,
   onPress,
 }: {
   card: VocabularyCardData;
   index: number;
   flipped: boolean;
-  showRomaji: boolean;
   onPress: () => void;
 }) {
   const mainText = card.root;
-  const primary = card.primary;
-  const romajiText = showRomaji ? formatCardReading(card.readings.length ? card.readings : [primary.romaji ?? '']) : '';
-  const meaningText = formatCardMeaning(card.meanings.length ? card.meanings : [primary.meaning_fr]) || 'sens';
-  const onyomiText = getCompactReading(card.kanji?.onyomi);
-  const kunyomiText = getCompactReading(card.kanji?.kunyomi || card.kanji?.n5_readings || primary.kana || primary.japanese);
+  const readingCard = KANJI_READING_CARDS[mainText];
 
   return (
     <Pressable
@@ -469,35 +423,39 @@ function VocabularyFlashCard({
       style={[styles.vocabularyFlashCard, flipped && styles.vocabularyFlashCardBack]}
     >
       {!flipped ? (
-        <>
-          <View style={styles.vocabCardFrontCenter}>
-            <Text numberOfLines={1} style={getKanjiCardTextStyle(styles.vocabCardMain, mainText, 104, 82)}>
-              {mainText}
-            </Text>
-          </View>
-        </>
+        <View style={styles.vocabCardFrontCenter}>
+          <Text style={styles.vocabCardMain}>{mainText}</Text>
+        </View>
       ) : (
         <>
-          <View style={styles.vocabCardCenter}>
-            <Text numberOfLines={1} style={getKanjiCardTextStyle(styles.vocabCardBackKanji, mainText, 46, 38)}>
-              {mainText}
-            </Text>
-            {showRomaji && (
-              <Text numberOfLines={3} style={styles.vocabCardReading}>
-                {romajiText}
-              </Text>
-            )}
-            <Text numberOfLines={5} style={styles.vocabCardMeaning}>
-              {meaningText}
+          <View style={styles.vocabKanjiBackHeader}>
+            <Text style={styles.vocabCardBackKanji}>{mainText}</Text>
+            <Text numberOfLines={2} style={styles.vocabCardMeaning}>
+              {readingCard?.meaningFr ?? card.kanji?.meaning_fr ?? card.primary.meaning_fr}
             </Text>
           </View>
-          <View style={styles.vocabCardBottomRow}>
-            <Text numberOfLines={3} style={styles.vocabCardSmall}>
-              {onyomiText}
-            </Text>
-            <Text numberOfLines={3} style={styles.vocabCardSmallRight}>
-              {kunyomiText}
-            </Text>
+          <View style={styles.vocabKanjiReadingList}>
+            {(readingCard?.readings ?? []).map((reading) => {
+              const example = reading.examples[0];
+              return (
+                <View key={`${mainText}-${reading.kana}`} style={styles.vocabKanjiReadingRow}>
+                  <View style={styles.vocabKanjiReadingHeader}>
+                    <Text numberOfLines={1} style={styles.vocabKanjiReadingKana}>{reading.kana}</Text>
+                    <Text numberOfLines={1} style={styles.vocabKanjiReadingRomaji}>{reading.romaji}</Text>
+                  </View>
+                  {!!example && (
+                    <>
+                      <Text numberOfLines={1} style={styles.vocabKanjiExampleWord}>
+                        {example.word}（{example.kana}）
+                      </Text>
+                      <Text numberOfLines={1} style={styles.vocabKanjiExampleMeaning}>
+                        {example.romaji} · {example.meaningFr}
+                      </Text>
+                    </>
+                  )}
+                </View>
+              );
+            })}
           </View>
         </>
       )}
@@ -508,6 +466,7 @@ function VocabularyFlashCard({
 function VocabularySmartCardShell({
   children,
   favorite,
+  wide = false,
   onOpenDetail,
   review,
   seenCount,
@@ -517,6 +476,7 @@ function VocabularySmartCardShell({
 }: {
   children: ReactNode;
   favorite: boolean;
+  wide?: boolean;
   onOpenDetail?: () => void;
   review: boolean;
   seenCount: number;
@@ -525,7 +485,7 @@ function VocabularySmartCardShell({
   audioText?: string;
 }) {
   return (
-    <View style={styles.vocabSmartCardShell}>
+    <View style={[styles.vocabSmartCardShell, wide && styles.vocabKanjiSmartCardShell]}>
       {children}
       <View style={styles.vocabSmartCardActions}>
         <Pressable

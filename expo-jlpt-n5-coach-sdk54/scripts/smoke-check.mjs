@@ -42,6 +42,7 @@ const requiredFiles = [
   'services/vocabulary.ts',
   'data/grammarLessons.ts',
   'data/curriculum.ts',
+  'data/kanjiReadingCards.ts',
   'data/audioAssetRegistry.ts',
   'assets/audio/audio-pack-manifest.json',
   'scripts/sync-audio-registry.mjs',

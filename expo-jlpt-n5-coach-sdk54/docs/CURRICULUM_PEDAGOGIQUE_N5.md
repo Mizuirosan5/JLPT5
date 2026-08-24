@@ -54,6 +54,7 @@ Les détails exécutables de chaque unité se trouvent dans `data/curriculum.ts`
 
 - Kana : 228 entrées canoniques classées par ligne, voisement et combinaison.
 - Kanji : 80 kanji, introduits par groupes de huit entre `4A` et `7A`.
+- Cartes kanji : 148 groupes de lectures prioritaires issus du classeur éditorial `JLPT_N5_Kanji_lectures_vocabulaire_ROMAJI.xlsx`. Chaque groupe conserve kana, romaji et au moins un mot traduit ; le verso n'affiche qu'un exemple par lecture pour rester lisible sur téléphone.
 - Vocabulaire : 714 entrées guidées. Une entrée n'est disponible que lorsque son thème, tous ses kana et tous ses kanji sont accessibles. Les entrées sans thème exploitable sont ordonnées par priorité éditoriale puis par longueur de lecture ; elles ne sont jamais réparties aléatoirement.
 - Grammaire : 119 leçons classées. Les exemples en kanji sont remplacés par leur version kana tant que les kanji nécessaires ne sont pas acquis.
 - Référence : 1 398 entrées lexicales complémentaires restent consultables hors parcours guidé.

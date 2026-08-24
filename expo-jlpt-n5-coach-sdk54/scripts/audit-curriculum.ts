@@ -4,6 +4,7 @@ import { CURRICULUM_CODES, CURRICULUM_UNITS, GRAMMAR_ORDERS_BY_LEVEL, KANJI_BY_L
 import { ALL_GRAMMAR_LESSONS } from '../services/grammarCourse';
 import { getGrammarCurriculumCode, getKanaCurriculumCode, getKanjiCurriculumCode, getVocabularyCurriculumPlacement } from '../services/curriculum';
 import type { KanaCard, KanjiItem, VocabularyItem } from '../models';
+import { KANJI_READING_CARDS } from '../data/kanjiReadingCards';
 
 const python = `
 import sqlite3,json
@@ -29,6 +30,18 @@ assert.equal(declaredKanji.length, 80, 'Le parcours doit classer les 80 kanji N5
 assert.equal(new Set(declaredKanji).size, 80, 'Chaque kanji N5 doit être classé une seule fois.');
 const unmappedKanji = data.kanji.filter((item) => !getKanjiCurriculumCode(item));
 assert.equal(unmappedKanji.length, 0, `Kanji non classés: ${unmappedKanji.map((item) => item.character).join('')}`);
+assert.equal(Object.keys(KANJI_READING_CARDS).length, 80, 'Les 80 cartes kanji doivent avoir leurs lectures détaillées.');
+assert.deepEqual(new Set(Object.keys(KANJI_READING_CARDS)), new Set(Array.from(declaredKanji)));
+for (const [character, card] of Object.entries(KANJI_READING_CARDS)) {
+  assert.ok(card.readings.length >= 1 && card.readings.length <= 3, `${character}: nombre de groupes de lectures invalide.`);
+  card.readings.forEach((reading) => {
+    assert.ok(reading.kana && reading.romaji, `${character}: lecture kana ou romaji manquante.`);
+    assert.ok(
+      reading.examples.some((example) => example.word && example.kana && example.romaji && example.meaningFr),
+      `${character}: exemple traduit manquant.`,
+    );
+  });
+}
 
 const guidedVocabulary = data.vocabulary.filter((item) => getVocabularyCurriculumPlacement(item).track === 'guided');
 assert.ok(guidedVocabulary.length >= 350, `Socle lexical guidé trop petit: ${guidedVocabulary.length}.`);
