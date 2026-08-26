@@ -5,7 +5,8 @@ import { styles } from '../appStyles';
 import type { KanjiItem, Screen, VocabularyItem } from '../models';
 import { buildKanjiDetail, type KanjiDetail } from '../services/kanjiComponents';
 import { markSrsItemForReview } from '../services/srs';
-import { loadKanjiItems, loadVocabularyItems } from '../services/vocabulary';
+import { buildVocabularyCards, loadKanjiItems, loadVocabularyItems } from '../services/vocabulary';
+import { KanjiFlashcardsSection } from './KanjiFlashcardsSection';
 import { EmptyState, LoadingView, Section } from './sharedUi';
 
 export function KanjiDetailScreen({ onNavigate }: { onNavigate?: (screen: Screen) => void }) {
@@ -61,6 +62,10 @@ export function KanjiDetailScreen({ onNavigate }: { onNavigate?: (screen: Screen
     () => selectedKanji ? buildKanjiDetail(selectedKanji, vocabularyItems) : null,
     [selectedKanji, vocabularyItems]
   );
+  const kanjiCards = useMemo(
+    () => buildVocabularyCards(vocabularyItems, kanjiItems).filter((card) => !!card.kanji).slice(0, 80),
+    [kanjiItems, vocabularyItems]
+  );
 
   const markForReview = async () => {
     if (!selectedKanji) return;
@@ -86,6 +91,8 @@ export function KanjiDetailScreen({ onNavigate }: { onNavigate?: (screen: Screen
           <Text style={styles.grammarHeroBadgeText}>kanji</Text>
         </View>
       </View>
+
+      <KanjiFlashcardsSection cards={kanjiCards} />
 
       <Section title="Chercher un kanji">
         <TextInput

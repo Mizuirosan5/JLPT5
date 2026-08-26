@@ -3,22 +3,19 @@ import { Modal, PanResponder, Pressable, SafeAreaView, ScrollView, Text, TextInp
 import { useSQLiteContext } from 'expo-sqlite';
 import Svg, { Circle, Defs, G, Line, LinearGradient, Path, Rect, Stop, Text as SvgText } from 'react-native-svg';
 import { styles } from '../appStyles';
-import type { KanjiItem, LearningPreferences, VocabularyCardData, VocabularyItem, VocabularyScope, VocabularyViewMode } from '../models';
+import type { LearningPreferences, VocabularyCardData, VocabularyItem, VocabularyScope, VocabularyViewMode } from '../models';
 import {
-  buildVocabularyCards,
-  getVocabularyCardSearchText,
   getVocabularyCategory,
   getVocabularyMainText,
   getVocabularyThemeLabel,
-  loadKanjiItems,
   loadVocabularyCardStates,
   loadVocabularyItems,
   recordVocabularyCardSeen,
   updateVocabularyCardFlag,
   type VocabularyCardState,
 } from '../services/vocabulary';
-import { buildKanjiDetail, type KanjiDetail } from '../services/kanjiComponents';
 import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../services/preferences';
+import type { KanjiDetail } from '../services/kanjiComponents';
 import { EmptyState, Metric, Section } from './sharedUi';
 import { SegmentButton } from './formControls';
 import { OfflineAudioButton } from './OfflineAudioButton';
@@ -30,7 +27,6 @@ const CARD_PAGE_SIZE = 24;
 export function VocabularyScreen() {
   const db = useSQLiteContext();
   const [items, setItems] = useState<VocabularyItem[]>([]);
-  const [kanjiItems, setKanjiItems] = useState<KanjiItem[]>([]);
   const [query, setQuery] = useState('');
   const [totalCount, setTotalCount] = useState(0);
   const [n5Count, setN5Count] = useState(0);
@@ -41,20 +37,16 @@ export function VocabularyScreen() {
   const [cardFilter, setCardFilter] = useState<VocabularyCardFilter>('all');
   const [cardStates, setCardStates] = useState<Record<string, VocabularyCardState>>({});
   const [preferences, setPreferences] = useState<LearningPreferences>(DEFAULT_LEARNING_PREFERENCES);
-  const [selectedKanjiDetail, setSelectedKanjiDetail] = useState<KanjiDetail | null>(null);
   const [cardPage, setCardPage] = useState(0);
-  const [kanjiViewerIndex, setKanjiViewerIndex] = useState<number | null>(null);
-  const [kanjiViewerFlipped, setKanjiViewerFlipped] = useState(false);
 
   useEffect(() => {
     let mounted = true;
-    Promise.all([loadVocabularyItems(db), loadKanjiItems(db), loadVocabularyCardStates(db), loadLearningPreferences(db)])
-      .then(([{ rows, total, n5 }, kanjiRows, stateRows, loadedPreferences]) => {
+    Promise.all([loadVocabularyItems(db), loadVocabularyCardStates(db), loadLearningPreferences(db)])
+      .then(([{ rows, total, n5 }, stateRows, loadedPreferences]) => {
         if (!mounted) return;
         setTotalCount(total);
         setN5Count(n5);
         setItems(rows.map((row) => ({ ...row, category: getVocabularyCategory(row) })));
-        setKanjiItems(kanjiRows);
         setCardStates(indexVocabularyCardStates(stateRows));
         setPreferences(loadedPreferences);
       })
@@ -63,7 +55,6 @@ export function VocabularyScreen() {
         if (mounted) {
         setTotalCount(0);
         setItems([]);
-        setKanjiItems([]);
         setCardStates({});
       }
       });
@@ -120,34 +111,13 @@ export function VocabularyScreen() {
     return Array.from(groups.entries());
   }, [filteredItems]);
 
-  const scopedKanjiItems = useMemo(() => {
-    return kanjiItems;
-  }, [kanjiItems]);
-
-  const n5VocabularyCards = useMemo(
-    () => buildVocabularyCards(scopedItems, scopedKanjiItems).filter((card) => !!card.kanji),
-    [scopedItems, scopedKanjiItems]
-  );
-
-  const deckItems = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    const filteredCards = normalized
-      ? n5VocabularyCards.filter((card) => getVocabularyCardSearchText(card).includes(normalized))
-      : n5VocabularyCards;
-    return filterVocabularyCards(filteredCards, cardStates, cardFilter).slice(0, 80);
-  }, [query, n5VocabularyCards, cardStates, cardFilter]);
-  const kanjiViewerDeck = useMemo(() => n5VocabularyCards.slice(0, 80), [n5VocabularyCards]);
-
   const genericDeckItems = useMemo(
     () => filterGenericVocabularyCards(filteredItems, cardStates, cardFilter).slice(0, 160),
     [filteredItems, cardStates, cardFilter]
   );
 
   const smartCardStats = useMemo(() => {
-    const allCardIds =
-      scope === 'n5'
-        ? n5VocabularyCards.map((card) => card.id)
-        : filteredItems.map((item) => item.id);
+    const allCardIds = filteredItems.map((item) => item.id);
     return allCardIds.reduce(
       (acc, id) => {
         const state = cardStates[id];
@@ -157,22 +127,17 @@ export function VocabularyScreen() {
       },
       { total: allCardIds.length, favorites: 0, review: 0 }
     );
-  }, [scope, n5VocabularyCards, filteredItems, cardStates]);
+  }, [filteredItems, cardStates]);
 
   useEffect(() => {
     setCardPage(0);
   }, [scope, viewMode, query, cardFilter, selectedVocabularyTheme]);
 
-  const visibleDeckItems = useMemo(
-    () => deckItems.slice(cardPage * CARD_PAGE_SIZE, (cardPage + 1) * CARD_PAGE_SIZE),
-    [cardPage, deckItems]
-  );
-
   const visibleGenericDeckItems = useMemo(
     () => genericDeckItems.slice(cardPage * CARD_PAGE_SIZE, (cardPage + 1) * CARD_PAGE_SIZE),
     [cardPage, genericDeckItems]
   );
-  const activeDeckLength = scope === 'n5' ? deckItems.length : genericDeckItems.length;
+  const activeDeckLength = genericDeckItems.length;
   const cardPageCount = Math.max(1, Math.ceil(activeDeckLength / CARD_PAGE_SIZE));
 
   const toggleVocabularyCard = (id: string) => {
@@ -199,27 +164,6 @@ export function VocabularyScreen() {
       },
     }));
     await updateVocabularyCardFlag(db, id, flag, nextValue);
-  };
-
-  const openKanjiViewer = (cardId?: string) => {
-    const index = cardId ? kanjiViewerDeck.findIndex((card) => card.id === cardId) : 0;
-    setKanjiViewerIndex(index >= 0 ? index : 0);
-    setKanjiViewerFlipped(false);
-  };
-
-  const showKanjiViewerCard = (direction: -1 | 1) => {
-    setKanjiViewerIndex((current) => {
-      if (current === null || kanjiViewerDeck.length === 0) return current;
-      return (current + direction + kanjiViewerDeck.length) % kanjiViewerDeck.length;
-    });
-    setKanjiViewerFlipped(false);
-  };
-
-  const toggleKanjiViewerCard = () => {
-    const card = kanjiViewerIndex === null ? null : kanjiViewerDeck[kanjiViewerIndex];
-    if (!card) return;
-    setKanjiViewerFlipped((current) => !current);
-    recordVocabularyCardSeen(db, card.id).catch((error) => console.error('Unable to record vocabulary card seen', error));
   };
 
   return (
@@ -259,7 +203,6 @@ export function VocabularyScreen() {
       <View style={styles.grammarStatsRow}>
         <Metric label="En base" value={totalCount} />
         <Metric label="N5" value={n5Count} />
-        <Metric label="Kanji" value={scopedKanjiItems.length} />
         <Metric label="Affichés" value={filteredItems.length} />
       </View>
 
@@ -321,50 +264,10 @@ export function VocabularyScreen() {
       ) : viewMode === 'cards' ? (
         <Section title={scope === 'n5' ? 'Flashcards JLPT N5' : `Flashcards · ${selectedVocabularyTheme ?? 'Tout vocabulaire'}`}>
           <Text style={styles.quizConfigText}>
-            {scope === 'n5'
-              ? 'Recto : le kanji seul. Verso : toutes ses lectures utiles, leur romaji et un mot traduit pour chacune.'
-              : 'Chaque carte montre le mot au recto. Au verso, le dessin représente le mot, avec lecture et traduction.'}
+            Chaque carte montre un mot au recto. Au verso, retrouve sa lecture, sa traduction et son thème.
           </Text>
-          {scope === 'n5' && kanjiViewerDeck.length > 0 && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Ouvrir les ${kanjiViewerDeck.length} cartes kanji en plein écran`}
-              style={styles.kanjiViewerLaunchButton}
-              onPress={() => openKanjiViewer()}
-            >
-              <View style={styles.kanjiViewerLaunchIcon}>
-                <Text style={styles.kanjiViewerLaunchIconText}>全</Text>
-              </View>
-              <View style={styles.kanjiViewerLaunchTextBlock}>
-                <Text style={styles.kanjiViewerLaunchTitle}>Apprendre en plein écran</Text>
-                <Text style={styles.kanjiViewerLaunchText}>{kanjiViewerDeck.length} cartes · recto-verso · navigation continue</Text>
-              </View>
-              <Text style={styles.kanjiViewerLaunchArrow}>›</Text>
-            </Pressable>
-          )}
           <View style={styles.vocabularyDeckGrid}>
-            {scope === 'n5'
-              ? visibleDeckItems.map((item, index) => (
-                  <VocabularySmartCardShell
-                    key={item.id}
-                    wide
-                    favorite={!!cardStates[item.id]?.favorite}
-                    review={!!cardStates[item.id]?.review}
-                    seenCount={cardStates[item.id]?.seen_count ?? 0}
-                    onToggleFavorite={() => toggleCardFlag(item.id, 'favorite')}
-                    onToggleReview={() => toggleCardFlag(item.id, 'review')}
-                    onOpenDetail={item.kanji ? () => setSelectedKanjiDetail(buildKanjiDetail(item.kanji!, scopedItems)) : undefined}
-                    audioText={item.root}
-                  >
-                    <VocabularyFlashCard
-                      card={item}
-                      index={cardPage * CARD_PAGE_SIZE + index}
-                      flipped={flippedIds.has(item.id)}
-                      onPress={() => toggleVocabularyCard(item.id)}
-                    />
-                  </VocabularySmartCardShell>
-                ))
-              : visibleGenericDeckItems.map((item, index) => (
+            {visibleGenericDeckItems.map((item, index) => (
                   <VocabularySmartCardShell
                     key={item.id}
                     favorite={!!cardStates[item.id]?.favorite}
@@ -411,9 +314,6 @@ export function VocabularyScreen() {
               </Pressable>
             </View>
           )}
-          {!!selectedKanjiDetail && (
-            <KanjiDetailPanel detail={selectedKanjiDetail} onClose={() => setSelectedKanjiDetail(null)} />
-          )}
         </Section>
       ) : (
         groupedItems.map(([category, words]) => (
@@ -435,26 +335,6 @@ export function VocabularyScreen() {
           </Section>
         ))
       )}
-      <KanjiFullscreenViewer
-        cards={kanjiViewerDeck}
-        index={kanjiViewerIndex}
-        flipped={kanjiViewerFlipped}
-        onClose={() => {
-          setKanjiViewerIndex(null);
-          setKanjiViewerFlipped(false);
-        }}
-        onFlip={toggleKanjiViewerCard}
-        onNext={() => showKanjiViewerCard(1)}
-        onPrevious={() => showKanjiViewerCard(-1)}
-        onRandom={() => {
-          if (kanjiViewerDeck.length < 2) return;
-          setKanjiViewerIndex((current) => {
-            const next = Math.floor(Math.random() * kanjiViewerDeck.length);
-            return next === current ? (next + 1) % kanjiViewerDeck.length : next;
-          });
-          setKanjiViewerFlipped(false);
-        }}
-      />
     </ScrollView>
   );
 }

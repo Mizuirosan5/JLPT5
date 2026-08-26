@@ -219,17 +219,21 @@ if (grammarQuizScreenSource.includes('createGrammarMatchingSession()')) {
   fail('Grammar matching replays must preserve the level-aware lesson pool');
 }
 
-const vocabularyScreenSource = read('components/VocabularyScreen.tsx');
+const kanjiFlashcardsSource = read('components/KanjiFlashcardsSection.tsx');
 for (const requiredKanjiViewerToken of [
-  'n5VocabularyCards.slice(0, 80)',
+  'cards.slice(0, 80)',
   'KanjiFullscreenViewer',
-  'Ouvrir les ${kanjiViewerDeck.length} cartes kanji en plein écran',
+  'Ouvrir les ${deck.length} cartes kanji en plein écran',
   'reading.examples.map',
   'Retourner la carte kanji',
 ]) {
-  if (!vocabularyScreenSource.includes(requiredKanjiViewerToken)) {
+  if (!kanjiFlashcardsSource.includes(requiredKanjiViewerToken)) {
     fail(`Kanji fullscreen viewer token missing: ${requiredKanjiViewerToken}`);
   }
+}
+const kanjiDetailScreenSource = read('components/KanjiDetailScreen.tsx');
+if (!kanjiDetailScreenSource.includes('<KanjiFlashcardsSection cards={kanjiCards} />')) {
+  fail('The 80-card kanji deck must live in the Learn > Kanji screen');
 }
 
 console.log('Smoke check passed.');
