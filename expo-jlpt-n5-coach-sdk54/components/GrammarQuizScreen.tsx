@@ -23,6 +23,8 @@ import { useManagedTimers } from '../services/useManagedTimers';
 import { filterGrammarForCurriculum, loadCurriculumProfile } from '../services/curriculum';
 import type { CurriculumCode } from '../data/curriculum';
 import type { GrammarQuizScreenProps, GrammarQuizSnapshot } from './grammarQuizModels';
+import { CelebrationBurst, ExerciseChoiceGrid, ExerciseFeedback, ExerciseHeader, SessionSummary } from './ExerciseShell';
+import { playAnswerFeedback } from '../services/feedbackAudio';
 const GRAMMAR_QUIZ_SESSION_KEY = 'quiz:grammar';
 export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: GrammarQuizScreenProps) {
   const db = useSQLiteContext();
@@ -43,6 +45,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
   const [availableLessons, setAvailableLessons] = useState<GrammarLesson[]>(() => filterGrammarForCurriculum(ALL_GRAMMAR_LESSONS, '1A'));
   const [curriculumCode, setCurriculumCode] = useState<CurriculumCode>('1A');
   const answerInFlight = useRef(false);
+  const sessionStartedAt = useRef(Date.now());
   const schedule = useManagedTimers();
   useEffect(() => {
     Promise.all([loadLearningPreferences(db), loadCurriculumProfile(db)])
@@ -82,6 +85,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
     }).catch((error) => recordTechnicalLog(db, 'error', 'grammar_quiz_save', error instanceof Error ? error.message : String(error)));
   }, [curriculumCode, db, grammarMatchingSession, grammarQuizMode, grammarQuizSession, grammarQuizSize, sessionHydrated]);
   const startGrammarQuiz = () => {
+    sessionStartedAt.current = Date.now();
     if (grammarQuizMode === 'matching') {
       setGrammarQuizSession(null);
       setGrammarMatchingSession(createGrammarMatchingSession(availableLessons));
@@ -104,6 +108,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
   };
   const restartGrammarQuizMistakes = () => {
     if (!grammarQuizSession?.mistakes.length) return;
+    sessionStartedAt.current = Date.now();
     setGrammarQuizSession(createGrammarSession(grammarQuizSession.mistakes.map((mistake) => mistake.question)));
     setGrammarDirectInput('');
     setGrammarQuizRomajiVisible(preferences.showRomaji);
@@ -141,16 +146,15 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
         : [...grammarQuizSession.mistakes, { question: current, selected: choice }],
     });
     setGrammarDirectInput('');
+    void playAnswerFeedback(isCorrect, preferences.audioEnabled);
+    if (isCorrect) schedule(advanceGrammarQuiz, nextStreak > 0 && nextStreak % 5 === 0 ? 1050 : 620);
   };
   const advanceGrammarQuiz = () => {
-    if (!grammarQuizSession) return;
-    const nextIndex = grammarQuizSession.currentIndex + 1;
-    const finished = grammarQuizSession.lives <= 0 || nextIndex >= grammarQuizSession.questions.length;
-    setGrammarQuizSession({
-      ...grammarQuizSession,
-      currentIndex: finished ? grammarQuizSession.currentIndex : nextIndex,
-      selected: null,
-      finished,
+    setGrammarQuizSession((session) => {
+      if (!session) return session;
+      const nextIndex = session.currentIndex + 1;
+      const finished = session.lives <= 0 || nextIndex >= session.questions.length;
+      return { ...session, currentIndex: finished ? session.currentIndex : nextIndex, selected: null, finished };
     });
     setGrammarQuizRomajiVisible(preferences.showRomaji);
     setGrammarQuizFrenchVisible(preferences.showTranslationFirst);
@@ -368,50 +372,30 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
           </>
         ) : grammarMatchingSession?.finished ? (
           <>
-            <View style={styles.resultCard}>
-              <Text style={styles.resultKicker}>Associations terminées</Text>
-              <Text style={styles.resultScore}>{grammarMatchingSession.score}</Text>
-              <Text style={styles.resultPercent}>points · {matchingTotal}/{matchingTotal} paires reliées</Text>
-              <Text style={styles.resultTime}>
-                Précision : {matchingRate}% · {grammarMatchingSession.errors} erreur(s)
-              </Text>
-              <Text style={styles.resultTime}>Trois manches complètes enregistrées dans tes statistiques.</Text>
-            </View>
-            <Pressable
-              style={styles.primaryButton}
-              onPress={() => {
+            <SessionSummary
+              correct={Math.max(0, grammarMatchingSession.attempts - grammarMatchingSession.errors)}
+              total={grammarMatchingSession.attempts}
+              xp={Math.round(grammarMatchingSession.score / 10)}
+              durationLabel={formatSessionDuration(sessionStartedAt.current)}
+              bestStreak={matchingTotal}
+              errors={[]}
+              onRestart={() => {
+                sessionStartedAt.current = Date.now();
                 setGrammarMatchingSession(createGrammarMatchingSession(availableLessons));
                 setGrammarMatchMessage('Choisis une phrase, puis sa traduction.');
               }}
-            >
-              <Text style={styles.primaryButtonText}>Rejouer les associations</Text>
-            </Pressable>
-            <Pressable style={styles.secondaryFullButton} onPress={quitGrammarQuiz}>
-              <Text style={styles.secondaryFullButtonText}>Quitter</Text>
-            </Pressable>
+              onContinue={quitGrammarQuiz}
+            />
           </>
         ) : grammarMatchingSession && currentMatchingRound ? (
           <>
-            <View style={styles.arcadeHud}>
-              <View>
-                <Text style={styles.questionMeta}>
-                  Manche {grammarMatchingSession.currentRound + 1}/{grammarMatchingSession.rounds.length}
-                </Text>
-                <Text style={styles.arcadeHudScore}>
-                  {grammarMatchingSession.matchedIds.length}/{matchingTotal} paires
-                </Text>
-              </View>
-              <Text style={styles.quizScorePill}>{grammarMatchingSession.score} pts</Text>
-            </View>
-            <View style={styles.pathProgressTrack}>
-              <View
-                style={[
-                  styles.pathProgressFill,
-                  { width: `${Math.round((grammarMatchingSession.matchedIds.length / matchingTotal) * 100)}%` },
-                ]}
-              />
-            </View>
-            <Text style={styles.questionTitle}>Relie chaque phrase à son sens</Text>
+            <ExerciseHeader
+              kicker="文法 · ASSOCIATIONS"
+              title="Relie chaque phrase à son sens"
+              current={grammarMatchingSession.matchedIds.length}
+              total={matchingTotal}
+              progress={Math.round((grammarMatchingSession.matchedIds.length / matchingTotal) * 100)}
+            />
             <Text style={styles.feedbackMnemonic}>{grammarMatchMessage}</Text>
             {selectedWordLookupAnchorId === 'quiz-grammar-matching' && (
               <WordLookupPanel
@@ -484,60 +468,33 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
           </>
         ) : grammarQuizSession?.finished ? (
           <>
-            <View style={styles.resultCard}>
-              <Text style={styles.resultKicker}>{activeGrammarMode.title} terminé</Text>
-              <Text style={styles.resultScore}>{grammarRate}%</Text>
-              <Text style={styles.resultPercent}>
-                {grammarQuizSession.correctCount}/{grammarQuizSession.questions.length} bonnes réponses
-              </Text>
-              <Text style={styles.resultTime}>
-                Score : {grammarQuizSession.score} pts · Meilleure série : {grammarQuizSession.bestStreak}
-              </Text>
-              <Text style={styles.resultTime}>
-                Vies restantes : {grammarQuizSession.lives}/3 · Erreurs à revoir : {grammarQuizSession.mistakes.length}
-              </Text>
-              <Text style={styles.resultTime}>Progression grammaire enregistrée dans ton parcours JLPT.</Text>
-            </View>
-            {grammarQuizSession.mistakes.length > 0 && (
-              <Pressable style={styles.primaryButton} onPress={restartGrammarQuizMistakes}>
-                <Text style={styles.primaryButtonText}>Revoir mes erreurs</Text>
-              </Pressable>
-            )}
-            <Pressable style={styles.primaryButton} onPress={startGrammarQuiz}>
-              <Text style={styles.primaryButtonText}>Rejouer</Text>
-            </Pressable>
-            <Pressable style={styles.secondaryFullButton} onPress={quitGrammarQuiz}>
-              <Text style={styles.secondaryFullButtonText}>Quitter</Text>
-            </Pressable>
+            <SessionSummary
+              correct={grammarQuizSession.correctCount}
+              total={grammarQuizSession.questions.length}
+              xp={Math.round(grammarQuizSession.score / 10)}
+              durationLabel={formatSessionDuration(sessionStartedAt.current)}
+              bestStreak={grammarQuizSession.bestStreak}
+              errors={grammarQuizSession.mistakes.map((mistake, index) => ({
+                id: `${mistake.question.id}-${index}`,
+                prompt: mistake.question.prompt,
+                selected: mistake.selected,
+                expected: mistake.question.correctAnswer,
+              }))}
+              onRetryErrors={restartGrammarQuizMistakes}
+              onRestart={startGrammarQuiz}
+              onContinue={quitGrammarQuiz}
+            />
           </>
         ) : grammarQuizSession && currentGrammarQuestion ? (
           <>
-            <View style={styles.arcadeHud}>
-              <View>
-                <Text style={styles.questionMeta}>
-                  Question {grammarQuizSession.currentIndex + 1}/{grammarTotal}
-                </Text>
-                <Text style={styles.arcadeHudScore}>{grammarQuizSession.correctCount} justes</Text>
-              </View>
-              <View style={styles.arcadeHudRight}>
-                <Text style={styles.quizScorePill}>{activeGrammarMode.title}</Text>
-              </View>
-            </View>
-            <Text style={styles.questionMeta}>{getGrammarMainMenu(currentGrammarQuestion.lesson)}</Text>
-            <View style={styles.pathProgressTrack}>
-              <View
-                style={[
-                  styles.pathProgressFill,
-                  {
-                    width: `${Math.round(
-                      ((grammarQuizSession.currentIndex + (grammarQuizSession.selected ? 1 : 0)) /
-                        grammarQuizSession.questions.length) *
-                        100
-                    )}%`,
-                  },
-                ]}
-              />
-            </View>
+            <CelebrationBurst visible={grammarQuizSession.selected !== null && isGrammarAnswerCorrect(grammarQuizSession.selected, currentGrammarQuestion.correctAnswer) && grammarQuizSession.streak > 0 && grammarQuizSession.streak % 5 === 0} streak={grammarQuizSession.streak} />
+            <ExerciseHeader
+              kicker={`文法 · ${activeGrammarMode.title}`}
+              title={getGrammarMainMenu(currentGrammarQuestion.lesson)}
+              current={grammarQuizSession.currentIndex + 1}
+              total={grammarTotal}
+              progress={Math.round(((grammarQuizSession.currentIndex + (grammarQuizSession.selected ? 1 : 0)) / grammarQuizSession.questions.length) * 100)}
+            />
             <View style={styles.arcadeHud}>
               <Text style={styles.quizScorePill}>{grammarQuizSession.score} pts</Text>
               <Text style={styles.quizScorePill}>
@@ -623,40 +580,17 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
             </Text>
             {currentGrammarQuestion.choices.length > 0 ? (
               <>
-              <View style={styles.choiceList}>
-                {currentGrammarQuestion.choices.map((choice) => {
-                  const isCorrect = isGrammarAnswerCorrect(choice, currentGrammarQuestion.correctAnswer);
-                  const isSelected = grammarQuizSession.selected === choice;
-                  return (
-                    <Pressable
-                      key={choice}
-                      disabled={grammarQuizSession.selected !== null}
-                      style={[
-                        styles.choice,
-                        grammarQuizSession.selected && isCorrect && styles.choiceCorrect,
-                        grammarQuizSession.selected && isSelected && !isCorrect && styles.choiceWrong,
-                      ]}
-                      onPress={() => answerGrammarQuiz(choice)}
-                    >
-                      {grammarQuizSession.selected !== null && hasJapaneseText(choice) ? (
-                        <JapaneseLookupText
-                          text={choice}
-                          entries={vocabularyLookupEntries}
-                          onSelect={(entry) => {
-                            setSelectedWordLookup(entry);
-                            setSelectedWordLookupAnchorId('quiz-grammar-choice');
-                          }}
-                          style={styles.choiceText}
-                        />
-                      ) : (
-                        <Text style={styles.choiceText}>{choice}</Text>
-                      )}
-                      {grammarQuizSession.selected && isCorrect && <Text style={styles.choiceIcon}>✓</Text>}
-                      {grammarQuizSession.selected && isSelected && !isCorrect && <Text style={styles.choiceIcon}>×</Text>}
-                    </Pressable>
-                  );
-                })}
-              </View>
+              <ExerciseChoiceGrid
+                choices={currentGrammarQuestion.choices}
+                disabled={grammarQuizSession.selected !== null}
+                getState={(choice) => {
+                  if (!grammarQuizSession.selected) return 'idle';
+                  if (isGrammarAnswerCorrect(choice, currentGrammarQuestion.correctAnswer)) return 'correct';
+                  if (grammarQuizSession.selected === choice) return 'wrong';
+                  return 'muted';
+                }}
+                onChoose={answerGrammarQuiz}
+              />
               {selectedWordLookupAnchorId === 'quiz-grammar-choice' && (
                 <WordLookupPanel
                   entry={selectedWordLookup}
@@ -691,14 +625,11 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
               </View>
             )}
             {grammarQuizSession.selected !== null && (
-              <View style={styles.feedback}>
-                <Text style={styles.feedbackTitle}>
-                  {isGrammarAnswerCorrect(grammarQuizSession.selected, currentGrammarQuestion.correctAnswer)
-                    ? 'Correct'
-                    : 'À revoir'}
-                </Text>
-                <Text style={styles.feedbackText}>Réponse : {currentGrammarQuestion.correctAnswer}</Text>
-                <Text style={styles.feedbackText}>{currentGrammarQuestion.helper}</Text>
+              <ExerciseFeedback
+                correct={isGrammarAnswerCorrect(grammarQuizSession.selected, currentGrammarQuestion.correctAnswer)}
+                answer={currentGrammarQuestion.correctAnswer}
+                explanation={currentGrammarQuestion.helper}
+              >
                 <SmartCorrectionInsightCard selectedAnswer={grammarQuizSession.selected} expectedAnswer={currentGrammarQuestion.correctAnswer} explanation={currentGrammarQuestion.lesson.explanation} japanese={currentGrammarQuestion.japanese} translation={currentGrammarQuestion.french} wrongAnswerExplanations={currentGrammarQuestion.wrongAnswerExplanations} />
                 {hasJapaneseText(currentGrammarQuestion.correctAnswer) && (
                   <JapaneseLookupText
@@ -784,7 +715,7 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
                       : 'Question suivante'}
                   </Text>
                 </Pressable>
-              </View>
+              </ExerciseFeedback>
             )}
             <Pressable style={styles.secondaryFullButton} onPress={quitGrammarQuiz}>
               <Text style={styles.secondaryFullButtonText}>Quitter</Text>
@@ -796,4 +727,11 @@ export function GrammarQuizScreen({ vocabularyLookupEntries, onNavigate }: Gramm
       </ScrollView>
     );
   }
+}
+
+function formatSessionDuration(startedAt: number): string {
+  const elapsedSeconds = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
+  const minutes = Math.floor(elapsedSeconds / 60);
+  const seconds = elapsedSeconds % 60;
+  return minutes ? `${minutes} min ${seconds.toString().padStart(2, '0')} s` : `${seconds} s`;
 }

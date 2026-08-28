@@ -9,7 +9,7 @@ import type {
 } from '../models';
 import { ALL_GRAMMAR_LESSONS, humanizeGrammarPattern } from './grammarCourse';
 import { buildExerciseChoices, buildWordOrderDisplay, getGrammarExerciseFormat } from './exerciseFactory';
-import { GRAMMAR_KEY_TOKENS, buildGrammarMnemonic, getGrammarKeyword } from './grammarPedagogy';
+import { GRAMMAR_KEY_TOKENS, getGrammarKeyword } from './grammarPedagogy';
 import { shuffle } from './random';
 
 const GRAMMAR_DIALOGUE_PROMPTS = [
@@ -403,9 +403,7 @@ export function buildGrammarQuizQuestions(
         : [
             'blank_choice',
             'translation_qcm',
-            'rule_qcm',
             'blank_input',
-            'situation_qcm',
             'keyword_input',
             'dialogue_response_qcm',
           ];
@@ -415,13 +413,6 @@ export function buildGrammarQuizQuestions(
     const kind = exerciseCycle[index % exerciseCycle.length];
     const exerciseFormat = getGrammarExerciseFormat(mode, kind);
     const formula = humanizeGrammarPattern(lesson);
-    const formulaChoices = uniqueChoices(
-      [
-        formula,
-        ...shuffle(lessons.filter((item) => item.id !== lesson.id)).map((item) => humanizeGrammarPattern(item)),
-      ],
-      GRAMMAR_KEY_TOKENS
-    );
     if (kind === 'translation_qcm') {
       return {
         id: `${lesson.id}-translation-${index}`,
@@ -475,25 +466,6 @@ export function buildGrammarQuizQuestions(
         choices: [],
       };
     }
-    if (kind === 'situation_qcm') {
-      return {
-        id: `${lesson.id}-situation-${index}`,
-        kind,
-        exerciseFormat,
-        lesson,
-        prompt: `Quelle règle utiliserais-tu pour cette intention : ${lesson.goal}`,
-        japanese: example.kanji || example.kana,
-        kanaJapanese: example.kana,
-        romaji: example.romaji,
-        french: example.fr,
-        helper: 'Pense à ce que tu veux faire dans la phrase, pas seulement aux mots.',
-        correctAnswer: lesson.title,
-        choices: uniqueChoices(
-          [lesson.title, ...shuffle(lessons.filter((item) => item.id !== lesson.id)).map((item) => item.title)],
-          ['は / thème', 'を / objet', 'です / phrase polie', 'か / question']
-        ),
-      };
-    }
     if (kind === 'dialogue_response_qcm') {
       const japanese = example.kanji || example.kana;
       const alternatives = lessons
@@ -514,20 +486,7 @@ export function buildGrammarQuizQuestions(
         choices: buildExerciseChoices({ correctAnswer: japanese, alternatives }),
       };
     }
-    return {
-      id: `${lesson.id}-rule-${index}`,
-      kind: 'rule_qcm',
-      exerciseFormat: getGrammarExerciseFormat(mode, 'rule_qcm'),
-      lesson,
-      prompt: `${lesson.title} — quelle formule correspond ?`,
-      japanese: example.kanji || example.kana,
-      kanaJapanese: example.kana,
-      romaji: example.romaji,
-      french: example.fr,
-      helper: buildGrammarMnemonic(lesson),
-      correctAnswer: formula,
-      choices: formulaChoices,
-    };
+    throw new Error(`Type d exercice grammatical non pris en charge : ${kind}`);
   }).map(addGrammarWrongAnswerExplanations);
 }
 

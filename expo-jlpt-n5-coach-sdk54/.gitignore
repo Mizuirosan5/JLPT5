@@ -39,6 +39,7 @@ yarn-error.*
 AGENTS.md
 CLAUDE.md
 preview/
+artifacts/
 playwright-*.png
 .release-local/
 examAssets.ts

@@ -70,6 +70,14 @@ export async function initializeDatabase(db: SQLiteDatabase) {
       updated_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS app_lookup_favorite_local (
+      item_id TEXT NOT NULL,
+      item_type TEXT NOT NULL,
+      favorite INTEGER NOT NULL DEFAULT 1,
+      updated_at TEXT NOT NULL,
+      PRIMARY KEY (item_id, item_type)
+    );
+
     CREATE TABLE IF NOT EXISTS app_kana_time_record (
       id TEXT PRIMARY KEY,
       script TEXT NOT NULL,
@@ -217,6 +225,28 @@ export async function initializeDatabase(db: SQLiteDatabase) {
       updated_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS app_wallet (
+      currency TEXT PRIMARY KEY,
+      balance INTEGER NOT NULL CHECK(balance >= 0),
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS app_reward_ledger (
+      id TEXT PRIMARY KEY,
+      source_type TEXT NOT NULL,
+      source_id TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      created_at TEXT NOT NULL,
+      UNIQUE(source_type, source_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS app_cosmetic_inventory (
+      cosmetic_id TEXT PRIMARY KEY,
+      category TEXT NOT NULL,
+      acquired_at TEXT NOT NULL,
+      equipped INTEGER NOT NULL DEFAULT 0
+    );
+
     CREATE TABLE IF NOT EXISTS app_audio_asset (
       id TEXT PRIMARY KEY,
       category TEXT NOT NULL,
@@ -247,6 +277,10 @@ export async function initializeDatabase(db: SQLiteDatabase) {
       ON app_technical_log(created_at);
     CREATE INDEX IF NOT EXISTS idx_session_state_updated_at
       ON app_session_state(updated_at);
+    CREATE INDEX IF NOT EXISTS idx_reward_ledger_created_at
+      ON app_reward_ledger(created_at);
+    CREATE INDEX IF NOT EXISTS idx_cosmetic_inventory_category
+      ON app_cosmetic_inventory(category, equipped);
   `);
 
   await migrateLegacyV7UserData(db);
@@ -353,7 +387,48 @@ export async function initializeDatabase(db: SQLiteDatabase) {
 
   await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   await setMetadataValue(db, 'schema_version', String(SCHEMA_VERSION));
+  await repairCanonicalVocabulary(db);
   await checkDatabaseIntegrity(db);
+}
+
+async function repairCanonicalVocabulary(db: SQLiteDatabase): Promise<void> {
+  const tables = await getExistingTables(db, ['canonical_vocabulary']);
+  if (!tables.includes('canonical_vocabulary')) return;
+
+  await db.runAsync(
+    `UPDATE canonical_vocabulary
+     SET japanese = ?, kana = ?, kanji = NULL, romaji = ?, meaning_fr = ?, theme = ?
+     WHERE id = ?`,
+    'つくえ',
+    'つくえ',
+    'tsukue',
+    'table',
+    'Maison et quotidien',
+    'cvocab_dab51e6598bad3'
+  );
+  await db.runAsync(
+    `UPDATE canonical_vocabulary
+     SET japanese = ?, kana = ?, kanji = ?, romaji = ?, meaning_fr = ?, theme = ?
+     WHERE id = ?`,
+    '千',
+    'せん',
+    '千',
+    'sen',
+    'mille',
+    'Nombres',
+    'auto-n5-vocab-sen-?'
+  );
+  await db.runAsync(
+    `UPDATE canonical_vocabulary
+     SET japanese = ?, kana = ?, romaji = ?, meaning_fr = ?, theme = ?
+     WHERE id = ?`,
+    'Tシャツ',
+    'ティーシャツ',
+    'tiishatsu',
+    'tee-shirt',
+    'Vêtements',
+    'cvocab_b9a3fbd3d8cb89'
+  );
 }
 
 export async function checkDatabaseIntegrity(db: SQLiteDatabase): Promise<void> {

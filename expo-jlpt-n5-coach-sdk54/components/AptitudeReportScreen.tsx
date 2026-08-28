@@ -61,6 +61,9 @@ export function AptitudeReportScreen({ onNavigate }: { onNavigate: (screen: Scre
           </View>
         </View>
         <Text style={styles.pathModuleDetailText}>{report.summary}</Text>
+        <Text style={styles.pathDetailSubStepText}>
+          Score pondéré {report.score}% · score brut {report.rawScore}% · test complété à {report.completionRate}%.
+        </Text>
         <View style={styles.aptitudeInsightGrid}>
           <View style={styles.aptitudeInsightCard}>
             <Text style={styles.pathNextLabel}>Niveau estime</Text>
@@ -74,6 +77,18 @@ export function AptitudeReportScreen({ onNavigate }: { onNavigate: (screen: Scre
           </View>
         </View>
       </View>
+
+      <Section title="Résultat par difficulté">
+        <View style={styles.aptitudeInsightGrid}>
+          {report.levelRows.map((row) => (
+            <View key={row.level} style={styles.aptitudeInsightCard}>
+              <Text style={styles.pathNextLabel}>Niveau {row.level}</Text>
+              <Text style={styles.aptitudeInsightValue}>{row.rate}%</Text>
+              <Text style={styles.pathDetailSubStepText}>{row.correct}/{row.total} réponses justes</Text>
+            </View>
+          ))}
+        </View>
+      </Section>
 
       <Section title="Scores par domaine">
         <View style={styles.aptitudeDomainGrid}>
@@ -94,6 +109,7 @@ export function AptitudeReportScreen({ onNavigate }: { onNavigate: (screen: Scre
 
       <ReportList title="Forces detectees" items={report.strengths} />
       <ReportList title="Axes d apprentissage" items={report.priorities} />
+      <ReportList title="À ne pas abandonner" items={report.maintenance} />
       <ReportList title="Modules recommandés" items={report.recommendedModules} />
       <ReportList title="Plan 7 jours" items={report.sevenDayPlan} />
       <ReportList title="Plan 30 jours" items={report.thirtyDayPlan} />

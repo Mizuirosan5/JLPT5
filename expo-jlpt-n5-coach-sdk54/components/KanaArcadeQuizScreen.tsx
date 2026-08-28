@@ -16,6 +16,8 @@ import { buildKanaArcadeQuestions, getKanaArcadeMultiplier } from '../services/k
 import { normalizeAnswer } from '../services/text';
 import { formatElapsedTime } from '../services/time';
 import { recordSrsReviewForQuestionAttempt } from '../services/srs';
+import { playAnswerFeedback } from '../services/feedbackAudio';
+import { CelebrationBurst, SessionSummary } from './ExerciseShell';
 
 type KanaArcadeQuizScreenProps = {
   kanaArcadeCards: KanaCard[];
@@ -192,6 +194,7 @@ export function KanaArcadeQuizScreen({ kanaArcadeCards, onNavigate }: KanaArcade
     const nextStreak = isCorrect ? kanaArcadeSession.streak + 1 : 0;
     const multiplier = isCorrect ? getKanaArcadeMultiplier(nextStreak) : 0;
     const points = isCorrect ? Math.round(100 * multiplier) : 0;
+    void playAnswerFeedback(isCorrect);
     const nextAnswer: KanaArcadeAnswer = {
       questionId: current.prompt.id,
       prompt: current.prompt.character,
@@ -386,13 +389,18 @@ export function KanaArcadeQuizScreen({ kanaArcadeCards, onNavigate }: KanaArcade
                 </View>
               </Animated.View>
             )}
-            <View style={styles.resultCard}>
-              <Text style={styles.resultKicker}>Quiz Kana terminé</Text>
-              <Text style={styles.resultScore}>{kanaArcadeSession.score}</Text>
-              <Text style={styles.resultPercent}>points · {correctCount}/{kanaArcadeSession.questions.length} bonnes réponses</Text>
-              <Text style={styles.resultTime}>Temps : {formatElapsedTime(kanaArcadeSession.elapsedMs ?? liveElapsed)}</Text>
-              <Text style={styles.resultTime}>Meilleure série : {kanaArcadeSession.bestStreak}</Text>
-            </View>
+            <SessionSummary
+              correct={correctCount}
+              total={kanaArcadeSession.questions.length}
+              xp={correctCount * 10}
+              rewardLabel={`${kanaArcadeSession.score} pts`}
+              durationLabel={formatElapsedTime(kanaArcadeSession.elapsedMs ?? liveElapsed)}
+              bestStreak={kanaArcadeSession.bestStreak}
+              errors={kanaArcadeSession.answers.filter((answer) => !answer.isCorrect).map((answer) => ({ id: answer.questionId, prompt: answer.prompt, selected: answer.selected, expected: answer.correct }))}
+              onRestart={startKanaArcade}
+              onRetryErrors={startKanaArcade}
+              onContinue={quitKanaArcade}
+            />
             <Section title="Meilleur score de tous les temps">
               <View style={styles.arcadeBestScoreCard}>
                 <Text style={styles.arcadeBestScoreValue}>
@@ -433,15 +441,10 @@ export function KanaArcadeQuizScreen({ kanaArcadeCards, onNavigate }: KanaArcade
                 ))}
               </View>
             </Section>
-            <Pressable style={styles.primaryButton} onPress={startKanaArcade}>
-              <Text style={styles.primaryButtonText}>Rejouer</Text>
-            </Pressable>
-            <Pressable style={styles.secondaryFullButton} onPress={quitKanaArcade}>
-              <Text style={styles.secondaryFullButtonText}>Quitter</Text>
-            </Pressable>
           </>
         ) : currentArcadeQuestion ? (
           <>
+            <CelebrationBurst visible={!!kanaArcadeSession.selected && kanaArcadeSession.streak > 0 && kanaArcadeSession.streak % 5 === 0} streak={kanaArcadeSession.streak} />
             <View style={styles.arcadeHud}>
               <View>
                 <Text style={styles.questionMeta}>
@@ -510,6 +513,11 @@ export function KanaArcadeQuizScreen({ kanaArcadeCards, onNavigate }: KanaArcade
                 );
               })}
             </View>
+            {!kanaArcadeSession.selected && (
+              <Pressable style={styles.secondaryFullButton} onPress={() => answerKanaArcade('Je ne sais pas')}>
+                <Text style={styles.secondaryFullButtonText}>Je ne sais pas</Text>
+              </Pressable>
+            )}
             {kanaArcadeSession.selected && (
               <View style={styles.feedback}>
                 <Text style={styles.feedbackTitle}>

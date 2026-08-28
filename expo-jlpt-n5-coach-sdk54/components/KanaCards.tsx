@@ -13,7 +13,6 @@ import {
 import Svg, { Circle, Ellipse, Line, Path, Polygon, Rect } from 'react-native-svg';
 import { styles } from '../appStyles';
 import type { KanaCard, KanaViewerPanel } from '../models';
-import { getKanaMasteryStatus, type KanaMasteryStatus } from '../services/kanaProgress';
 import {
   buildKanaMnemonicSentence,
   capitalizeKanaLabel,
@@ -38,7 +37,6 @@ export function KanaThumbnailCard({
   const visual = getKanaVisual(card, index);
   const scriptLabel = card.script === 'hiragana' ? 'Hiragana' : 'Katakana';
   const orderLabel = `${Math.min(index + 1, total)}/${total}`;
-  const status = getKanaMasteryStatus(card);
   const exampleBadge = isCombinedKanaFallbackExample(card) ? 'Repère' : 'N5';
   const mnemonic = buildKanaMnemonicSentence(card, visual);
 
@@ -59,7 +57,6 @@ export function KanaThumbnailCard({
       <Text style={styles.thumbnailScript}>{scriptLabel}</Text>
       <Text style={styles.thumbnailCount}>{orderLabel}</Text>
       <Text style={styles.thumbnailN5Badge}>{exampleBadge}</Text>
-      <View style={[styles.thumbnailStatusDot, getKanaStatusStyle(status)]} />
       <Text style={styles.thumbnailRomaji}>{capitalizeKanaLabel(card.romaji)}/{card.character}</Text>
       <View style={styles.thumbnailWordBlock}>
         <Text style={styles.thumbnailWordRomaji}>{visual.wordRomaji}</Text>
@@ -482,8 +479,6 @@ export function KanaLearningCard({
         styles.kanaCard,
         large && styles.kanaCardLarge,
         flipped && styles.kanaCardFlipped,
-        card.mastered === 1 && styles.kanaCardMastered,
-        card.review === 1 && styles.kanaCardReview,
       ]}
     >
       {!flipped ? (
@@ -543,11 +538,4 @@ export function KanaLearningCard({
       )}
     </Pressable>
   );
-}
-
-function getKanaStatusStyle(status: KanaMasteryStatus) {
-  if (status === 'mastered') return styles.thumbnailStatusMastered;
-  if (status === 'known') return styles.thumbnailStatusKnown;
-  if (status === 'weak') return styles.thumbnailStatusWeak;
-  return styles.thumbnailStatusUnseen;
 }

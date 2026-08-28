@@ -127,6 +127,7 @@ export function createAudioQuizSession(questions: AudioQuizQuestion[]): AudioQui
     bestStreak: 0,
     mistakes: [],
     finished: questions.length === 0,
+    startedAt: Date.now(),
   };
 }
 

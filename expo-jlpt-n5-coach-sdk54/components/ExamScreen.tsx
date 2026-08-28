@@ -218,6 +218,12 @@ export function ExamScreen() {
     }
   };
 
+  useEffect(() => {
+    if (selected === null || selected !== segment?.correct_choice || savingAnswer) return;
+    const timer = setTimeout(() => { void next(); }, 450);
+    return () => clearTimeout(timer);
+  }, [index, savingAnswer, segment?.correct_choice, selected]);
+
   if (loading) {
     return <LoadingView />;
   }
@@ -417,8 +423,6 @@ export function ExamScreen() {
               <WordLookupPanel entry={selectedWordLookup} onClose={() => setSelectedWordLookup(null)} />
             </>
           )}
-          <Text style={styles.examCorrectionWhyTitle}>Pourquoi ?</Text>
-          <Text style={styles.examCorrectionWhy}>{examExplanation}</Text>
           <SmartCorrectionPanel
             japanese={segment.prompt_ja || segment.context_ja || choices[segment.correct_choice - 1]}
             translation={examInstruction}

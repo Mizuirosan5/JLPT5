@@ -10,16 +10,20 @@ import {
 } from '../services/errorFlashcards';
 import { SegmentButton } from './formControls';
 import { EmptyState, LoadingView, Section } from './sharedUi';
+import type { WordLookupEntry } from '../models';
+import { JapaneseLookupText, useVocabularyLookupIndex, WordLookupPanel } from './JapaneseLookup';
 
 type ErrorFilter = 'active' | 'archived' | 'all';
 type ErrorDomainFilter = 'all' | 'kana' | 'vocabulary' | 'kanji' | 'grammar' | 'skill';
 
 export function ErrorFlashcardsScreen() {
   const db = useSQLiteContext();
+  const lookupEntries = useVocabularyLookupIndex(db);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<ErrorFilter>('active');
   const [domainFilter, setDomainFilter] = useState<ErrorDomainFilter>('all');
   const [cards, setCards] = useState<ErrorFlashcard[]>([]);
+  const [selectedLookup, setSelectedLookup] = useState<WordLookupEntry | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -95,7 +99,7 @@ export function ErrorFlashcardsScreen() {
           {visibleCards.map((card) => (
             <View key={card.id} style={styles.preferenceOptionCard}>
               <Text style={styles.preferenceOptionTitle}>{card.prompt}</Text>
-              {!!card.japanese && <Text style={styles.quickJapanese}>{card.japanese}</Text>}
+              {!!card.japanese && <JapaneseLookupText text={card.japanese} entries={lookupEntries} onSelect={setSelectedLookup} style={styles.quickJapanese} />}
               {!!card.translation && <Text style={styles.preferenceOptionText}>{card.translation}</Text>}
               <Text style={styles.quickCorrectionAnswer}>Réponse : {card.expected_answer}</Text>
               {!!card.selected_answer && <Text style={styles.preferenceOptionText}>Ta réponse : {card.selected_answer}</Text>}
@@ -108,6 +112,7 @@ export function ErrorFlashcardsScreen() {
               </Pressable>
             </View>
           ))}
+          <WordLookupPanel entry={selectedLookup} onClose={() => setSelectedLookup(null)} />
         </Section>
       )}
     </ScrollView>

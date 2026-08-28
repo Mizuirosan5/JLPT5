@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import type { LearningPreferences, QuizChoice, QuizQuestion } from '../models';
-import { shuffle } from './random';
+import { shuffle, shuffleChoices } from './random';
 import { keepChoicesInWritingSystem } from './text';
 import {
   filterQuestionsForCurriculum,
@@ -112,7 +112,9 @@ async function loadChoicesForQuestion(
       question.correct_answer,
       generatedChoices.map((choice) => choice.choice_text).filter((choice) => allowed.has(choice)),
     );
-    if (homogeneous.includes(question.correct_answer) && homogeneous.length >= 2) return homogeneous.slice(0, 4);
+    if (homogeneous.includes(question.correct_answer) && homogeneous.length >= 2) {
+      return shuffleChoices(homogeneous.slice(0, 4), question.correct_answer);
+    }
   }
 
   return shuffle(keepHomogeneousChoices(question.correct_answer, [question.correct_answer, ...allowedAnswers])).slice(0, 4);
@@ -235,7 +237,7 @@ function prepareKanaAnswerQuestion(question: QuizQuestion): QuizQuestion {
 
 function buildJapaneseKanaChoices(correctAnswer: string, availableAnswers: string[]): string[] {
   const alternatives = uniqueChoices(availableAnswers).filter((value) => value !== correctAnswer);
-  return [correctAnswer, ...alternatives.slice(0, 3)];
+  return shuffleChoices([correctAnswer, ...shuffle(alternatives).slice(0, 3)], correctAnswer);
 }
 
 export function calculateQuickSessionResult(correct: number, total: number): QuickSessionResult {

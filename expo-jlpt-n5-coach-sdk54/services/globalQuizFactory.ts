@@ -21,6 +21,7 @@ import { getKanjiComponentDetail } from './kanjiComponents';
 import { shuffle } from './random';
 import { filterGrammarForCurriculum } from './curriculum';
 import type { CurriculumCode } from '../data/curriculum';
+import { KANJI_READING_CARDS } from '../data/kanjiReadingCards';
 
 export type KanjiAnswerTarget = 'french' | 'japanese' | 'components';
 type GlobalQuizBuildOptions = Pick<LearningPreferences, 'japaneseAnswerMode' | 'quizDifficulty'> & { curriculumCode: CurriculumCode };
@@ -162,8 +163,11 @@ export function buildGlobalQuizQuestions(
         : reverse
           ? ['vocabulary_japanese', 'vocabulary_reading']
           : ['vocabulary_meaning', 'vocabulary_reading', 'vocabulary_japanese'];
-      const format = pickCycleItem(formatCycle, index);
       const directAnswer = item.kana || item.japanese;
+      let format = pickCycleItem(formatCycle, index);
+      if (format === 'vocabulary_reading' && japaneseWord === directAnswer) {
+        format = 'vocabulary_japanese';
+      }
       const answer =
         format === 'vocabulary_meaning'
           ? item.meaning_fr
@@ -198,26 +202,20 @@ export function buildGlobalQuizQuestions(
       const example = lesson.examples[index % lesson.examples.length] ?? lesson.examples[0];
       const keyword = getGrammarKeyword(lesson, example);
       const formatCycle: GlobalQuizFormat[] = options.quizDifficulty === 'hard'
-        ? ['grammar_blank', 'grammar_rule', 'grammar_situation']
+        ? ['grammar_blank', 'grammar_translation']
         : direct
         ? ['grammar_blank']
         : reverse
-          ? ['grammar_rule', 'grammar_situation']
-          : ['grammar_blank', 'grammar_translation', 'grammar_rule', 'grammar_situation'];
+          ? ['grammar_translation', 'grammar_blank']
+          : ['grammar_blank', 'grammar_translation'];
       const format = pickCycleItem(formatCycle, index);
       const answer =
         format === 'grammar_translation'
           ? example.fr
-          : format === 'grammar_rule' || format === 'grammar_situation'
-            ? lesson.title
-            : keyword;
-      const alternatives = reverse
-        ? grammarPool.map((candidate) => candidate.title)
-        : format === 'grammar_translation'
+          : keyword;
+      const alternatives = format === 'grammar_translation'
           ? grammarPool.map((candidate) => candidate.examples[0]?.fr ?? '')
-          : format === 'grammar_rule' || format === 'grammar_situation'
-            ? grammarPool.map((candidate) => candidate.title)
-        : GRAMMAR_KEY_TOKENS;
+          : GRAMMAR_KEY_TOKENS;
       return withFormat({
         id: `global-grammar-${index}-${lesson.id}`,
         domain,
@@ -225,15 +223,9 @@ export function buildGlobalQuizQuestions(
         prompt:
           format === 'grammar_translation'
             ? 'Choisis la bonne traduction française.'
-            : format === 'grammar_rule'
-              ? 'Quelle règle correspond à cette phrase ?'
-              : format === 'grammar_situation'
-                ? 'Quelle règle répond à cette intention ?'
-                : 'Complete la phrase avec la forme grammaticale correcte.',
+            : 'Complète la phrase avec la forme grammaticale correcte.',
         display:
-          format === 'grammar_situation'
-            ? lesson.goal
-            : format === 'grammar_blank'
+          format === 'grammar_blank'
               ? maskGrammarKeyword(example.kanji || example.kana, keyword)
               : format === 'grammar_translation'
                 ? buildWordOrderDisplay(example.kanji || example.kana)
@@ -285,7 +277,7 @@ export function buildGlobalQuizQuestions(
       explanation:
         format === 'kanji_components'
           ? `${item.character} : ${detail?.mnemonicFr ?? `Associe ce kanji a ${item.meaning_fr}.`}`
-          : `${item.character} signifie « ${item.meaning_fr} ». Lectures : ${item.n5_readings || item.onyomi || item.kunyomi || 'à réviser'}.`,
+          : `${item.character} signifie « ${item.meaning_fr} ». Lecture utile : ${KANJI_READING_CARDS[item.character]?.readings[0]?.kana || item.n5_readings || item.onyomi || item.kunyomi || 'à réviser'}${KANJI_READING_CARDS[item.character]?.readings[0]?.romaji ? ` (${KANJI_READING_CARDS[item.character].readings[0].romaji})` : ''}.`,
       srsItemId: item.id,
       srsItemType: 'kanji',
     }, mode);

@@ -1,13 +1,17 @@
 # Politique audio V2
 
-La V2 utilise officiellement le mode **audio hybride**, sans promesse de pack vocal complet embarque.
+La V2 utilise un mode audio hybride entierement compatible hors ligne.
 
 Ordre de lecture :
 
-1. fichier embarque lorsqu'il est present dans `data/audioAssetRegistry.ts` ;
-2. voix japonaise locale du systeme avec `expo-speech` ;
-3. fallback texte explicite si aucune voix japonaise n'est installee.
+1. MP3 japonais embarque lorsqu'une correspondance existe dans le registre ;
+2. voix japonaise locale avec `expo-speech` pour les contenus hors pack ;
+3. retour texte explicite si aucune voix locale n'est disponible.
 
-Le quiz n'est jamais bloque par l'absence de voix. L'application ne telecharge aucun fichier, n'utilise aucun service vocal distant et ne demande pas le microphone. Les 44 entrees du manifeste constituent le noyau de prompts attendu, mais aucun fichier WAV n'est annonce comme present tant que `audio:check:strict` ne passe pas.
+Le quiz n'est jamais bloque par l'absence de voix. L'application ne telecharge
+aucun son en fonctionnement, ne demande pas le microphone et n'utilise aucun
+service vocal distant. Le pack actuel couvre 934 contenus et passe la validation
+stricte.
 
-Tests physiques encore obligatoires avant soumission : iPhone avec voix japonaise, sans voix japonaise, audio desactive et mode avion.
+Restent obligatoires avant soumission : essai iPhone avec audio active et coupe,
+interruption par appel ou casque, et session en mode avion.

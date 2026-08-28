@@ -26,6 +26,8 @@ import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../servic
 import { recordSrsReviewForQuestionAttempt } from '../services/srs';
 import { hasJapaneseText, normalizeAnswer } from '../services/text';
 import type { CurriculumCode } from '../data/curriculum';
+import { playAnswerFeedback } from '../services/feedbackAudio';
+import { CelebrationBurst, SessionSummary } from './ExerciseShell';
 
 type AudioQuizScreenProps = {
   vocabularyLookupEntries: WordLookupEntry[];
@@ -106,6 +108,7 @@ export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate, curriculu
     const isCorrect = normalizeAnswer(choice) === normalizeAnswer(currentQuestion.correctAnswer);
     const nextStreak = isCorrect ? session.streak + 1 : 0;
     const points = isCorrect ? 100 * getGrammarStreakMultiplier(nextStreak) : 0;
+    void playAnswerFeedback(isCorrect, audioEnabled);
     setSession({
       ...session,
       selected: choice,
@@ -156,6 +159,13 @@ export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate, curriculu
       finished: nextIndex >= session.questions.length,
     });
   };
+
+  useEffect(() => {
+    if (!session?.selected || session.finished || !currentQuestion) return;
+    if (normalizeAnswer(session.selected) !== normalizeAnswer(currentQuestion.correctAnswer)) return;
+    const timer = setTimeout(advanceAudioQuiz, session.streak > 0 && session.streak % 5 === 0 ? 1050 : 620);
+    return () => clearTimeout(timer);
+  }, [currentQuestion, session?.finished, session?.selected, session?.streak]);
 
   if (pack.length < 4) {
     return <EmptyState title="Le pack audio se prépare" />;
@@ -220,22 +230,21 @@ export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate, curriculu
           </Section>
         </>
       ) : session.finished ? (
-        <>
-          <View style={styles.resultCard}>
-            <Text style={styles.resultKicker}>Quiz audio terminé</Text>
-            <Text style={styles.resultScore}>{session.score}</Text>
-            <Text style={styles.resultPercent}>{rate}% · {session.correctCount}/{session.questions.length} réponses justes</Text>
-            <Text style={styles.resultTime}>Meilleure série : {session.bestStreak} · Erreurs : {session.mistakes.length}</Text>
-          </View>
-          <Pressable style={styles.primaryButton} onPress={startAudioQuiz}>
-            <Text style={styles.primaryButtonText}>Rejouer</Text>
-          </Pressable>
-          <Pressable style={styles.secondaryFullButton} onPress={quitAudioQuiz}>
-            <Text style={styles.secondaryFullButtonText}>Quitter</Text>
-          </Pressable>
-        </>
+        <SessionSummary
+          correct={session.correctCount}
+          total={session.questions.length}
+          xp={session.correctCount * 12}
+          rewardLabel={`${session.score} pts`}
+          durationLabel={`${Math.max(1, Math.round((Date.now() - session.startedAt) / 60000))} min`}
+          bestStreak={session.bestStreak}
+          errors={session.mistakes.map((item) => ({ id: item.question.id, prompt: item.question.prompt, selected: item.selected, expected: item.question.correctAnswer }))}
+          onRestart={startAudioQuiz}
+          onRetryErrors={startAudioQuiz}
+          onContinue={quitAudioQuiz}
+        />
       ) : currentQuestion ? (
         <>
+          <CelebrationBurst visible={!!session.selected && normalizeAnswer(session.selected) === normalizeAnswer(currentQuestion.correctAnswer) && session.streak > 0 && session.streak % 5 === 0} streak={session.streak} />
           <View style={styles.arcadeHud}>
             <View>
               <Text style={styles.questionMeta}>Question {session.currentIndex + 1}/{session.questions.length}</Text>
@@ -299,6 +308,11 @@ export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate, curriculu
               );
             })}
           </View>
+          {!session.selected && (
+            <Pressable style={styles.secondaryFullButton} onPress={() => answerAudioQuiz('Je ne sais pas')}>
+              <Text style={styles.secondaryFullButtonText}>Je ne sais pas</Text>
+            </Pressable>
+          )}
           {session.selected !== null && (
             <View style={styles.feedback}>
               <Text style={styles.feedbackTitle}>

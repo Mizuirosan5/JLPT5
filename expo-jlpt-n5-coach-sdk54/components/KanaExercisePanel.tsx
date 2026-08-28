@@ -12,11 +12,11 @@ import { SegmentButton } from './formControls';
 import { EmptyState, Section } from './sharedUi';
 import { formatElapsedTime } from '../services/time';
 import { normalizeAnswer } from '../services/text';
-import { getMatchingTotalCount } from '../services/kanaQuizFactory';
+import { getCombinedKanaExplanation, getMatchingTotalCount } from '../services/kanaQuizFactory';
+import { CelebrationBurst } from './ExerciseShell';
 import {
   buildKanaMnemonicSentence,
   getKanaVisual,
-  isCombinedKanaFallbackExample,
 } from '../services/kanaVisual';
 
 export function KanaExercisePanel({
@@ -342,11 +342,15 @@ export function KanaExercisePanel({
   }
   const promptText = exercise.direction === 'kana_to_romaji' ? exercise.prompt.character : exercise.prompt.romaji;
   const correctAnswer = exercise.direction === 'kana_to_romaji' ? exercise.prompt.romaji : exercise.prompt.character;
-  const visual = getKanaVisual(exercise.prompt, session.currentIndex);
   const isAnswerCorrect =
     selectedChoice !== null && normalizeAnswer(selectedChoice) === normalizeAnswer(correctAnswer);
-  const exampleLabel = isCombinedKanaFallbackExample(exercise.prompt) ? 'Mot repère' : 'Mot N5';
-  const mnemonic = buildKanaMnemonicSentence(exercise.prompt, visual);
+  const combinedExplanation = getCombinedKanaExplanation(exercise.prompt);
+  const previousStreak = [...session.answers].reverse().findIndex((answer) => !answer.isCorrect);
+  const completedStreak = previousStreak === -1 ? session.answers.length : previousStreak;
+  const currentAnswerRecorded = session.answers.at(-1)?.questionId === exercise.prompt.id;
+  const visibleStreak = selectedChoice && isAnswerCorrect && !currentAnswerRecorded
+    ? completedStreak + 1
+    : completedStreak;
   const promptLabel =
     exercise.direction === 'kana_to_romaji'
       ? 'Quel est le bon romaji ?'
@@ -354,6 +358,10 @@ export function KanaExercisePanel({
 
   return (
     <View style={styles.kanaExercisePanel}>
+      <CelebrationBurst
+        visible={isAnswerCorrect && visibleStreak > 0 && visibleStreak % 5 === 0}
+        streak={visibleStreak}
+      />
       <View style={styles.quizHeaderRow}>
         <Text style={styles.questionMeta}>Question {session.currentIndex + 1}/{session.questions.length}</Text>
         <View style={styles.quizHeaderStats}>
@@ -395,6 +403,11 @@ export function KanaExercisePanel({
             editable={selectedChoice === null}
             autoCapitalize="none"
             autoCorrect={false}
+            blurOnSubmit
+            returnKeyType="done"
+            onSubmitEditing={() => {
+              if (selectedChoice === null && directInput.trim().length > 0) onAnswer(directInput);
+            }}
             placeholder={exercise.direction === 'kana_to_romaji' ? 'Tape le romaji...' : 'Tape le kana...'}
             placeholderTextColor="#8A938F"
             style={[
@@ -424,11 +437,8 @@ export function KanaExercisePanel({
           <Text style={styles.feedbackText}>
             {exercise.prompt.character} se lit {exercise.prompt.romaji}.
           </Text>
-          <Text style={styles.feedbackText}>
-            {exampleLabel} : {visual.wordKana} · {visual.wordRomaji} · {visual.meaning}
-          </Text>
-          <Text style={styles.feedbackMnemonic}>{mnemonic}</Text>
-          <Pressable style={styles.primaryButton} onPress={onNext}>
+          {combinedExplanation && <Text style={styles.feedbackText}>{combinedExplanation}</Text>}
+          <Pressable style={[styles.primaryButton, styles.kanaFeedbackNextButton]} onPress={onNext}>
             <Text style={styles.primaryButtonText}>
               {session.currentIndex + 1 >= session.questions.length ? 'Voir le résultat' : 'Question suivante'}
             </Text>

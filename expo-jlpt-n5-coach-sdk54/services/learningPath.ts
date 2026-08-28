@@ -299,8 +299,8 @@ export function buildLearningPathStages(
 
 function getLockedReason(stages: Omit<LearningPathStage, 'status'>[], order: number): string {
   const previous = stages[order - 2];
-  if (!previous) return 'Ce module sera debloque apres le module precedent.';
-  return `A debloquer apres "${previous.title}" : vise 95% sur ce module precedent.`;
+  if (!previous) return 'Module futur accessible librement depuis la carte.';
+  return `Ordre conseillé : terminer « ${previous.title} » avant ce module. Il reste accessible librement.`;
 }
 
 const CURRICULUM_PHASES = [
@@ -350,12 +350,13 @@ export function buildCurriculumLearningPathStages(profile: CurriculumProfile): L
       reward: 'Validation pédagogique',
       screen: phase.screen,
       actionLabel: status === 'locked' ? 'Voir ce niveau' : 'Continuer ce niveau',
+      estimatedMinutes: 24,
       subSteps,
       detail: units.map((item) => `${item.code} : ${item.canDo}`).join('\n'),
       checkpoints: units.map((item) => `${item.code} — ${item.title}`),
       prerequisites: phaseIndex === 0 ? ['Aucun prérequis.'] : [`Avoir validé le niveau ${phaseIndex}C.`],
       successCriteria: units.map((item) => `${item.code} : ${item.minimumAccuracy}% minimum avec ${item.targetItems} notions maîtrisées.`),
-      lockedReason: status === 'locked' ? `Niveau à venir dans le parcours guidé. Son contenu reste consultable librement.` : undefined,
+      lockedReason: status === 'locked' ? `Étape future accessible. Le parcours la recommande après le niveau ${phaseIndex}C.` : undefined,
       nextActionHint: activeSubStep ? `${activeSubStep.code} — ${activeSubStep.objective}` : 'Module validé.',
     };
   });

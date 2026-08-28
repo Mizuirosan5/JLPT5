@@ -2,6 +2,8 @@
 
 export type Screen =
   | 'today'
+  | 'learn'
+  | 'lesson'
   | 'dashboard'
   | 'path'
   | 'aptitudeTest'
@@ -16,9 +18,11 @@ export type Screen =
   | 'stories'
   | 'writing'
   | 'quiz'
+  | 'practice'
   | 'exam'
   | 'quick'
-  | 'preferences';
+  | 'preferences'
+  | 'shop';
 export type DashboardTab = 'overview' | 'quiz' | 'mastery' | 'progress' | 'focus';
 export type QuizDifficultyPreference = 'soft' | 'normal' | 'hard';
 export type LearningPlanMode = 'balanced' | 'kana_first' | 'grammar_intensive' | 'exam_revision';
@@ -36,8 +40,8 @@ export type KanaMode = 'learn' | 'exercise';
 export type GrammarMode = 'learn' | 'exercise';
 export type GrammarLessonStatus = 'neutral' | 'understood' | 'not_understood';
 export type VocabularyScope = 'n5' | 'all';
-export type VocabularyViewMode = 'cards' | 'list';
-export type KanaFilter = 'all' | 'known' | 'review' | 'mastered' | 'unseen';
+export type VocabularyViewMode = 'cards' | 'list' | 'antonyms';
+export type KanaFilter = 'all' | 'learning' | 'known' | 'review' | 'mastered' | 'unseen';
 export type KanaDisplayStyle = 'illustrated' | 'classic';
 export type KanaExerciseDirection = 'kana_to_romaji' | 'romaji_to_kana';
 export type KanaQuizAnswerMode = 'multiple_choice' | 'direct_input';
@@ -89,12 +93,10 @@ export const GLOBAL_QUIZ_MODES: Array<{
   { id: 'arcade', symbol: '遊', title: 'Défi maîtrise', subtitle: 'Mélange complet avec score et combo jusqu’à x5.' },
 ];
 export type GrammarExerciseKind =
-  | 'rule_qcm'
   | 'translation_qcm'
   | 'blank_choice'
   | 'blank_input'
   | 'keyword_input'
-  | 'situation_qcm'
   | 'dialogue_response_qcm';
 export type TracePoint = { x: number; y: number };
 export type TraceStroke = { id: string; points: TracePoint[] };
@@ -200,6 +202,7 @@ export type LearningPathStage = {
   successCriteria?: string[];
   lockedReason?: string;
   nextActionHint?: string;
+  estimatedMinutes?: number;
 };
 
 export type LearningPathSubStep = {
@@ -333,6 +336,8 @@ export type BadgeView = BadgeDefinition & {
 export type QuizQuestion = {
   question_id: string;
   question_origin: string;
+  item_type?: string | null;
+  item_id?: string | null;
   skill_id: string;
   question_type: string;
   prompt_fr: string;
@@ -499,6 +504,7 @@ export type AudioQuizSession = {
   bestStreak: number;
   mistakes: Array<{ question: AudioQuizQuestion; selected: string }>;
   finished: boolean;
+  startedAt: number;
 };
 
 export type ExamSegment = {
@@ -577,6 +583,7 @@ export type WordLookupEntry = VocabularyExample & {
   theme?: string | null;
   importance?: number | null;
   category?: string;
+  lookupType?: 'vocabulary' | 'kanji' | 'grammar';
 };
 
 export type JapaneseTextToken = {

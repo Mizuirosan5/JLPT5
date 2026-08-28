@@ -54,7 +54,10 @@ export function getGoalProgress(goalId: string, metrics: DailyGoalMetrics): numb
   if (goalId === 'monthly-precision') return metrics.attempts >= 400 ? metrics.rate : 0;
   if (goalId === 'yearly-precision') return metrics.attempts >= 5000 ? metrics.rate : 0;
   if (goalId === 'daily-quiz') return metrics.quizAttempts + (metrics.grammarActivities ?? 0);
-  if (goalId.startsWith('daily-') && goalId.includes('precision')) return metrics.attempts >= 10 ? metrics.rate : 0;
+  if (goalId.startsWith('daily-') && goalId.includes('precision')) {
+    const minimumAnswers = Number(goalId.match(/-m(\d+)-/)?.[1] ?? 10);
+    return metrics.attempts >= minimumAnswers ? metrics.rate : 0;
+  }
   if (goalId.startsWith('daily-') && (goalId.includes('quiz') || goalId.includes('session') || goalId.includes('grammar'))) {
     return metrics.quizAttempts + (metrics.grammarActivities ?? 0);
   }

@@ -5,9 +5,11 @@ import { styles } from '../appStyles';
 import { KANJI_READING_CARDS } from '../data/kanjiReadingCards';
 import type { VocabularyCardData } from '../models';
 import { recordVocabularyCardSeen } from '../services/vocabulary';
+import { getKanjiComponentDetail } from '../services/kanjiComponents';
 import { Section } from './sharedUi';
+import { OfflineAudioButton } from './OfflineAudioButton';
 
-const CARD_PAGE_SIZE = 24;
+const CARD_PAGE_SIZE = 80;
 
 export function KanjiFlashcardsSection({ cards }: { cards: VocabularyCardData[] }) {
   const db = useSQLiteContext();
@@ -73,12 +75,17 @@ export function KanjiFlashcardsSection({ cards }: { cards: VocabularyCardData[] 
       </Pressable>
 
       <View style={styles.vocabularyDeckGrid}>
-        {visibleCards.map((card) => (
+        {visibleCards.map((card, cardIndex) => (
           <KanjiFlashCard
             key={card.id}
             card={card}
             flipped={flippedIds.has(card.id)}
             onPress={() => toggleGridCard(card)}
+            onOpenFullscreen={() => {
+              setViewerIndex(page * CARD_PAGE_SIZE + cardIndex);
+              setViewerFlipped(false);
+              recordSeen(card);
+            }}
           />
         ))}
       </View>
@@ -139,53 +146,63 @@ function KanjiFlashCard({
   card,
   flipped,
   onPress,
+  onOpenFullscreen,
 }: {
   card: VocabularyCardData;
   flipped: boolean;
   onPress: () => void;
+  onOpenFullscreen: () => void;
 }) {
   const readingCard = KANJI_READING_CARDS[card.root];
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={flipped ? `Voir le recto de ${card.root}` : `Voir le verso de ${card.root}`}
-      onPress={onPress}
-      style={[styles.vocabularyFlashCard, flipped && styles.vocabularyFlashCardBack]}
-    >
-      {!flipped ? (
-        <View style={styles.vocabCardFrontCenter}>
-          <Text adjustsFontSizeToFit numberOfLines={1} style={styles.vocabCardMain}>{card.root}</Text>
-        </View>
-      ) : (
-        <>
-          <View style={styles.vocabKanjiBackHeader}>
-            <Text style={styles.vocabCardBackKanji}>{card.root}</Text>
-            <Text numberOfLines={2} style={styles.vocabCardMeaning}>
-              {readingCard?.meaningFr ?? card.kanji?.meaning_fr ?? card.primary.meaning_fr}
-            </Text>
+    <View style={[styles.vocabularyFlashCard, flipped && styles.vocabularyFlashCardBack]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={flipped ? `Voir le recto de ${card.root}` : `Voir le verso de ${card.root}`}
+        onPress={onPress}
+        style={styles.kanjiFlashCardTap}
+      >
+        {!flipped ? (
+          <View style={styles.vocabCardFrontCenter}>
+            <Text adjustsFontSizeToFit numberOfLines={1} style={styles.vocabCardMain}>{card.root}</Text>
           </View>
-          <View style={styles.vocabKanjiReadingList}>
-            {(readingCard?.readings ?? []).map((reading) => {
-              const example = reading.examples[0];
-              return (
-                <View key={`${card.root}-${reading.kana}`} style={styles.vocabKanjiReadingRow}>
-                  <View style={styles.vocabKanjiReadingHeader}>
-                    <Text numberOfLines={1} style={styles.vocabKanjiReadingKana}>{reading.kana}</Text>
-                    <Text numberOfLines={1} style={styles.vocabKanjiReadingRomaji}>{reading.romaji}</Text>
+        ) : (
+          <>
+            <View style={styles.vocabKanjiBackHeader}>
+              <Text style={styles.vocabCardBackKanji}>{card.root}</Text>
+              <Text numberOfLines={2} style={styles.vocabCardMeaning}>
+                {readingCard?.meaningFr ?? card.kanji?.meaning_fr ?? card.primary.meaning_fr}
+              </Text>
+            </View>
+            <View style={styles.vocabKanjiReadingList}>
+              {(readingCard?.readings ?? []).map((reading) => {
+                const example = reading.examples[0];
+                return (
+                  <View key={`${card.root}-${reading.kana}`} style={styles.vocabKanjiReadingRow}>
+                    <View style={styles.vocabKanjiReadingHeader}>
+                      <Text numberOfLines={1} style={styles.vocabKanjiReadingKana}>{reading.kana}</Text>
+                      <Text numberOfLines={1} style={styles.vocabKanjiReadingRomaji}>{reading.romaji}</Text>
+                    </View>
+                    {!!example && (
+                      <>
+                        <Text numberOfLines={1} style={styles.vocabKanjiExampleWord}>{example.word}（{example.kana}）</Text>
+                        <Text numberOfLines={1} style={styles.vocabKanjiExampleMeaning}>{example.romaji} · {example.meaningFr}</Text>
+                      </>
+                    )}
                   </View>
-                  {!!example && (
-                    <>
-                      <Text numberOfLines={1} style={styles.vocabKanjiExampleWord}>{example.word}（{example.kana}）</Text>
-                      <Text numberOfLines={1} style={styles.vocabKanjiExampleMeaning}>{example.romaji} · {example.meaningFr}</Text>
-                    </>
-                  )}
-                </View>
-              );
-            })}
-          </View>
-        </>
-      )}
-    </Pressable>
+                );
+              })}
+            </View>
+          </>
+        )}
+      </Pressable>
+      <View style={styles.kanjiFlashCardCornerActions}>
+        <OfflineAudioButton iconOnly compact text={card.root} label={`Écouter ${card.root}`} />
+        <Pressable accessibilityRole="button" accessibilityLabel={`Ouvrir ${card.root} en plein écran`} onPress={onOpenFullscreen} style={styles.kanjiFlashCardIconButton}>
+          <Text style={styles.kanjiFlashCardIconText}>全</Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }
 
@@ -210,6 +227,7 @@ function KanjiFullscreenViewer({
 }) {
   const card = index === null ? null : cards[index] ?? null;
   const readingCard = card ? KANJI_READING_CARDS[card.root] : null;
+  const mnemonic = card ? getKanjiComponentDetail(card.root)?.mnemonicFr : null;
   const panResponder = useMemo(
     () => PanResponder.create({
       onMoveShouldSetPanResponder: (_, gesture) =>
@@ -256,6 +274,12 @@ function KanjiFullscreenViewer({
                     <Text style={styles.kanjiViewerBackKanji}>{card.root}</Text>
                     <Text style={styles.kanjiViewerBackMeaning}>{readingCard?.meaningFr ?? card.kanji?.meaning_fr ?? card.primary.meaning_fr}</Text>
                   </View>
+                  {!!mnemonic && (
+                    <View style={styles.kanjiViewerMnemonic}>
+                      <Text style={styles.kanjiViewerMnemonicLabel}>Image mentale</Text>
+                      <Text style={styles.kanjiViewerMnemonicText}>{mnemonic}</Text>
+                    </View>
+                  )}
                   {(readingCard?.readings ?? []).map((reading) => (
                     <View key={`${card.root}-viewer-${reading.kana}`} style={styles.kanjiViewerReadingSection}>
                       <View style={styles.kanjiViewerReadingHeader}>
@@ -286,6 +310,7 @@ function KanjiFullscreenViewer({
           <Pressable accessibilityRole="button" accessibilityLabel="Retourner la carte kanji" style={styles.kanjiViewerFlipButton} onPress={onFlip}>
             <Text style={styles.kanjiViewerFlipButtonText}>{flipped ? 'Voir le recto' : 'Voir le verso'}</Text>
           </Pressable>
+          {!!card && <OfflineAudioButton iconOnly text={card.root} label={`Écouter ${card.root}`} />}
           <Pressable accessibilityRole="button" accessibilityLabel="Carte kanji suivante" style={styles.kanjiViewerNavButton} onPress={onNext}>
             <Text style={styles.kanjiViewerNavText}>Suivante ›</Text>
           </Pressable>

@@ -1,4 +1,7 @@
 import { chromium } from 'playwright';
+import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createServer } from 'node:http';
+import { extname, join, normalize } from 'node:path';
 
 const APP_URL = process.env.APP_URL ?? 'http://localhost:8081/JLPT5';
 const SCREENSHOT_PREFIX = process.env.SCREENSHOT_PREFIX ?? 'playwright-v2';
@@ -12,12 +15,12 @@ const NAV_GROUPS = [
   {
     name: 'quiz',
     buttonLabel: 'S’entraîner',
-    entries: ['5 min', 'Quiz', 'Test JLPT'],
+    entries: ['Pratiquer', '5 min', 'Quiz', 'Test JLPT'],
   },
   {
     name: 'path',
     buttonLabel: 'Parcours',
-    entries: ['Aujourd’hui', 'Statistiques', 'Parcours guidé', 'Diagnostic', 'Rapport', 'Révisions', 'Mes erreurs'],
+    entries: ['Aujourd’hui', 'Statistiques', 'Parcours guidé', 'Diagnostic', 'Rapport', 'Révisions', 'Mes erreurs', 'Atelier'],
   },
 ];
 
@@ -96,6 +99,7 @@ async function waitForScreenSettle(page) {
 }
 
 async function run() {
+  const staticServer = process.env.SERVE_DIST === '1' ? await startDistServer() : null;
   const browser = await chromium.launch({ headless: true });
   const logs = [];
   const checkpoints = [];
@@ -126,6 +130,14 @@ async function run() {
       for (const [index, entry] of group.entries.entries()) {
         await tapMenuEntry(page, entry);
         await snapshot(page, `${viewport.name}-${normalizeName(entry)}`, checkpoints);
+        if (entry === 'Pratiquer') {
+          await page.getByText('Kits de phrases', { exact: true }).last().click({ timeout: 8000 });
+          await waitForScreenSettle(page);
+          await snapshot(page, `${viewport.name}-kits-de-phrases`, checkpoints);
+          await page.getByText('Salutations', { exact: true }).last().click({ timeout: 8000 });
+          await waitForScreenSettle(page);
+          await snapshot(page, `${viewport.name}-kit-salutations`, checkpoints);
+        }
         if (index < group.entries.length - 1) await openBottomGroup(page, group.buttonLabel);
       }
     }
@@ -133,6 +145,7 @@ async function run() {
   }
 
   await browser.close();
+  await new Promise((resolve) => staticServer?.close(resolve) ?? resolve());
 
   const failingCheckpoints = checkpoints.filter(
     (checkpoint) => checkpoint.hasErrorBoundary || checkpoint.hasContentDefect || checkpoint.bodyLength < 80 || checkpoint.horizontalOverflow || checkpoint.clippedButtons.length > 0
@@ -142,6 +155,29 @@ async function run() {
   if (failingCheckpoints.length > 0 || logs.some((log) => /:(?:error|pageerror):/.test(log))) {
     process.exitCode = 1;
   }
+}
+
+async function startDistServer() {
+  const distRoot = join(process.cwd(), 'dist');
+  if (!existsSync(join(distRoot, 'index.html'))) throw new Error('Run expo export before the self-hosted audit.');
+  const mimeTypes = {
+    '.css': 'text/css', '.db': 'application/octet-stream', '.html': 'text/html', '.ico': 'image/x-icon',
+    '.js': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.wasm': 'application/wasm',
+  };
+  const server = createServer((request, response) => {
+    const rawPath = decodeURIComponent((request.url ?? '/').split('?')[0]);
+    const relativePath = rawPath.replace(/^\/JLPT5\/?/, '') || 'index.html';
+    const safePath = normalize(relativePath).replace(/^(\.\.[/\\])+/, '');
+    let filePath = join(distRoot, safePath);
+    if (!existsSync(filePath) || statSync(filePath).isDirectory()) filePath = join(distRoot, 'index.html');
+    response.setHeader('Content-Type', mimeTypes[extname(filePath)] ?? 'application/octet-stream');
+    createReadStream(filePath).pipe(response);
+  });
+  await new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(8081, '127.0.0.1', resolve);
+  });
+  return server;
 }
 
 run().catch((error) => {

@@ -5,18 +5,17 @@ import { Keyboard, Platform, SafeAreaView, Text, View } from 'react-native';
 import { styles } from './appStyles';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { AppNavigation } from './components/AppNavigation';
-import { AptitudeReportScreen } from './components/AptitudeReportScreen';
-import { AptitudeTestScreen } from './components/AptitudeTestScreen';
-import { DashboardScreen } from './components/DashboardScreen';
+import { AptitudeReportScreen } from './components/AptitudeReportScreen'; import { AptitudeTestScreen } from './components/AptitudeTestScreen';
+import { DashboardScreen } from './components/DashboardScreen'; import { CosmeticShopScreen, EquippedCosmeticMark } from './components/CosmeticShopScreen';
 import { ExamScreen } from './components/ExamScreen';
 import { ErrorFlashcardsScreen } from './components/ErrorFlashcardsScreen';
 import { GrammarLessonsScreen } from './components/GrammarLessonsScreen';
 import { ImmersionReaderScreen } from './components/ImmersionReaderScreen';
 import { KanaScreen } from './components/KanaScreen';
 import { KanjiDetailScreen } from './components/KanjiDetailScreen';
-import { LearningPathScreen } from './components/LearningPathScreen';
+import { LearningPathScreen } from './components/LearningPathScreen'; import { LearningHubScreen } from './components/LearningHubScreen'; import { ContinueLearningBar } from './components/ContinueLearningBar'; import { LearningLotScreen } from './components/LearningLotScreen';
 import { LearningPreferencesScreen } from './components/LearningPreferencesScreen';
-import { QuickSessionScreen } from './components/QuickSessionScreen';
+import { QuickSessionScreen } from './components/QuickSessionScreen'; import { PracticeHubScreen } from './components/PracticeHubScreen';
 import { QuizScreen } from './components/QuizScreen';
 import { ReviewQueueScreen } from './components/ReviewQueueScreen';
 import { ScreenTransition } from './components/ScreenTransition';
@@ -57,7 +56,7 @@ function MainApp() {
     setDrawerGroup(null);
   }, []);
   useEffect(() => {
-    if (screen !== 'quiz') setChildCanGoBack(false); if (Platform.OS === 'web' && typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' });
+    if (screen !== 'quiz' && screen !== 'practice') setChildCanGoBack(false); if (Platform.OS === 'web' && typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' });
   }, [screen]);
   const goBack = useCallback(() => {
     Keyboard.dismiss();
@@ -86,10 +85,11 @@ function MainApp() {
           <Text style={styles.kicker}>JLPT N5</Text>
           <Text style={styles.title}>Coach Japonais</Text>
           <Text style={styles.headerSubtitle}>日本語を楽しく · Objectif réussite</Text>
-        </View>
+        </View><EquippedCosmeticMark />
       </View>
-      <ScreenTransition screen={screen}>
+      <ContinueLearningBar currentScreen={screen} onNavigate={navigateTo} /><ScreenTransition screen={screen}>
         {screen === 'today' && <TodayScreen onNavigate={navigateTo} />}
+        {screen === 'learn' && <LearningHubScreen onNavigate={navigateTo} />}{screen === 'lesson' && <LearningLotScreen onNavigate={navigateTo} />}
         {screen === 'dashboard' && <DashboardScreen onNavigate={navigateTo} />}
         {screen === 'path' && <LearningPathScreen onNavigate={navigateTo} />}
         {screen === 'aptitudeTest' && <AptitudeTestScreen onNavigate={navigateTo} />}
@@ -100,7 +100,8 @@ function MainApp() {
         {screen === 'vocabulary' && <VocabularyScreen />}
         {screen === 'grammar' && <GrammarLessonsScreen />}
         {screen === 'immersion' && <ImmersionReaderScreen />}
-        {screen === 'stories' && <StoryLessonScreen />}{screen === 'writing' && <WritingJournalScreen />}{screen === 'preferences' && <LearningPreferencesScreen />}{screen === 'quick' && <QuickSessionScreen />}
+        {screen === 'stories' && <StoryLessonScreen />}{screen === 'writing' && <WritingJournalScreen />}{screen === 'preferences' && <LearningPreferencesScreen />}{screen === 'shop' && <CosmeticShopScreen />}{screen === 'quick' && <QuickSessionScreen />}
+        {screen === 'practice' && <PracticeHubScreen backSignal={childBackSignal} onBackStateChange={setChildCanGoBack} onNavigate={navigateTo} />}
         {screen === 'quiz' && <QuizScreen backSignal={childBackSignal} onBackStateChange={setChildCanGoBack} />}
         {screen === 'exam' && <ExamScreen />}
       </ScreenTransition>

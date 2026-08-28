@@ -19,6 +19,7 @@ const NAV_GROUPS: Array<{
     icon: '道',
     subtitle: 'Suivre les progrès et savoir quoi travailler.',
     items: [
+      { screen: 'learn', icon: '学', label: 'Centre Apprendre', description: 'Parcours conseillé ou choix libre par thème.' },
       { screen: 'today', icon: '今', label: 'Aujourd’hui', description: 'Session recommandée et priorités du jour.' },
       { screen: 'dashboard', icon: '数', label: 'Statistiques', description: 'Scores, progression et points faibles.' },
       { screen: 'path', icon: '道', label: 'Parcours guidé', description: 'Étapes conseillées pour avancer.' },
@@ -26,6 +27,7 @@ const NAV_GROUPS: Array<{
       { screen: 'aptitudeReport', icon: '報', label: 'Rapport', description: 'Forces, faiblesses et modules recommandés.' },
       { screen: 'review', icon: '復', label: 'Révisions', description: 'File SRS du jour et notions à revoir.' },
       { screen: 'errors', icon: '誤', label: 'Mes erreurs', description: 'Cartes créées depuis les mauvaises réponses.' },
+      { screen: 'shop', icon: '飾', label: 'Atelier', description: 'Dépenser les pièces en objets purement cosmétiques.' },
     ],
   },
   {
@@ -49,6 +51,7 @@ const NAV_GROUPS: Array<{
     icon: '問',
     subtitle: 'Quiz rapides et simulation JLPT.',
     items: [
+      { screen: 'practice', icon: '練', label: 'Pratiquer', description: 'Ateliers ciblés par compétence.' },
       { screen: 'quick', icon: '速', label: '5 min', description: 'Session rapide adaptée au jour.' },
       { screen: 'quiz', icon: '問', label: 'Quiz', description: 'Questions mélangées et entraînement.' },
       { screen: 'exam', icon: '試', label: 'Test JLPT', description: 'Mode examen N5 complet.' },
@@ -82,8 +85,10 @@ function getActiveGroup(screen: Screen): NavGroupId {
     screen === 'aptitudeReport' ||
     screen === 'review' ||
     screen === 'errors'
+    || screen === 'shop'
   ) return 'path';
   if (
+    screen === 'learn' || screen === 'lesson' ||
     screen === 'kana' ||
     screen === 'kanjiDetail' ||
     screen === 'vocabulary' ||
@@ -92,7 +97,7 @@ function getActiveGroup(screen: Screen): NavGroupId {
     screen === 'stories' ||
     screen === 'writing'
   ) return 'learn';
-  if (screen === 'quiz' || screen === 'exam' || screen === 'quick') return 'quiz';
+  if (screen === 'quiz' || screen === 'practice' || screen === 'exam' || screen === 'quick') return 'quiz';
   return 'path';
 }
 

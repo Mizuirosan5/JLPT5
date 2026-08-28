@@ -107,6 +107,19 @@ export function TodayScreen({ onNavigate }: { onNavigate: (screen: Screen) => vo
         </Pressable>
       </View>
 
+      <View style={styles.todayLearningDoors}>
+        <Pressable accessibilityRole="button" onPress={() => onNavigate('learn')} style={({ pressed }) => [styles.todayLearningDoor, pressed && styles.controlPressed]}>
+          <View style={styles.todayLearningDoorTop}><Text style={styles.todayLearningDoorIcon}>学</Text><Text style={styles.todayLearningDoorCount}>Niv. {curriculum?.currentCode ?? '1A'}</Text></View>
+          <Text style={styles.todayLearningDoorTitle}>Apprendre</Text>
+          <Text style={styles.todayLearningDoorText}>Continuer le parcours conseillé</Text>
+        </Pressable>
+        <Pressable accessibilityRole="button" onPress={() => onNavigate('review')} style={({ pressed }) => [styles.todayLearningDoor, styles.todayReviewDoor, pressed && styles.controlPressed]}>
+          <View style={styles.todayLearningDoorTop}><Text style={styles.todayLearningDoorIcon}>復</Text><Text style={styles.todayLearningDoorCount}>{srs.dueToday}</Text></View>
+          <Text style={styles.todayLearningDoorTitle}>Réviser</Text>
+          <Text style={styles.todayLearningDoorText}>{srs.dueToday > 0 ? 'Notions dues aujourd’hui' : 'Mémoire à jour'}</Text>
+        </Pressable>
+      </View>
+
       {loadError && (
         <Pressable accessibilityRole="button" onPress={load} style={styles.todayNotice}>
           <Text style={styles.todayNoticeText}>Certaines données n’ont pas pu être chargées. Toucher pour réessayer.</Text>

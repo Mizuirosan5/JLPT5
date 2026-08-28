@@ -1,37 +1,40 @@
-# Pack audio offline
+# Pack audio hors ligne
 
-## Objectif
+## Etat valide le 28 aout 2026
 
-L'app utilise un mode hybride :
+L'application embarque un pack hybride de 934 fichiers MP3 japonais :
 
-- fichiers WAV embarques quand ils existent dans `assets/audio/n5_core`;
-- fallback TTS japonais local avec `expo-speech`;
-- fallback texte si aucune voix japonaise locale n'est disponible.
+- noyau de phrases usuelles et de classe ;
+- 225 prononciations kana ;
+- 80 lectures principales de kanji N5 ;
+- 585 prononciations de vocabulaire prioritaire.
+
+Tous les fichiers sont declares statiquement dans `data/audioAssetRegistry.ts`,
+inclus par Metro et lisibles sans connexion. Le repli `expo-speech` reste actif
+pour un texte qui ne figure pas encore dans le pack. L'absence de voix japonaise
+sur le telephone ne bloque donc plus les 934 contenus couverts.
 
 ## Commandes
 
 ```powershell
-npm run audio:check
-npm run audio:sync
+npm run audio:manifest
 npm run audio:generate
-```
-
-`audio:check` audite le manifest, les fichiers WAV et le registre Expo.
-`audio:sync` relie les WAV presents a `data/audioAssetRegistry.ts`.
-`audio:generate` genere les WAV avec une voix japonaise Windows compatible, puis synchronise le registre.
-
-Avant un build final avec pack audio complet :
-
-```powershell
+npm run audio:sync
 npm run audio:check:strict
 ```
 
-## Etat attendu
+`audio:manifest` reconstruit la couverture attendue depuis la base locale.
+`audio:generate` produit les MP3 manquants et conserve les fichiers valides.
+`audio:sync` regenere le registre Expo. `audio:check:strict` refuse tout fichier
+absent, trop petit ou non declare.
 
-Sans WAV, l'app fonctionne encore grace au fallback TTS/texte.
-Avec WAV, le quiz audio lit d'abord le fichier embarque via `expo-audio`.
+## Preuve locale
 
-## Blocage actuel
+`npm run audio:check:strict` : 934 fichiers attendus, 934 presents, 0 manquant.
+L'export Web de production reference 934 ressources audio embarquees.
 
-Sur cette machine, aucune voix japonaise Windows SAPI compatible n'est accessible.
-La generation locale de fichiers WAV est donc bloquee tant qu'une voix japonaise n'est pas installee.
+## Validation physique restante
+
+Tester sur iPhone le volume, le mode silencieux, les interruptions audio et une
+session complete en mode avion. Cette verification materielle ne peut pas etre
+remplacee par l'audit Web.

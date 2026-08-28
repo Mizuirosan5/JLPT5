@@ -26,7 +26,7 @@ import {
 } from '../services/kanaVisual';
 import { hasJapaneseText, keepChoicesInWritingSystem, normalizeAnswer } from '../services/text';
 import { loadKanjiItems } from '../services/vocabulary';
-import { shuffle } from '../services/random';
+import { shuffle, shuffleChoices } from '../services/random';
 import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../services/preferences';
 import { buildQuizFeedbackInsights } from '../services/quizFeedback';
 import { recordSrsReviewForQuestionAttempt } from '../services/srs';
@@ -163,27 +163,27 @@ export function QuizScreen({
           generatedChoices.map((choice) => choice.choice_text).filter((choice) => allowedAnswers.has(choice))
         );
         if (compatibleGenerated.length >= 2) {
+          const compatibleRows = compatibleGenerated.map((choiceText, index) => ({
+            id: `${next.question_id}-compatible-${index}`,
+            choice_text: choiceText,
+            is_correct: normalizeAnswer(choiceText) === normalizeAnswer(next.correct_answer) ? 1 : 0,
+          }));
+          const correctRow = compatibleRows.find((choice) => choice.is_correct === 1);
           setChoices(
-            compatibleGenerated.map((choiceText, index) => ({
-              id: `${next.question_id}-compatible-${index}`,
-              choice_text: choiceText,
-              is_correct: normalizeAnswer(choiceText) === normalizeAnswer(next.correct_answer) ? 1 : 0,
-            }))
+            correctRow ? shuffleChoices(compatibleRows, correctRow) : shuffle(compatibleRows)
           );
         } else {
           const compatibleFallback = keepChoicesInWritingSystem(
             next.correct_answer,
             [next.correct_answer, ...eligibleCandidates.map((candidate) => candidate.correct_answer)]
           );
-          setChoices(
-            shuffle(
-              compatibleFallback.slice(0, 4).map((choiceText, index) => ({
-                id: `${next.question_id}-fallback-${index}`,
-                choice_text: choiceText,
-                is_correct: normalizeAnswer(choiceText) === normalizeAnswer(next.correct_answer) ? 1 : 0,
-              }))
-            )
-          );
+          const fallbackRows = compatibleFallback.slice(0, 4).map((choiceText, index) => ({
+            id: `${next.question_id}-fallback-${index}`,
+            choice_text: choiceText,
+            is_correct: normalizeAnswer(choiceText) === normalizeAnswer(next.correct_answer) ? 1 : 0,
+          }));
+          const correctRow = fallbackRows.find((choice) => choice.is_correct === 1);
+          setChoices(correctRow ? shuffleChoices(fallbackRows, correctRow) : shuffle(fallbackRows));
         }
       } else {
         setChoices([]);
@@ -200,6 +200,12 @@ export function QuizScreen({
   useEffect(() => {
     loadQuestion();
   }, [loadQuestion]);
+
+  useEffect(() => {
+    if (selected?.is_correct !== 1) return;
+    const timer = setTimeout(() => { void loadQuestion(); }, 620);
+    return () => clearTimeout(timer);
+  }, [loadQuestion, selected]);
 
   const answer = async (choice: QuizChoice) => {
     if (!question || selected) return;

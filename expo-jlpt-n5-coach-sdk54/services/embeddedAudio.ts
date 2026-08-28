@@ -1,10 +1,19 @@
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer, type AudioSource } from 'expo-audio';
-import { AUDIO_ASSET_REGISTRY } from '../data/audioAssetRegistry';
+import { AUDIO_ASSET_REGISTRY, AUDIO_TEXT_ASSET_IDS } from '../data/audioAssetRegistry';
 
 let currentPlayer: AudioPlayer | null = null;
 
 export function hasEmbeddedAudioAsset(itemId: string): boolean {
   return Boolean(AUDIO_ASSET_REGISTRY[itemId]);
+}
+
+export function hasEmbeddedAudioText(text: string): boolean {
+  return Boolean(AUDIO_TEXT_ASSET_IDS[text.trim()]);
+}
+
+export function playEmbeddedAudioText(text: string, slow = false): Promise<boolean> {
+  const itemId = AUDIO_TEXT_ASSET_IDS[text.trim()];
+  return itemId ? playEmbeddedAudioAsset(itemId, slow) : Promise.resolve(false);
 }
 
 export async function playEmbeddedAudioAsset(itemId: string, slow = false): Promise<boolean> {

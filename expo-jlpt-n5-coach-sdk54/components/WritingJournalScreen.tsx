@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { styles } from '../appStyles';
-import type { VocabularyItem } from '../models';
+import type { VocabularyItem, WordLookupEntry } from '../models';
 import { loadVocabularyItems } from '../services/vocabulary';
 import {
   analyzeWritingText,
@@ -13,9 +13,11 @@ import {
   type WritingJournalEntry,
 } from '../services/writingJournal';
 import { EmptyState, LoadingView, Section } from './sharedUi';
+import { JapaneseLookupText, useVocabularyLookupIndex, WordLookupPanel } from './JapaneseLookup';
 
 export function WritingJournalScreen() {
   const db = useSQLiteContext();
+  const lookupEntries = useVocabularyLookupIndex(db);
   const prompt = useMemo(() => getDailyWritingPrompt(), []);
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState('');
@@ -23,6 +25,7 @@ export function WritingJournalScreen() {
   const [entries, setEntries] = useState<WritingJournalEntry[]>([]);
   const [analysis, setAnalysis] = useState<WritingAnalysis | null>(null);
   const [savedMessage, setSavedMessage] = useState('');
+  const [selectedLookup, setSelectedLookup] = useState<WordLookupEntry | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -84,7 +87,7 @@ export function WritingJournalScreen() {
           <Text style={styles.preferenceOptionTitle}>{prompt.title}</Text>
           <Text style={styles.preferenceOptionText}>{prompt.promptFr}</Text>
           <Text style={styles.quickCorrectionText}>{prompt.helper}</Text>
-          <Text style={styles.quickJapanese}>{prompt.exampleJa}</Text>
+          <JapaneseLookupText text={prompt.exampleJa} entries={lookupEntries} onSelect={setSelectedLookup} style={styles.quickJapanese} />
         </View>
       </Section>
 
@@ -123,6 +126,11 @@ export function WritingJournalScreen() {
 
       {!!analysis && (
         <Section title="Retour local">
+          <View style={[styles.feedback, analysis.assessment === 'likely_correct' ? styles.choiceCorrect : styles.choiceWrong]}>
+            <Text style={styles.feedbackTitle}>{analysis.assessment === 'likely_correct' ? 'Phrase cohérente' : 'Phrase à vérifier'}</Text>
+            <Text style={styles.feedbackText}>{analysis.assessmentDetail}</Text>
+            {analysis.correctedText !== text.trim() && <Text style={styles.quickJapanese}>Ponctuation proposée : {analysis.correctedText}</Text>}
+          </View>
           <View style={styles.aptitudeInsightGrid}>
             <View style={styles.aptitudeInsightCard}>
               <Text style={styles.pathNextLabel}>Mots reconnus</Text>
@@ -149,7 +157,7 @@ export function WritingJournalScreen() {
           <View key={entry.id} style={styles.preferenceOptionCard}>
             <Text style={styles.preferenceOptionTitle}>{entry.prompt_title}</Text>
             <Text style={styles.preferenceOptionText}>{entry.prompt_fr}</Text>
-            <Text style={styles.quickJapanese}>{entry.user_text}</Text>
+            <JapaneseLookupText text={entry.user_text} entries={lookupEntries} onSelect={setSelectedLookup} style={styles.quickJapanese} />
             {parseJsonArray(entry.suggestions_json).slice(0, 2).map((suggestion, index) => (
               <Text key={`${entry.id}-${index}`} style={styles.quickCorrectionText}>{suggestion}</Text>
             ))}
@@ -158,6 +166,7 @@ export function WritingJournalScreen() {
           <EmptyState title="Aucune phrase sauvegardee" />
         )}
       </Section>
+      <WordLookupPanel entry={selectedLookup} onClose={() => setSelectedLookup(null)} />
     </ScrollView>
   );
 }

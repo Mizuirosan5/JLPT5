@@ -50,9 +50,6 @@ import {
   buildGrammarPracticePrompt,
   buildGrammarQuickReminder,
   buildGrammarSituation,
-  buildGrammarSteps,
-  buildGrammarUseCase,
-  buildGrammarWhy,
   createGrammarSession,
   explainGrammarSlots,
   getGrammarExerciseInstruction,
@@ -65,6 +62,7 @@ import {
 import { shuffle } from '../services/random';
 import { filterGrammarForCurriculum, loadCurriculumProfile } from '../services/curriculum';
 import type { CurriculumCode } from '../data/curriculum';
+import { DomainProgressHeader } from './DomainProgressHeader';
 
 export function GrammarLessonsScreen() {
   const db = useSQLiteContext();
@@ -98,6 +96,8 @@ export function GrammarLessonsScreen() {
   const [revealedTranslationExampleId, setRevealedTranslationExampleId] = useState<string | null>(null);
   const [revealedKanaExampleId, setRevealedKanaExampleId] = useState<string | null>(null);
   const [exerciseFeedback, setExerciseFeedback] = useState<'correct' | 'wrong' | null>(null);
+  const [lessonExerciseRound, setLessonExerciseRound] = useState(0);
+  const [lessonExerciseSelection, setLessonExerciseSelection] = useState('');
   const [grammarProgress, setGrammarProgress] = useState<GrammarProgressSummary>(emptyGrammarProgressSummary);
   const [grammarExerciseSize, setGrammarExerciseSize] = useState<10 | 20>(10);
   const [grammarExerciseSession, setGrammarExerciseSession] = useState<GrammarQuizSession | null>(null);
@@ -175,6 +175,8 @@ export function GrammarLessonsScreen() {
     setRevealedTranslationExampleId(null);
     setRevealedKanaExampleId(null);
     setExerciseFeedback(null);
+    setLessonExerciseRound(0);
+    setLessonExerciseSelection('');
     setSelectedWordLookup(null);
     setSelectedWordLookupAnchorId(null);
     void markGrammarLessonOpened(db, lesson.id)
@@ -193,17 +195,20 @@ export function GrammarLessonsScreen() {
     setSelectedWordLookupAnchorId(null);
   };
 
-  const lessonExerciseExample = selectedLesson.examples[0];
-  const exerciseDistractor = curriculumLessons.find(
-    (lesson) => lesson.id !== selectedLesson.id && lesson.examples[0]?.fr !== lessonExerciseExample?.fr
-  )?.examples[0]?.fr;
-  const lessonExerciseChoices = lessonExerciseExample
-    ? shuffle([lessonExerciseExample.fr, exerciseDistractor ?? 'Je vais à l’école.']).slice(0, 2)
-    : [];
+  const lessonExerciseExample = selectedLesson.examples[lessonExerciseRound % Math.max(1, selectedLesson.examples.length)];
+  const lessonExerciseChoices = useMemo(() => {
+    if (!lessonExerciseExample) return [];
+    const distractors = uniqueChoices([
+      ...selectedLesson.examples.map((example) => example.fr),
+      ...curriculumLessons.flatMap((lesson) => lesson.examples.slice(0, 1).map((example) => example.fr)),
+    ], []).filter((choice) => choice !== lessonExerciseExample.fr);
+    return shuffle([lessonExerciseExample.fr, ...shuffle(distractors).slice(0, 2)]);
+  }, [lessonExerciseExample, lessonExerciseRound, selectedLesson.id]);
 
   const answerLessonExercise = async (choice: string) => {
     if (!lessonExerciseExample || exerciseFeedback) return;
     const isCorrect = choice === lessonExerciseExample.fr;
+    setLessonExerciseSelection(choice);
     setExerciseFeedback(isCorrect ? 'correct' : 'wrong');
     try {
       await recordGrammarExerciseAttempt(
@@ -354,26 +359,9 @@ export function GrammarLessonsScreen() {
               <Text style={styles.grammarFormulaText}>{explainGrammarSlots(selectedLesson)}</Text>
             </View>
 
-            <Text style={styles.grammarExplanation}>{selectedLesson.explanation}</Text>
-
             <View style={styles.grammarCourseBlock}>
-              <Text style={styles.grammarCourseTitle}>À quoi ça sert ?</Text>
-              <Text style={styles.grammarCourseText}>{buildGrammarUseCase(selectedLesson)}</Text>
-            </View>
-
-            <View style={styles.grammarCourseBlock}>
-              <Text style={styles.grammarCourseTitle}>Pourquoi ça marche comme ça ?</Text>
-              <Text style={styles.grammarCourseText}>{buildGrammarWhy(selectedLesson)}</Text>
-            </View>
-
-            <View style={styles.grammarHowCard}>
-              <Text style={styles.grammarCourseTitle}>Comment l’utiliser, étape par étape</Text>
-              {buildGrammarSteps(selectedLesson).map((step, index) => (
-                <View key={`${selectedLesson.id}-step-${index}`} style={styles.grammarStepRow}>
-                  <Text style={styles.grammarStepNumber}>{index + 1}</Text>
-                  <Text style={styles.grammarStepText}>{step}</Text>
-                </View>
-              ))}
+              <Text style={styles.grammarCourseTitle}>Explication simple</Text>
+              <Text style={styles.grammarCourseText}>{selectedLesson.explanation}</Text>
             </View>
 
             <View style={styles.grammarSituationCard}>
@@ -498,9 +486,7 @@ export function GrammarLessonsScreen() {
                   <View style={styles.choiceList}>
                     {lessonExerciseChoices.map((choice) => {
                       const isCorrect = choice === lessonExerciseExample.fr;
-                      const isSelected =
-                        exerciseFeedback !== null &&
-                        ((exerciseFeedback === 'correct' && isCorrect) || (exerciseFeedback === 'wrong' && !isCorrect));
+                      const isSelected = exerciseFeedback !== null && choice === lessonExerciseSelection;
                       return (
                         <Pressable
                           key={choice}
@@ -518,11 +504,26 @@ export function GrammarLessonsScreen() {
                     })}
                   </View>
                   {exerciseFeedback && (
-                    <Text style={styles.feedbackText}>
-                      {exerciseFeedback === 'correct'
-                        ? 'Très bien : cette leçon gagne en maîtrise.'
-                        : `À revoir : la bonne réponse était “${lessonExerciseExample.fr}”.`}
-                    </Text>
+                    <View style={styles.feedback}>
+                      <Text style={styles.feedbackTitle}>{exerciseFeedback === 'correct' ? 'Correct' : 'À revoir'}</Text>
+                      <Text style={styles.feedbackText}>
+                        {exerciseFeedback === 'correct'
+                          ? 'Cette traduction respecte bien le sens et la structure de la phrase.'
+                          : `La bonne réponse était « ${lessonExerciseExample.fr} ».`}
+                      </Text>
+                      <Text style={styles.feedbackText}>{buildGrammarExampleBreakdown(selectedLesson, lessonExerciseExample)}</Text>
+                      <Text style={styles.feedbackText}>{buildGrammarExampleAnalysis(selectedLesson, lessonExerciseExample)}</Text>
+                      <Pressable
+                        style={styles.primaryButton}
+                        onPress={() => {
+                          setExerciseFeedback(null);
+                          setLessonExerciseSelection('');
+                          setLessonExerciseRound((round) => round + 1);
+                        }}
+                      >
+                        <Text style={styles.primaryButtonText}>Nouvel entraînement</Text>
+                      </Pressable>
+                    </View>
                   )}
                 </>
               )}
@@ -619,6 +620,16 @@ export function GrammarLessonsScreen() {
             <Text style={styles.grammarHeroBadgeText}>réponses</Text>
           </View>
         </View>
+
+        <DomainProgressHeader
+          label="Progression Grammaire"
+          mastered={grammarProgress.completed}
+          total={grammarProgress.total}
+          review={grammarProgress.exerciseAttempts >= 3 && grammarProgress.exerciseRate < 70 ? 1 : 0}
+          attempts={grammarProgress.exerciseAttempts}
+          recommendation={grammarProgress.exerciseAttempts >= 3 && grammarProgress.exerciseRate < 70 ? 'Revoir le point courant avant une nouvelle série.' : 'Continuer les exercices du niveau courant.'}
+          onContinue={startGrammarExercises}
+        />
 
         <View style={styles.segmented}>
           <SegmentButton label="Leçons" active={false} onPress={() => setGrammarMode('learn')} />
@@ -883,6 +894,17 @@ export function GrammarLessonsScreen() {
           <Text style={styles.grammarHeroBadgeText}>leçons</Text>
         </View>
       </View>
+
+      <DomainProgressHeader
+        label="Progression Grammaire"
+        mastered={grammarProgress.completed}
+        total={grammarProgress.total}
+        review={grammarProgress.exerciseAttempts >= 3 && grammarProgress.exerciseRate < 70 ? 1 : 0}
+        attempts={grammarProgress.exerciseAttempts}
+        recommendation={grammarProgress.exerciseAttempts >= 3 && grammarProgress.exerciseRate < 70 ? 'Revoir les points fragiles du menu actuel.' : 'Ouvrir la prochaine leçon conseillée.'}
+        actionLabel={grammarProgress.exerciseAttempts >= 3 && grammarProgress.exerciseRate < 70 ? 'Exercices' : 'Continuer'}
+        onContinue={() => grammarProgress.exerciseAttempts >= 3 && grammarProgress.exerciseRate < 70 ? setGrammarMode('exercise') : setOpenedLessonId(selectedLesson.id)}
+      />
 
       <View style={styles.segmented}>
         <SegmentButton label="Leçons" active onPress={() => setGrammarMode('learn')} />

@@ -1,7 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import type { SrsOverview } from '../models';
 
-export type SrsItemType = 'kana' | 'vocabulary' | 'kanji' | 'grammar' | 'skill';
+export type SrsItemType = 'kana' | 'vocabulary' | 'kanji' | 'grammar' | 'conjugation' | 'skill';
 export type SrsStatus = 'new' | 'fragile' | 'known' | 'solid' | 'mastered';
 
 export type SrsItemState = {
@@ -181,6 +181,7 @@ function getNextIntervalDays(status: SrsStatus, currentInterval: number, ease: n
 
 export function inferSrsItemType(skillId: string, sourceMode: string): SrsItemType {
   const value = `${skillId}:${sourceMode}`.toLowerCase();
+  if (value.includes('conjug')) return 'conjugation';
   if (value.includes('kana') || value.includes('hiragana') || value.includes('katakana')) return 'kana';
   if (value.includes('vocab')) return 'vocabulary';
   if (value.includes('kanji')) return 'kanji';

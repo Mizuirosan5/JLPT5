@@ -1,52 +1,5031 @@
 {
-  "version": 1,
-  "kind": "hybrid_core_tts_fallback",
+  "version": 2,
+  "kind": "embedded_japanese_mp3_with_tts_fallback",
+  "voice": "ja-JP-NanamiNeural",
   "outputDir": "assets/audio/n5_core",
-  "format": "wav",
+  "format": "mp3",
   "items": [
-    { "id": "greeting-ohayou", "japanese": "おはようございます。" },
-    { "id": "greeting-konnichiwa", "japanese": "こんにちは。" },
-    { "id": "greeting-konbanwa", "japanese": "こんばんは。" },
-    { "id": "greeting-arigatou", "japanese": "ありがとうございます。" },
-    { "id": "greeting-sumimasen", "japanese": "すみません。" },
-    { "id": "greeting-hajimemashite", "japanese": "はじめまして。" },
-    { "id": "greeting-onegaishimasu", "japanese": "よろしくお願いします。" },
-    { "id": "greeting-sayonara", "japanese": "さようなら。" },
-    { "id": "greeting-itadakimasu", "japanese": "いただきます。" },
-    { "id": "greeting-gomen", "japanese": "ごめんなさい。" },
-    { "id": "number-1", "japanese": "一" },
-    { "id": "number-2", "japanese": "二" },
-    { "id": "number-3", "japanese": "三" },
-    { "id": "number-4", "japanese": "四" },
-    { "id": "number-5", "japanese": "五" },
-    { "id": "number-6", "japanese": "六" },
-    { "id": "number-7", "japanese": "七" },
-    { "id": "number-8", "japanese": "八" },
-    { "id": "number-9", "japanese": "九" },
-    { "id": "number-10", "japanese": "十" },
-    { "id": "number-11", "japanese": "十一" },
-    { "id": "number-12", "japanese": "十二" },
-    { "id": "number-20", "japanese": "二十" },
-    { "id": "number-100", "japanese": "百" },
-    { "id": "number-1000", "japanese": "千" },
-    { "id": "classroom-repeat", "japanese": "もう一度お願いします。" },
-    { "id": "classroom-slow", "japanese": "ゆっくり話してください。" },
-    { "id": "classroom-understand", "japanese": "分かりました。" },
-    { "id": "classroom-not-understand", "japanese": "分かりません。" },
-    { "id": "classroom-question", "japanese": "質問があります。" },
-    { "id": "daily-name", "japanese": "私は学生です。" },
-    { "id": "daily-french", "japanese": "フランス人です。" },
-    { "id": "daily-school", "japanese": "学校へ行きます。" },
-    { "id": "daily-water", "japanese": "水を飲みます。" },
-    { "id": "daily-book", "japanese": "本を読みます。" },
-    { "id": "daily-japanese-study", "japanese": "日本語を勉強します。" },
-    { "id": "daily-home", "japanese": "家でご飯を食べます。" },
-    { "id": "daily-train", "japanese": "駅で電車を待ちます。" },
-    { "id": "daily-shop", "japanese": "店でパンを買います。" },
-    { "id": "daily-rain", "japanese": "今日は雨です。" },
-    { "id": "daily-family", "japanese": "母は魚が好きです。" },
-    { "id": "daily-time", "japanese": "八時半に来ます。" },
-    { "id": "daily-price", "japanese": "五百円です。" },
-    { "id": "daily-request", "japanese": "これをください。" }
+    {
+      "id": "greeting-ohayou",
+      "category": "core",
+      "japanese": "おはようございます。"
+    },
+    {
+      "id": "greeting-konnichiwa",
+      "category": "core",
+      "japanese": "こんにちは。"
+    },
+    {
+      "id": "greeting-konbanwa",
+      "category": "core",
+      "japanese": "こんばんは。"
+    },
+    {
+      "id": "greeting-arigatou",
+      "category": "core",
+      "japanese": "ありがとうございます。"
+    },
+    {
+      "id": "greeting-sumimasen",
+      "category": "core",
+      "japanese": "すみません。"
+    },
+    {
+      "id": "greeting-hajimemashite",
+      "category": "core",
+      "japanese": "はじめまして。"
+    },
+    {
+      "id": "greeting-onegaishimasu",
+      "category": "core",
+      "japanese": "よろしくお願いします。"
+    },
+    {
+      "id": "greeting-sayonara",
+      "category": "core",
+      "japanese": "さようなら。"
+    },
+    {
+      "id": "greeting-itadakimasu",
+      "category": "core",
+      "japanese": "いただきます。"
+    },
+    {
+      "id": "greeting-gomen",
+      "category": "core",
+      "japanese": "ごめんなさい。"
+    },
+    {
+      "id": "number-1",
+      "category": "core",
+      "japanese": "一"
+    },
+    {
+      "id": "number-2",
+      "category": "core",
+      "japanese": "二"
+    },
+    {
+      "id": "number-3",
+      "category": "core",
+      "japanese": "三"
+    },
+    {
+      "id": "number-4",
+      "category": "core",
+      "japanese": "四"
+    },
+    {
+      "id": "number-5",
+      "category": "core",
+      "japanese": "五"
+    },
+    {
+      "id": "number-6",
+      "category": "core",
+      "japanese": "六"
+    },
+    {
+      "id": "number-7",
+      "category": "core",
+      "japanese": "七"
+    },
+    {
+      "id": "number-8",
+      "category": "core",
+      "japanese": "八"
+    },
+    {
+      "id": "number-9",
+      "category": "core",
+      "japanese": "九"
+    },
+    {
+      "id": "number-10",
+      "category": "core",
+      "japanese": "十"
+    },
+    {
+      "id": "number-11",
+      "category": "core",
+      "japanese": "十一"
+    },
+    {
+      "id": "number-12",
+      "category": "core",
+      "japanese": "十二"
+    },
+    {
+      "id": "number-20",
+      "category": "core",
+      "japanese": "二十"
+    },
+    {
+      "id": "number-100",
+      "category": "core",
+      "japanese": "百"
+    },
+    {
+      "id": "number-1000",
+      "category": "core",
+      "japanese": "千"
+    },
+    {
+      "id": "classroom-repeat",
+      "category": "core",
+      "japanese": "もう一度お願いします。"
+    },
+    {
+      "id": "classroom-slow",
+      "category": "core",
+      "japanese": "ゆっくり話してください。"
+    },
+    {
+      "id": "classroom-understand",
+      "category": "core",
+      "japanese": "分かりました。"
+    },
+    {
+      "id": "classroom-not-understand",
+      "category": "core",
+      "japanese": "分かりません。"
+    },
+    {
+      "id": "classroom-question",
+      "category": "core",
+      "japanese": "質問があります。"
+    },
+    {
+      "id": "daily-name",
+      "category": "core",
+      "japanese": "私は学生です。"
+    },
+    {
+      "id": "daily-french",
+      "category": "core",
+      "japanese": "フランス人です。"
+    },
+    {
+      "id": "daily-school",
+      "category": "core",
+      "japanese": "学校へ行きます。"
+    },
+    {
+      "id": "daily-water",
+      "category": "core",
+      "japanese": "水を飲みます。"
+    },
+    {
+      "id": "daily-book",
+      "category": "core",
+      "japanese": "本を読みます。"
+    },
+    {
+      "id": "daily-japanese-study",
+      "category": "core",
+      "japanese": "日本語を勉強します。"
+    },
+    {
+      "id": "daily-home",
+      "category": "core",
+      "japanese": "家でご飯を食べます。"
+    },
+    {
+      "id": "daily-train",
+      "category": "core",
+      "japanese": "駅で電車を待ちます。"
+    },
+    {
+      "id": "daily-shop",
+      "category": "core",
+      "japanese": "店でパンを買います。"
+    },
+    {
+      "id": "daily-rain",
+      "category": "core",
+      "japanese": "今日は雨です。"
+    },
+    {
+      "id": "daily-family",
+      "category": "core",
+      "japanese": "母は魚が好きです。"
+    },
+    {
+      "id": "daily-time",
+      "category": "core",
+      "japanese": "八時半に来ます。"
+    },
+    {
+      "id": "daily-price",
+      "category": "core",
+      "japanese": "五百円です。"
+    },
+    {
+      "id": "daily-request",
+      "category": "core",
+      "japanese": "これをください。"
+    },
+    {
+      "id": "kana-4a54b98ea59457",
+      "category": "kana",
+      "japanese": "む"
+    },
+    {
+      "id": "kana-58e45e950739fe",
+      "category": "kana",
+      "japanese": "しゅ"
+    },
+    {
+      "id": "kana-7448d0d2f150fa",
+      "category": "kana",
+      "japanese": "り",
+      "aliases": []
+    },
+    {
+      "id": "kana-6668e3c189e9be",
+      "category": "kana",
+      "japanese": "び",
+      "aliases": []
+    },
+    {
+      "id": "kana-95659a1ecd97d2",
+      "category": "kana",
+      "japanese": "びょ"
+    },
+    {
+      "id": "kana-3e898991235be1",
+      "category": "kana",
+      "japanese": "で"
+    },
+    {
+      "id": "kana-fcfb697890851b",
+      "category": "kana",
+      "japanese": "つ"
+    },
+    {
+      "id": "kana-cfb51710e3b651",
+      "category": "kana",
+      "japanese": "い"
+    },
+    {
+      "id": "kana-0f265bb32d0a74",
+      "category": "kana",
+      "japanese": "け"
+    },
+    {
+      "id": "kana-bc27e72f82f75c",
+      "category": "kana",
+      "japanese": "ろ"
+    },
+    {
+      "id": "kana-08f4f5a01e617d",
+      "category": "kana",
+      "japanese": "りょ"
+    },
+    {
+      "id": "kana-f351d6bdea0497",
+      "category": "kana",
+      "japanese": "と"
+    },
+    {
+      "id": "kana-d18cfa56d8b087",
+      "category": "kana",
+      "japanese": "ぴゅ"
+    },
+    {
+      "id": "kana-8371d7e18578c8",
+      "category": "kana",
+      "japanese": "ち"
+    },
+    {
+      "id": "kana-45e32b4c2ad423",
+      "category": "kana",
+      "japanese": "す"
+    },
+    {
+      "id": "kana-77f5f3e118c7c0",
+      "category": "kana",
+      "japanese": "ぺ"
+    },
+    {
+      "id": "kana-9f3b47c6e1c10d",
+      "category": "kana",
+      "japanese": "きょ"
+    },
+    {
+      "id": "kana-b20a27ad2186e7",
+      "category": "kana",
+      "japanese": "う"
+    },
+    {
+      "id": "kana-3ef062cb793307",
+      "category": "kana",
+      "japanese": "ひゅ"
+    },
+    {
+      "id": "kana-aaabd1de833ebe",
+      "category": "kana",
+      "japanese": "づ"
+    },
+    {
+      "id": "kana-11258897f6a88d",
+      "category": "kana",
+      "japanese": "は",
+      "aliases": []
+    },
+    {
+      "id": "kana-447fd912de50b2",
+      "category": "kana",
+      "japanese": "ぼ"
+    },
+    {
+      "id": "kana-66923032a9980c",
+      "category": "kana",
+      "japanese": "ぱ"
+    },
+    {
+      "id": "kana-de0eebdfdb5243",
+      "category": "kana",
+      "japanese": "そ"
+    },
+    {
+      "id": "kana-1487dd99fad026",
+      "category": "kana",
+      "japanese": "ぎょ"
+    },
+    {
+      "id": "kana-033fa4141918b7",
+      "category": "kana",
+      "japanese": "しぇ"
+    },
+    {
+      "id": "kana-5b1a5c731fcdd2",
+      "category": "kana",
+      "japanese": "にゅ"
+    },
+    {
+      "id": "kana-e1344b87737813",
+      "category": "kana",
+      "japanese": "も"
+    },
+    {
+      "id": "kana-c1751d6c03cfbf",
+      "category": "kana",
+      "japanese": "て",
+      "aliases": []
+    },
+    {
+      "id": "kana-c8beb4a66833c5",
+      "category": "kana",
+      "japanese": "な"
+    },
+    {
+      "id": "kana-8dc6075fc38e77",
+      "category": "kana",
+      "japanese": "ぎ"
+    },
+    {
+      "id": "kana-27287913b8c241",
+      "category": "kana",
+      "japanese": "びゅ"
+    },
+    {
+      "id": "kana-69b869dc91aedf",
+      "category": "kana",
+      "japanese": "じぇ"
+    },
+    {
+      "id": "kana-c663bed03645c0",
+      "category": "kana",
+      "japanese": "ぎゃ"
+    },
+    {
+      "id": "kana-e4da22adc89e00",
+      "category": "kana",
+      "japanese": "にゃ"
+    },
+    {
+      "id": "kana-dc0a551d507999",
+      "category": "kana",
+      "japanese": "みゃ"
+    },
+    {
+      "id": "kana-58ed9a8aabc3ba",
+      "category": "kana",
+      "japanese": "ず"
+    },
+    {
+      "id": "kana-84fbb2923036f9",
+      "category": "kana",
+      "japanese": "に"
+    },
+    {
+      "id": "kana-738a7b7409574a",
+      "category": "kana",
+      "japanese": "れ"
+    },
+    {
+      "id": "kana-661f0935fe7e5b",
+      "category": "kana",
+      "japanese": "よ"
+    },
+    {
+      "id": "kana-f7231f5c822fe2",
+      "category": "kana",
+      "japanese": "へ"
+    },
+    {
+      "id": "kana-f7e32ad6100dae",
+      "category": "kana",
+      "japanese": "ぴょ"
+    },
+    {
+      "id": "kana-f202706792e0f3",
+      "category": "kana",
+      "japanese": "く"
+    },
+    {
+      "id": "kana-858b7d261e552e",
+      "category": "kana",
+      "japanese": "ひゃ"
+    },
+    {
+      "id": "kana-52e20a9153eb47",
+      "category": "kana",
+      "japanese": "きゅ"
+    },
+    {
+      "id": "kana-27a1f7346b20e5",
+      "category": "kana",
+      "japanese": "ひょ"
+    },
+    {
+      "id": "kana-047637c6869256",
+      "category": "kana",
+      "japanese": "ど"
+    },
+    {
+      "id": "kana-97f8c8e65b3888",
+      "category": "kana",
+      "japanese": "ぐ"
+    },
+    {
+      "id": "kana-307844fd8a7ef8",
+      "category": "kana",
+      "japanese": "ま"
+    },
+    {
+      "id": "kana-c1b6ad12063d7b",
+      "category": "kana",
+      "japanese": "ぴゃ"
+    },
+    {
+      "id": "kana-ec0912b596f1b1",
+      "category": "kana",
+      "japanese": "あ"
+    },
+    {
+      "id": "kana-5a7f1edc4b6db2",
+      "category": "kana",
+      "japanese": "ね"
+    },
+    {
+      "id": "kana-d5f127a1230735",
+      "category": "kana",
+      "japanese": "しょ"
+    },
+    {
+      "id": "kana-04041a6e012e25",
+      "category": "kana",
+      "japanese": "ぜ"
+    },
+    {
+      "id": "kana-ae430c42a0144b",
+      "category": "kana",
+      "japanese": "ゆ"
+    },
+    {
+      "id": "kana-607da708f96d06",
+      "category": "kana",
+      "japanese": "げ"
+    },
+    {
+      "id": "kana-820ace094231c6",
+      "category": "kana",
+      "japanese": "ぢ"
+    },
+    {
+      "id": "kana-87735f27e43f03",
+      "category": "kana",
+      "japanese": "ぞ"
+    },
+    {
+      "id": "kana-d8848b7e1de231",
+      "category": "kana",
+      "japanese": "お",
+      "aliases": []
+    },
+    {
+      "id": "kana-78e4552765a487",
+      "category": "kana",
+      "japanese": "じょ"
+    },
+    {
+      "id": "kana-81c82dfa6e28dd",
+      "category": "kana",
+      "japanese": "しゃ"
+    },
+    {
+      "id": "kana-353636a4a68929",
+      "category": "kana",
+      "japanese": "め",
+      "aliases": []
+    },
+    {
+      "id": "kana-73bb95691d6c8c",
+      "category": "kana",
+      "japanese": "ちゅ"
+    },
+    {
+      "id": "kana-c4e33aedeee73b",
+      "category": "kana",
+      "japanese": "りゃ"
+    },
+    {
+      "id": "kana-7aa91669303b9f",
+      "category": "kana",
+      "japanese": "にょ"
+    },
+    {
+      "id": "kana-f6577a1136f4ae",
+      "category": "kana",
+      "japanese": "ん"
+    },
+    {
+      "id": "kana-eb4859517317b2",
+      "category": "kana",
+      "japanese": "ひ"
+    },
+    {
+      "id": "kana-5cafcb414bf510",
+      "category": "kana",
+      "japanese": "ぴ",
+      "aliases": []
+    },
+    {
+      "id": "kana-2a6ef3010a2ea4",
+      "category": "kana",
+      "japanese": "み"
+    },
+    {
+      "id": "kana-662e86b657dddc",
+      "category": "kana",
+      "japanese": "じゃ",
+      "aliases": []
+    },
+    {
+      "id": "kana-62ff2a982e0c37",
+      "category": "kana",
+      "japanese": "ぽ"
+    },
+    {
+      "id": "kana-ba2aed8926853f",
+      "category": "kana",
+      "japanese": "か"
+    },
+    {
+      "id": "kana-df3feead949a49",
+      "category": "kana",
+      "japanese": "べ"
+    },
+    {
+      "id": "kana-2aec0e80b512e3",
+      "category": "kana",
+      "japanese": "りゅ"
+    },
+    {
+      "id": "kana-0dc77d9ab8e4a6",
+      "category": "kana",
+      "japanese": "わ"
+    },
+    {
+      "id": "kana-1b71be5adda149",
+      "category": "kana",
+      "japanese": "だ"
+    },
+    {
+      "id": "kana-165f6f8dc9389e",
+      "category": "kana",
+      "japanese": "え",
+      "aliases": []
+    },
+    {
+      "id": "kana-dab0f89926e184",
+      "category": "kana",
+      "japanese": "こ"
+    },
+    {
+      "id": "kana-77a5e5d3149d97",
+      "category": "kana",
+      "japanese": "が"
+    },
+    {
+      "id": "kana-3399d1c339570b",
+      "category": "kana",
+      "japanese": "ちぇ"
+    },
+    {
+      "id": "kana-621ce4cfbbc4c8",
+      "category": "kana",
+      "japanese": "を"
+    },
+    {
+      "id": "kana-ce327f89e87ffd",
+      "category": "kana",
+      "japanese": "ざ"
+    },
+    {
+      "id": "kana-040b273b9d1636",
+      "category": "kana",
+      "japanese": "みゅ"
+    },
+    {
+      "id": "kana-e723da3d3a9495",
+      "category": "kana",
+      "japanese": "みょ"
+    },
+    {
+      "id": "kana-17a7c2cc60d4a7",
+      "category": "kana",
+      "japanese": "ぶ"
+    },
+    {
+      "id": "kana-538cca885fdcb4",
+      "category": "kana",
+      "japanese": "きゃ"
+    },
+    {
+      "id": "kana-9c7e90eba70733",
+      "category": "kana",
+      "japanese": "せ"
+    },
+    {
+      "id": "kana-24649941771d08",
+      "category": "kana",
+      "japanese": "き",
+      "aliases": []
+    },
+    {
+      "id": "kana-50c37af9e54a52",
+      "category": "kana",
+      "japanese": "じ"
+    },
+    {
+      "id": "kana-6e130f44f5ea28",
+      "category": "kana",
+      "japanese": "し",
+      "aliases": []
+    },
+    {
+      "id": "kana-605df3f99087a0",
+      "category": "kana",
+      "japanese": "の"
+    },
+    {
+      "id": "kana-69dac654d33357",
+      "category": "kana",
+      "japanese": "びゃ"
+    },
+    {
+      "id": "kana-52baa2a532c938",
+      "category": "kana",
+      "japanese": "ほ"
+    },
+    {
+      "id": "kana-c9346e836b8f4a",
+      "category": "kana",
+      "japanese": "ぬ"
+    },
+    {
+      "id": "kana-ce708a81b18a4b",
+      "category": "kana",
+      "japanese": "ら"
+    },
+    {
+      "id": "kana-4e02c885895693",
+      "category": "kana",
+      "japanese": "ば"
+    },
+    {
+      "id": "kana-1b2d4a93000c99",
+      "category": "kana",
+      "japanese": "ぷ"
+    },
+    {
+      "id": "kana-dd5e77c103eec2",
+      "category": "kana",
+      "japanese": "る"
+    },
+    {
+      "id": "kana-0bd968db3e667c",
+      "category": "kana",
+      "japanese": "や"
+    },
+    {
+      "id": "kana-e6098bda2bdf0b",
+      "category": "kana",
+      "japanese": "ぎゅ"
+    },
+    {
+      "id": "kana-2abeeeacec6661",
+      "category": "kana",
+      "japanese": "ちょ"
+    },
+    {
+      "id": "kana-50369af4430735",
+      "category": "kana",
+      "japanese": "ちゃ"
+    },
+    {
+      "id": "kana-83998fb48fc2ed",
+      "category": "kana",
+      "japanese": "ご",
+      "aliases": []
+    },
+    {
+      "id": "kana-544afc31bc3cab",
+      "category": "kana",
+      "japanese": "じゅ"
+    },
+    {
+      "id": "kana-60d15c10c740ab",
+      "category": "kana",
+      "japanese": "た"
+    },
+    {
+      "id": "kana-e81a78639e7658",
+      "category": "kana",
+      "japanese": "ふ"
+    },
+    {
+      "id": "kana-b155e4b6ea17ea",
+      "category": "kana",
+      "japanese": "さ"
+    },
+    {
+      "id": "kana-eb5d8c4af44540",
+      "category": "kana",
+      "japanese": "ヒョ"
+    },
+    {
+      "id": "kana-9c249f2ee6dec7",
+      "category": "kana",
+      "japanese": "カー"
+    },
+    {
+      "id": "kana-f77cad3794db6b",
+      "category": "kana",
+      "japanese": "キョ"
+    },
+    {
+      "id": "kana-e55fc3e5328e3d",
+      "category": "kana",
+      "japanese": "ッ"
+    },
+    {
+      "id": "kana-5dd25c33ca4f5a",
+      "category": "kana",
+      "japanese": "ネ"
+    },
+    {
+      "id": "kana-250bb4fd2cf1b5",
+      "category": "kana",
+      "japanese": "ギャ"
+    },
+    {
+      "id": "kana-1ed7012e287718",
+      "category": "kana",
+      "japanese": "バ"
+    },
+    {
+      "id": "kana-dc4b56335f9c71",
+      "category": "kana",
+      "japanese": "コ"
+    },
+    {
+      "id": "kana-b43e77843b6f01",
+      "category": "kana",
+      "japanese": "ピョ"
+    },
+    {
+      "id": "kana-1a278bc894c4da",
+      "category": "kana",
+      "japanese": "コー"
+    },
+    {
+      "id": "kana-9b5aa73e455934",
+      "category": "kana",
+      "japanese": "ヒュ"
+    },
+    {
+      "id": "kana-e002cbf05fd44f",
+      "category": "kana",
+      "japanese": "ョ"
+    },
+    {
+      "id": "kana-885f49ad2284f0",
+      "category": "kana",
+      "japanese": "ゴ"
+    },
+    {
+      "id": "kana-2aef83b5a873d2",
+      "category": "kana",
+      "japanese": "チャ"
+    },
+    {
+      "id": "kana-3cba171517f6f6",
+      "category": "kana",
+      "japanese": "ニャ"
+    },
+    {
+      "id": "kana-476b45aa1fbce0",
+      "category": "kana",
+      "japanese": "ガ"
+    },
+    {
+      "id": "kana-445ee923270938",
+      "category": "kana",
+      "japanese": "ビュ"
+    },
+    {
+      "id": "kana-5ca4b0ba172d2a",
+      "category": "kana",
+      "japanese": "フ"
+    },
+    {
+      "id": "kana-2868532160c2b1",
+      "category": "kana",
+      "japanese": "ホ"
+    },
+    {
+      "id": "kana-8f657a6f031f05",
+      "category": "kana",
+      "japanese": "ヂョ"
+    },
+    {
+      "id": "kana-35963a57c462ba",
+      "category": "kana",
+      "japanese": "ズ"
+    },
+    {
+      "id": "kana-cf4c1ae9c538e7",
+      "category": "kana",
+      "japanese": "ワ"
+    },
+    {
+      "id": "kana-8ae79c214ccd85",
+      "category": "kana",
+      "japanese": "ケー"
+    },
+    {
+      "id": "kana-3b8f6c47740c1a",
+      "category": "kana",
+      "japanese": "ヒャ"
+    },
+    {
+      "id": "kana-2fa11c49c2ba21",
+      "category": "kana",
+      "japanese": "ウェ"
+    },
+    {
+      "id": "kana-147fd82fadd5ad",
+      "category": "kana",
+      "japanese": "ル"
+    },
+    {
+      "id": "kana-e80796f4a0a98e",
+      "category": "kana",
+      "japanese": "ツ"
+    },
+    {
+      "id": "kana-724e64efcabb0f",
+      "category": "kana",
+      "japanese": "ペ"
+    },
+    {
+      "id": "kana-dcf865fd210d00",
+      "category": "kana",
+      "japanese": "ゲ"
+    },
+    {
+      "id": "kana-e021b84d84bed8",
+      "category": "kana",
+      "japanese": "ミョ"
+    },
+    {
+      "id": "kana-78a2eb6c1f5717",
+      "category": "kana",
+      "japanese": "メ"
+    },
+    {
+      "id": "kana-dfe7e61b3dadd9",
+      "category": "kana",
+      "japanese": "ビ"
+    },
+    {
+      "id": "kana-780cfc4b27319b",
+      "category": "kana",
+      "japanese": "ヘ"
+    },
+    {
+      "id": "kana-24e455f49412a0",
+      "category": "kana",
+      "japanese": "キー"
+    },
+    {
+      "id": "kana-8224cc929951b1",
+      "category": "kana",
+      "japanese": "エ"
+    },
+    {
+      "id": "kana-5e884dd28a946f",
+      "category": "kana",
+      "japanese": "ク"
+    },
+    {
+      "id": "kana-4a3f5cfa8f6f68",
+      "category": "kana",
+      "japanese": "ギ"
+    },
+    {
+      "id": "kana-084b03f96807a3",
+      "category": "kana",
+      "japanese": "ミュ"
+    },
+    {
+      "id": "kana-3c19425616a656",
+      "category": "kana",
+      "japanese": "シ"
+    },
+    {
+      "id": "kana-d7c16344b9539b",
+      "category": "kana",
+      "japanese": "デ"
+    },
+    {
+      "id": "kana-2a2dbb763ff8d9",
+      "category": "kana",
+      "japanese": "ミ"
+    },
+    {
+      "id": "kana-001c23ef001af5",
+      "category": "kana",
+      "japanese": "ム"
+    },
+    {
+      "id": "kana-dcab5c5f3d0a97",
+      "category": "kana",
+      "japanese": "ン"
+    },
+    {
+      "id": "kana-abdbb2e72f298d",
+      "category": "kana",
+      "japanese": "ブ"
+    },
+    {
+      "id": "kana-4f57ebc45bdabb",
+      "category": "kana",
+      "japanese": "キ"
+    },
+    {
+      "id": "kana-fa561cd072f1ea",
+      "category": "kana",
+      "japanese": "ト"
+    },
+    {
+      "id": "kana-10ce54ab5e8e9e",
+      "category": "kana",
+      "japanese": "ショ"
+    },
+    {
+      "id": "kana-1b1f106d75f53f",
+      "category": "kana",
+      "japanese": "ジュ"
+    },
+    {
+      "id": "kana-e2c3373a8d7817",
+      "category": "kana",
+      "japanese": "ラ"
+    },
+    {
+      "id": "kana-a530b3ba74657a",
+      "category": "kana",
+      "japanese": "キャ"
+    },
+    {
+      "id": "kana-e609c71d51d830",
+      "category": "kana",
+      "japanese": "チ"
+    },
+    {
+      "id": "kana-f178022362afb1",
+      "category": "kana",
+      "japanese": "ヂャ"
+    },
+    {
+      "id": "kana-5ae2f0af9b896b",
+      "category": "kana",
+      "japanese": "ノ"
+    },
+    {
+      "id": "kana-8a981eb563cf1c",
+      "category": "kana",
+      "japanese": "ァ"
+    },
+    {
+      "id": "kana-11c281652ebfe0",
+      "category": "kana",
+      "japanese": "ヲ"
+    },
+    {
+      "id": "kana-1e0b70fffe44c5",
+      "category": "kana",
+      "japanese": "ヂュ"
+    },
+    {
+      "id": "kana-77150efa718cdb",
+      "category": "kana",
+      "japanese": "ヂ"
+    },
+    {
+      "id": "kana-f0a8aa2a699322",
+      "category": "kana",
+      "japanese": "カ"
+    },
+    {
+      "id": "kana-609f5b05280aa3",
+      "category": "kana",
+      "japanese": "ザ"
+    },
+    {
+      "id": "kana-9c4e7035d830fb",
+      "category": "kana",
+      "japanese": "ス"
+    },
+    {
+      "id": "kana-2d84d079398666",
+      "category": "kana",
+      "japanese": "イ"
+    },
+    {
+      "id": "kana-c590627e2e0c35",
+      "category": "kana",
+      "japanese": "ヨ"
+    },
+    {
+      "id": "kana-86cfe1da93e134",
+      "category": "kana",
+      "japanese": "ヒ"
+    },
+    {
+      "id": "kana-f00143d9c3b261",
+      "category": "kana",
+      "japanese": "ニュ"
+    },
+    {
+      "id": "kana-1a7e9360db9f66",
+      "category": "kana",
+      "japanese": "ウィ"
+    },
+    {
+      "id": "kana-43e9224a5bae10",
+      "category": "kana",
+      "japanese": "ジョ"
+    },
+    {
+      "id": "kana-6d4d9876223f90",
+      "category": "kana",
+      "japanese": "ュ"
+    },
+    {
+      "id": "kana-e8f726ee5bf75d",
+      "category": "kana",
+      "japanese": "マ"
+    },
+    {
+      "id": "kana-42fc4e81a7e053",
+      "category": "kana",
+      "japanese": "リュ"
+    },
+    {
+      "id": "kana-f14db1f769d095",
+      "category": "kana",
+      "japanese": "ジ"
+    },
+    {
+      "id": "kana-9068eba964d35d",
+      "category": "kana",
+      "japanese": "ビャ"
+    },
+    {
+      "id": "kana-98bd5dd706b706",
+      "category": "kana",
+      "japanese": "リョ"
+    },
+    {
+      "id": "kana-b22483cf9ee78e",
+      "category": "kana",
+      "japanese": "ヌ"
+    },
+    {
+      "id": "kana-0c1afe6b2a5236",
+      "category": "kana",
+      "japanese": "ピ"
+    },
+    {
+      "id": "kana-b9201c36b15803",
+      "category": "kana",
+      "japanese": "グ"
+    },
+    {
+      "id": "kana-e94371654d8186",
+      "category": "kana",
+      "japanese": "ギョ"
+    },
+    {
+      "id": "kana-fda0bd8a6599c8",
+      "category": "kana",
+      "japanese": "ニョ"
+    },
+    {
+      "id": "kana-1cb772b3a4615b",
+      "category": "kana",
+      "japanese": "ウ"
+    },
+    {
+      "id": "kana-cd9e33816dd118",
+      "category": "kana",
+      "japanese": "ニ"
+    },
+    {
+      "id": "kana-32a08e80e15400",
+      "category": "kana",
+      "japanese": "ハ"
+    },
+    {
+      "id": "kana-65e9e4fd51d5eb",
+      "category": "kana",
+      "japanese": "ケ"
+    },
+    {
+      "id": "kana-0d1c89277fb05a",
+      "category": "kana",
+      "japanese": "レ"
+    },
+    {
+      "id": "kana-fc55166cee7b08",
+      "category": "kana",
+      "japanese": "セ"
+    },
+    {
+      "id": "kana-2d0290ecf37f8a",
+      "category": "kana",
+      "japanese": "ア"
+    },
+    {
+      "id": "kana-67f5df22901108",
+      "category": "kana",
+      "japanese": "ヅ"
+    },
+    {
+      "id": "kana-8b1eadc4d8e487",
+      "category": "kana",
+      "japanese": "ソ"
+    },
+    {
+      "id": "kana-12ec299d8ad61d",
+      "category": "kana",
+      "japanese": "ダ"
+    },
+    {
+      "id": "kana-ed4c63fe72cf3b",
+      "category": "kana",
+      "japanese": "シャ"
+    },
+    {
+      "id": "kana-95643108c044b1",
+      "category": "kana",
+      "japanese": "ピャ"
+    },
+    {
+      "id": "kana-296fa0ce64327d",
+      "category": "kana",
+      "japanese": "プ"
+    },
+    {
+      "id": "kana-087ef7c54ef1bf",
+      "category": "kana",
+      "japanese": "チュ"
+    },
+    {
+      "id": "kana-48606d5fd4d754",
+      "category": "kana",
+      "japanese": "ミャ"
+    },
+    {
+      "id": "kana-6d17f80e129b02",
+      "category": "kana",
+      "japanese": "パ"
+    },
+    {
+      "id": "kana-a0e7143a5e9c6e",
+      "category": "kana",
+      "japanese": "キュ"
+    },
+    {
+      "id": "kana-17e9fbf7498b5e",
+      "category": "kana",
+      "japanese": "テ"
+    },
+    {
+      "id": "kana-e8dc20e2733ec4",
+      "category": "kana",
+      "japanese": "ピュ"
+    },
+    {
+      "id": "kana-7c8457f5735e0b",
+      "category": "kana",
+      "japanese": "モ"
+    },
+    {
+      "id": "kana-374ece5aba16eb",
+      "category": "kana",
+      "japanese": "ビョ"
+    },
+    {
+      "id": "kana-e66bca99bbc204",
+      "category": "kana",
+      "japanese": "ユ"
+    },
+    {
+      "id": "kana-9e24f29ef8456d",
+      "category": "kana",
+      "japanese": "ヤ"
+    },
+    {
+      "id": "kana-b5171c060ff99b",
+      "category": "kana",
+      "japanese": "オ"
+    },
+    {
+      "id": "kana-3dbc7f8646207a",
+      "category": "kana",
+      "japanese": "ギュ"
+    },
+    {
+      "id": "kana-0f18ac14ebe7e2",
+      "category": "kana",
+      "japanese": "リャ"
+    },
+    {
+      "id": "kana-ff41cf8e3107b7",
+      "category": "kana",
+      "japanese": "ロ"
+    },
+    {
+      "id": "kana-915b071f958cee",
+      "category": "kana",
+      "japanese": "タ"
+    },
+    {
+      "id": "kana-9ac0a55d69a49b",
+      "category": "kana",
+      "japanese": "ベ"
+    },
+    {
+      "id": "kana-46882b7c0586f8",
+      "category": "kana",
+      "japanese": "ポ"
+    },
+    {
+      "id": "kana-307edf14012cd2",
+      "category": "kana",
+      "japanese": "ボ"
+    },
+    {
+      "id": "kana-ab6ae05e70e55e",
+      "category": "kana",
+      "japanese": "ナ"
+    },
+    {
+      "id": "kana-e54a4b2518c3bf",
+      "category": "kana",
+      "japanese": "クー"
+    },
+    {
+      "id": "kana-4624d9a25b2df8",
+      "category": "kana",
+      "japanese": "ジャ"
+    },
+    {
+      "id": "kana-359f6d6c5a4b93",
+      "category": "kana",
+      "japanese": "サ"
+    },
+    {
+      "id": "kana-3d53a3c1270b1a",
+      "category": "kana",
+      "japanese": "ド"
+    },
+    {
+      "id": "kana-6933f7a623cb64",
+      "category": "kana",
+      "japanese": "ゼ"
+    },
+    {
+      "id": "kana-0e18b2d17e49c6",
+      "category": "kana",
+      "japanese": "リ"
+    },
+    {
+      "id": "kana-d3b7d0e19a6ced",
+      "category": "kana",
+      "japanese": "シュ"
+    },
+    {
+      "id": "kana-686eecdce61874",
+      "category": "kana",
+      "japanese": "チョ"
+    },
+    {
+      "id": "kana-042f03ae27eb00",
+      "category": "kana",
+      "japanese": "ゾ"
+    },
+    {
+      "id": "kanji-e090786f1833e4",
+      "category": "kanji",
+      "japanese": "一",
+      "speechText": "ichi",
+      "aliases": [
+        "ichi"
+      ]
+    },
+    {
+      "id": "kanji-10f75242f35255",
+      "category": "kanji",
+      "japanese": "七",
+      "speechText": "shichi",
+      "aliases": [
+        "shichi"
+      ]
+    },
+    {
+      "id": "kanji-da895148aa7d98",
+      "category": "kanji",
+      "japanese": "万",
+      "speechText": "man",
+      "aliases": [
+        "man"
+      ]
+    },
+    {
+      "id": "kanji-20d5133e1ae0bb",
+      "category": "kanji",
+      "japanese": "三",
+      "speechText": "san",
+      "aliases": [
+        "san"
+      ]
+    },
+    {
+      "id": "kanji-d6270a49f7337b",
+      "category": "kanji",
+      "japanese": "上",
+      "speechText": "ue",
+      "aliases": [
+        "ue"
+      ]
+    },
+    {
+      "id": "kanji-5540c757446905",
+      "category": "kanji",
+      "japanese": "下",
+      "speechText": "shita",
+      "aliases": [
+        "shita"
+      ]
+    },
+    {
+      "id": "kanji-0ad7bf29f7a803",
+      "category": "kanji",
+      "japanese": "中",
+      "speechText": "naka",
+      "aliases": [
+        "naka"
+      ]
+    },
+    {
+      "id": "kanji-970dd168a5c489",
+      "category": "kanji",
+      "japanese": "九",
+      "speechText": "kyuu",
+      "aliases": [
+        "kyuu"
+      ]
+    },
+    {
+      "id": "kanji-eb111e79a6b0c2",
+      "category": "kanji",
+      "japanese": "二",
+      "speechText": "ni",
+      "aliases": [
+        "ni"
+      ]
+    },
+    {
+      "id": "kanji-63ddf4aa4dc0cb",
+      "category": "kanji",
+      "japanese": "五",
+      "speechText": "go",
+      "aliases": [
+        "go"
+      ]
+    },
+    {
+      "id": "kanji-bf0af714c46fb3",
+      "category": "kanji",
+      "japanese": "人",
+      "speechText": "hito",
+      "aliases": [
+        "hito"
+      ]
+    },
+    {
+      "id": "kanji-cf7b68e5c692b6",
+      "category": "kanji",
+      "japanese": "今",
+      "speechText": "ima",
+      "aliases": [
+        "ima"
+      ]
+    },
+    {
+      "id": "kanji-7e0a71326891be",
+      "category": "kanji",
+      "japanese": "休",
+      "speechText": "yasumu",
+      "aliases": [
+        "yasumu"
+      ]
+    },
+    {
+      "id": "kanji-18c7138f66604b",
+      "category": "kanji",
+      "japanese": "何",
+      "speechText": "nani",
+      "aliases": [
+        "nani"
+      ]
+    },
+    {
+      "id": "kanji-da49dba18e9296",
+      "category": "kanji",
+      "japanese": "先",
+      "speechText": "saki",
+      "aliases": [
+        "saki"
+      ]
+    },
+    {
+      "id": "kanji-50293ff8b163b1",
+      "category": "kanji",
+      "japanese": "入",
+      "speechText": "hairu",
+      "aliases": [
+        "hairu"
+      ]
+    },
+    {
+      "id": "kanji-2620748258acad",
+      "category": "kanji",
+      "japanese": "八",
+      "speechText": "hachi",
+      "aliases": [
+        "hachi"
+      ]
+    },
+    {
+      "id": "kanji-d770b66bbe1f01",
+      "category": "kanji",
+      "japanese": "六",
+      "speechText": "roku",
+      "aliases": [
+        "roku"
+      ]
+    },
+    {
+      "id": "kanji-36f1b65b037d59",
+      "category": "kanji",
+      "japanese": "円",
+      "speechText": "en",
+      "aliases": [
+        "en"
+      ]
+    },
+    {
+      "id": "kanji-a60a8acc5318b5",
+      "category": "kanji",
+      "japanese": "出",
+      "speechText": "deru",
+      "aliases": [
+        "deru"
+      ]
+    },
+    {
+      "id": "kanji-eaab29528e4a64",
+      "category": "kanji",
+      "japanese": "分",
+      "speechText": "fun",
+      "aliases": [
+        "fun"
+      ]
+    },
+    {
+      "id": "kanji-ff5c3ae96257a7",
+      "category": "kanji",
+      "japanese": "前",
+      "speechText": "mae",
+      "aliases": [
+        "mae"
+      ]
+    },
+    {
+      "id": "kanji-a255de537602d0",
+      "category": "kanji",
+      "japanese": "北",
+      "speechText": "kita",
+      "aliases": [
+        "kita"
+      ]
+    },
+    {
+      "id": "kanji-181cfe050ee518",
+      "category": "kanji",
+      "japanese": "十",
+      "speechText": "juu",
+      "aliases": [
+        "juu"
+      ]
+    },
+    {
+      "id": "kanji-4ff1fec73253df",
+      "category": "kanji",
+      "japanese": "千",
+      "speechText": "sen",
+      "aliases": [
+        "sen"
+      ]
+    },
+    {
+      "id": "kanji-3dab216ccc5a81",
+      "category": "kanji",
+      "japanese": "午",
+      "speechText": "go",
+      "aliases": [
+        "go"
+      ]
+    },
+    {
+      "id": "kanji-fe973739bbcdda",
+      "category": "kanji",
+      "japanese": "半",
+      "speechText": "han",
+      "aliases": [
+        "han"
+      ]
+    },
+    {
+      "id": "kanji-53d25b69467faa",
+      "category": "kanji",
+      "japanese": "南",
+      "speechText": "minami",
+      "aliases": [
+        "minami"
+      ]
+    },
+    {
+      "id": "kanji-42d54ea801e80a",
+      "category": "kanji",
+      "japanese": "友",
+      "speechText": "tomo",
+      "aliases": [
+        "tomo"
+      ]
+    },
+    {
+      "id": "kanji-b59b3a13d20c10",
+      "category": "kanji",
+      "japanese": "右",
+      "speechText": "migi",
+      "aliases": [
+        "migi"
+      ]
+    },
+    {
+      "id": "kanji-20a95bea5e040c",
+      "category": "kanji",
+      "japanese": "名",
+      "speechText": "na",
+      "aliases": [
+        "na"
+      ]
+    },
+    {
+      "id": "kanji-db89348cb327a4",
+      "category": "kanji",
+      "japanese": "四",
+      "speechText": "shi",
+      "aliases": [
+        "shi"
+      ]
+    },
+    {
+      "id": "kanji-ce096ec20be2c9",
+      "category": "kanji",
+      "japanese": "国",
+      "speechText": "kuni",
+      "aliases": [
+        "kuni"
+      ]
+    },
+    {
+      "id": "kanji-84c5ff46025a68",
+      "category": "kanji",
+      "japanese": "土",
+      "speechText": "tsuchi",
+      "aliases": [
+        "tsuchi"
+      ]
+    },
+    {
+      "id": "kanji-53417e4f2c80ca",
+      "category": "kanji",
+      "japanese": "外",
+      "speechText": "soto",
+      "aliases": [
+        "soto"
+      ]
+    },
+    {
+      "id": "kanji-3b825eb0854bfb",
+      "category": "kanji",
+      "japanese": "大",
+      "speechText": "ookii",
+      "aliases": [
+        "ookii"
+      ]
+    },
+    {
+      "id": "kanji-7ed12c91fddeb8",
+      "category": "kanji",
+      "japanese": "天",
+      "speechText": "ten",
+      "aliases": [
+        "ten"
+      ]
+    },
+    {
+      "id": "kanji-4381109d7ae60e",
+      "category": "kanji",
+      "japanese": "女",
+      "speechText": "onna",
+      "aliases": [
+        "onna"
+      ]
+    },
+    {
+      "id": "kanji-f592ded108b694",
+      "category": "kanji",
+      "japanese": "子",
+      "speechText": "ko",
+      "aliases": [
+        "ko"
+      ]
+    },
+    {
+      "id": "kanji-4887cb9052e9c4",
+      "category": "kanji",
+      "japanese": "学",
+      "speechText": "gaku",
+      "aliases": [
+        "gaku"
+      ]
+    },
+    {
+      "id": "kanji-2caa1a2706a0a9",
+      "category": "kanji",
+      "japanese": "小",
+      "speechText": "chiisai",
+      "aliases": [
+        "chiisai"
+      ]
+    },
+    {
+      "id": "kanji-c7d011a23cb2c3",
+      "category": "kanji",
+      "japanese": "山",
+      "speechText": "yama",
+      "aliases": [
+        "yama"
+      ]
+    },
+    {
+      "id": "kanji-833fb0058ebb64",
+      "category": "kanji",
+      "japanese": "川",
+      "speechText": "kawa",
+      "aliases": [
+        "kawa"
+      ]
+    },
+    {
+      "id": "kanji-03287179c98032",
+      "category": "kanji",
+      "japanese": "左",
+      "speechText": "hidari",
+      "aliases": [
+        "hidari"
+      ]
+    },
+    {
+      "id": "kanji-c4a97c2063fb7a",
+      "category": "kanji",
+      "japanese": "年",
+      "speechText": "toshi",
+      "aliases": [
+        "toshi"
+      ]
+    },
+    {
+      "id": "kanji-860dd62fcadb22",
+      "category": "kanji",
+      "japanese": "後",
+      "speechText": "ato",
+      "aliases": [
+        "ato"
+      ]
+    },
+    {
+      "id": "kanji-e69a95dda4a21c",
+      "category": "kanji",
+      "japanese": "日",
+      "speechText": "hi",
+      "aliases": [
+        "hi"
+      ]
+    },
+    {
+      "id": "kanji-f0c5f50713afcf",
+      "category": "kanji",
+      "japanese": "時",
+      "speechText": "toki",
+      "aliases": [
+        "toki"
+      ]
+    },
+    {
+      "id": "kanji-7dede08284ea8b",
+      "category": "kanji",
+      "japanese": "書",
+      "speechText": "kaku",
+      "aliases": [
+        "kaku"
+      ]
+    },
+    {
+      "id": "kanji-0fdfd1a1a3ad72",
+      "category": "kanji",
+      "japanese": "月",
+      "speechText": "tsuki",
+      "aliases": [
+        "tsuki"
+      ]
+    },
+    {
+      "id": "kanji-b7ce2f608e3097",
+      "category": "kanji",
+      "japanese": "木",
+      "speechText": "ki",
+      "aliases": [
+        "ki"
+      ]
+    },
+    {
+      "id": "kanji-c6fb0442c30ce9",
+      "category": "kanji",
+      "japanese": "本",
+      "speechText": "hon",
+      "aliases": [
+        "hon"
+      ]
+    },
+    {
+      "id": "kanji-675ffc58df3154",
+      "category": "kanji",
+      "japanese": "来",
+      "speechText": "kuru",
+      "aliases": [
+        "kuru"
+      ]
+    },
+    {
+      "id": "kanji-2fa87d3642d64e",
+      "category": "kanji",
+      "japanese": "東",
+      "speechText": "higashi",
+      "aliases": [
+        "higashi"
+      ]
+    },
+    {
+      "id": "kanji-79228c93546911",
+      "category": "kanji",
+      "japanese": "校",
+      "speechText": "kou",
+      "aliases": [
+        "kou"
+      ]
+    },
+    {
+      "id": "kanji-dc0b83e764e4e3",
+      "category": "kanji",
+      "japanese": "母",
+      "speechText": "haha",
+      "aliases": [
+        "haha"
+      ]
+    },
+    {
+      "id": "kanji-c5da6fab5634f8",
+      "category": "kanji",
+      "japanese": "毎",
+      "speechText": "mai",
+      "aliases": [
+        "mai"
+      ]
+    },
+    {
+      "id": "kanji-79df3dd0f6c89f",
+      "category": "kanji",
+      "japanese": "気",
+      "speechText": "ki",
+      "aliases": [
+        "ki"
+      ]
+    },
+    {
+      "id": "kanji-741e2745883650",
+      "category": "kanji",
+      "japanese": "水",
+      "speechText": "mizu",
+      "aliases": [
+        "mizu"
+      ]
+    },
+    {
+      "id": "kanji-c08ead48a525e6",
+      "category": "kanji",
+      "japanese": "火",
+      "speechText": "hi",
+      "aliases": [
+        "hi"
+      ]
+    },
+    {
+      "id": "kanji-c88eeee63e519e",
+      "category": "kanji",
+      "japanese": "父",
+      "speechText": "chichi",
+      "aliases": [
+        "chichi"
+      ]
+    },
+    {
+      "id": "kanji-d19b6090b1e92c",
+      "category": "kanji",
+      "japanese": "生",
+      "speechText": "sei",
+      "aliases": [
+        "sei"
+      ]
+    },
+    {
+      "id": "kanji-b53006a3fcc860",
+      "category": "kanji",
+      "japanese": "男",
+      "speechText": "otoko",
+      "aliases": [
+        "otoko"
+      ]
+    },
+    {
+      "id": "kanji-197e35d23a5f1b",
+      "category": "kanji",
+      "japanese": "白",
+      "speechText": "shiro",
+      "aliases": [
+        "shiro"
+      ]
+    },
+    {
+      "id": "kanji-7fe8d7cb66de66",
+      "category": "kanji",
+      "japanese": "百",
+      "speechText": "hyaku",
+      "aliases": [
+        "hyaku"
+      ]
+    },
+    {
+      "id": "kanji-033b7343e75f2f",
+      "category": "kanji",
+      "japanese": "聞",
+      "speechText": "kiku",
+      "aliases": [
+        "kiku"
+      ]
+    },
+    {
+      "id": "kanji-e63283e0b2c330",
+      "category": "kanji",
+      "japanese": "行",
+      "speechText": "iku",
+      "aliases": [
+        "iku"
+      ]
+    },
+    {
+      "id": "kanji-ed28253c085213",
+      "category": "kanji",
+      "japanese": "西",
+      "speechText": "nishi",
+      "aliases": [
+        "nishi"
+      ]
+    },
+    {
+      "id": "kanji-d86c27e710d562",
+      "category": "kanji",
+      "japanese": "見",
+      "speechText": "miru",
+      "aliases": [
+        "miru"
+      ]
+    },
+    {
+      "id": "kanji-61c0a11b2ab9ef",
+      "category": "kanji",
+      "japanese": "話",
+      "speechText": "hanasu",
+      "aliases": [
+        "hanasu"
+      ]
+    },
+    {
+      "id": "kanji-ef12aa607d69f6",
+      "category": "kanji",
+      "japanese": "語",
+      "speechText": "go",
+      "aliases": [
+        "go"
+      ]
+    },
+    {
+      "id": "kanji-03e3636d853de6",
+      "category": "kanji",
+      "japanese": "読",
+      "speechText": "yomu",
+      "aliases": [
+        "yomu"
+      ]
+    },
+    {
+      "id": "kanji-6b58579cc99d79",
+      "category": "kanji",
+      "japanese": "車",
+      "speechText": "kuruma",
+      "aliases": [
+        "kuruma"
+      ]
+    },
+    {
+      "id": "kanji-499d1e7087e343",
+      "category": "kanji",
+      "japanese": "金",
+      "speechText": "kane",
+      "aliases": [
+        "kane"
+      ]
+    },
+    {
+      "id": "kanji-9dcd0b0f7a94cb",
+      "category": "kanji",
+      "japanese": "長",
+      "speechText": "nagai",
+      "aliases": [
+        "nagai"
+      ]
+    },
+    {
+      "id": "kanji-fae62bc445fac4",
+      "category": "kanji",
+      "japanese": "間",
+      "speechText": "aida",
+      "aliases": [
+        "aida"
+      ]
+    },
+    {
+      "id": "kanji-daaf8c6b1429c1",
+      "category": "kanji",
+      "japanese": "雨",
+      "speechText": "ame",
+      "aliases": [
+        "ame"
+      ]
+    },
+    {
+      "id": "kanji-0160183167757b",
+      "category": "kanji",
+      "japanese": "電",
+      "speechText": "den",
+      "aliases": [
+        "den"
+      ]
+    },
+    {
+      "id": "kanji-7e58525a427b94",
+      "category": "kanji",
+      "japanese": "食",
+      "speechText": "taberu",
+      "aliases": [
+        "taberu"
+      ]
+    },
+    {
+      "id": "kanji-c975e602e801e4",
+      "category": "kanji",
+      "japanese": "高",
+      "speechText": "takai",
+      "aliases": [
+        "takai"
+      ]
+    },
+    {
+      "id": "vocab-ae91c228633398",
+      "category": "vocabulary",
+      "japanese": "千",
+      "speechText": "せん",
+      "aliases": [
+        "せん"
+      ]
+    },
+    {
+      "id": "vocab-105ddb9551c0e6",
+      "category": "vocabulary",
+      "japanese": "～ばん"
+    },
+    {
+      "id": "vocab-c37bfe7ded9b1d",
+      "category": "vocabulary",
+      "japanese": "にわ"
+    },
+    {
+      "id": "vocab-01c9efb47c68a2",
+      "category": "vocabulary",
+      "japanese": "たのむ"
+    },
+    {
+      "id": "vocab-36cacb4da35b50",
+      "category": "vocabulary",
+      "japanese": "～だい"
+    },
+    {
+      "id": "vocab-8d945019a1ca1f",
+      "category": "vocabulary",
+      "japanese": "なに"
+    },
+    {
+      "id": "vocab-310a740fc38baa",
+      "category": "vocabulary",
+      "japanese": "~がわ"
+    },
+    {
+      "id": "vocab-77bc403195fd17",
+      "category": "vocabulary",
+      "japanese": "てんき"
+    },
+    {
+      "id": "vocab-92179ef7243f0b",
+      "category": "vocabulary",
+      "japanese": "スポーツ"
+    },
+    {
+      "id": "vocab-45c493a3815e71",
+      "category": "vocabulary",
+      "japanese": "まいつき/まいげつ"
+    },
+    {
+      "id": "vocab-2631345d279b21",
+      "category": "vocabulary",
+      "japanese": "つとめる"
+    },
+    {
+      "id": "vocab-f5a037fee9e178",
+      "category": "vocabulary",
+      "japanese": "せんたく"
+    },
+    {
+      "id": "vocab-bf830572b64e5d",
+      "category": "vocabulary",
+      "japanese": "ぜんぶ"
+    },
+    {
+      "id": "vocab-52c846f2940ee2",
+      "category": "vocabulary",
+      "japanese": "しずか"
+    },
+    {
+      "id": "vocab-cfcc0fc85924d4",
+      "category": "vocabulary",
+      "japanese": "おんがく"
+    },
+    {
+      "id": "vocab-05f981bf8c3cdb",
+      "category": "vocabulary",
+      "japanese": "まど"
+    },
+    {
+      "id": "vocab-7d64021d8dcc11",
+      "category": "vocabulary",
+      "japanese": "かたかな"
+    },
+    {
+      "id": "vocab-a7b154a864b23f",
+      "category": "vocabulary",
+      "japanese": "はたらく"
+    },
+    {
+      "id": "vocab-491d9d9835a3e1",
+      "category": "vocabulary",
+      "japanese": "きっぷ"
+    },
+    {
+      "id": "vocab-bf419b0bce3654",
+      "category": "vocabulary",
+      "japanese": "すぐに"
+    },
+    {
+      "id": "vocab-7bae9c0634d0e4",
+      "category": "vocabulary",
+      "japanese": "さんがつ"
+    },
+    {
+      "id": "vocab-5faebb34dad30b",
+      "category": "vocabulary",
+      "japanese": "つまらない"
+    },
+    {
+      "id": "vocab-89ac13fa1cbac5",
+      "category": "vocabulary",
+      "japanese": "ごぜん"
+    },
+    {
+      "id": "vocab-85bc9ac5f06329",
+      "category": "vocabulary",
+      "japanese": "さかな"
+    },
+    {
+      "id": "vocab-085000d4077244",
+      "category": "vocabulary",
+      "japanese": "にもつ"
+    },
+    {
+      "id": "vocab-43e9495495d105",
+      "category": "vocabulary",
+      "japanese": "もしもし"
+    },
+    {
+      "id": "vocab-58f19805822654",
+      "category": "vocabulary",
+      "japanese": "びょうき"
+    },
+    {
+      "id": "vocab-cb2d8d455ab790",
+      "category": "vocabulary",
+      "japanese": "すこし"
+    },
+    {
+      "id": "vocab-4aa396cbe609e3",
+      "category": "vocabulary",
+      "japanese": "クラス"
+    },
+    {
+      "id": "vocab-ad7b9d3017dbfd",
+      "category": "vocabulary",
+      "japanese": "がくせい"
+    },
+    {
+      "id": "vocab-796d3dc730730d",
+      "category": "vocabulary",
+      "japanese": "おにく"
+    },
+    {
+      "id": "vocab-c0b00b1d113583",
+      "category": "vocabulary",
+      "japanese": "うたう"
+    },
+    {
+      "id": "vocab-46c36dea1903d5",
+      "category": "vocabulary",
+      "japanese": "ラジオ"
+    },
+    {
+      "id": "vocab-f1ebddf5f04f55",
+      "category": "vocabulary",
+      "japanese": "たいへん"
+    },
+    {
+      "id": "vocab-3600e0abfc63ff",
+      "category": "vocabulary",
+      "japanese": "シャツ"
+    },
+    {
+      "id": "vocab-a0689bafdd33eb",
+      "category": "vocabulary",
+      "japanese": "ごろ"
+    },
+    {
+      "id": "vocab-e0d7a4bf04afea",
+      "category": "vocabulary",
+      "japanese": "むっつ"
+    },
+    {
+      "id": "vocab-611bab80dc1458",
+      "category": "vocabulary",
+      "japanese": "だす"
+    },
+    {
+      "id": "vocab-cfe68da5311466",
+      "category": "vocabulary",
+      "japanese": "～にち"
+    },
+    {
+      "id": "vocab-d342e0013b0980",
+      "category": "vocabulary",
+      "japanese": "けっこう"
+    },
+    {
+      "id": "vocab-e0f023777c60b1",
+      "category": "vocabulary",
+      "japanese": "ひろい"
+    },
+    {
+      "id": "vocab-50c9ac6da5cbcf",
+      "category": "vocabulary",
+      "japanese": "そうじ"
+    },
+    {
+      "id": "vocab-0d1972ee8adcbb",
+      "category": "vocabulary",
+      "japanese": "ぼうし"
+    },
+    {
+      "id": "vocab-953fc84f2a5f9b",
+      "category": "vocabulary",
+      "japanese": "くがつ"
+    },
+    {
+      "id": "vocab-6021c713d42de3",
+      "category": "vocabulary",
+      "japanese": "うえ"
+    },
+    {
+      "id": "vocab-d64fb6ec367afd",
+      "category": "vocabulary",
+      "japanese": "じゅういちがつ"
+    },
+    {
+      "id": "vocab-b3faaf3375b0b9",
+      "category": "vocabulary",
+      "japanese": "ひがし"
+    },
+    {
+      "id": "vocab-53af42ece0cb0a",
+      "category": "vocabulary",
+      "japanese": "この"
+    },
+    {
+      "id": "vocab-8a3bbab3c69b48",
+      "category": "vocabulary",
+      "japanese": "かえる"
+    },
+    {
+      "id": "vocab-9de936dfd556e1",
+      "category": "vocabulary",
+      "japanese": "ちょうど"
+    },
+    {
+      "id": "vocab-2b5f1569f9a3b8",
+      "category": "vocabulary",
+      "japanese": "むこう"
+    },
+    {
+      "id": "vocab-6f1d96574ce55f",
+      "category": "vocabulary",
+      "japanese": "かお"
+    },
+    {
+      "id": "vocab-721217f2cad5f8",
+      "category": "vocabulary",
+      "japanese": "きく"
+    },
+    {
+      "id": "vocab-823d6b92b31448",
+      "category": "vocabulary",
+      "japanese": "あさって"
+    },
+    {
+      "id": "vocab-076f219996d621",
+      "category": "vocabulary",
+      "japanese": "あつい",
+      "aliases": []
+    },
+    {
+      "id": "vocab-5ab186a9c41340",
+      "category": "vocabulary",
+      "japanese": "ひるごはん"
+    },
+    {
+      "id": "vocab-49ced56de1fb7d",
+      "category": "vocabulary",
+      "japanese": "ホテル"
+    },
+    {
+      "id": "vocab-752b62b43c864b",
+      "category": "vocabulary",
+      "japanese": "つよい"
+    },
+    {
+      "id": "vocab-cd2690b53f35a9",
+      "category": "vocabulary",
+      "japanese": "ポケット"
+    },
+    {
+      "id": "vocab-6f5ea0844d1dc1",
+      "category": "vocabulary",
+      "japanese": "かんじ"
+    },
+    {
+      "id": "vocab-256051ae61f676",
+      "category": "vocabulary",
+      "japanese": "やさしい"
+    },
+    {
+      "id": "vocab-064052327fc5ea",
+      "category": "vocabulary",
+      "japanese": "はなす"
+    },
+    {
+      "id": "vocab-3a702b7a3fa5de",
+      "category": "vocabulary",
+      "japanese": "はち"
+    },
+    {
+      "id": "vocab-63c4b9519c61e8",
+      "category": "vocabulary",
+      "japanese": "じゅう"
+    },
+    {
+      "id": "vocab-b328c8db6b9928",
+      "category": "vocabulary",
+      "japanese": "フィルム"
+    },
+    {
+      "id": "vocab-efeac700c774ba",
+      "category": "vocabulary",
+      "japanese": "エレベータ"
+    },
+    {
+      "id": "vocab-123002a9b1e908",
+      "category": "vocabulary",
+      "japanese": "ほう"
+    },
+    {
+      "id": "vocab-ab73fbb901cf62",
+      "category": "vocabulary",
+      "japanese": "いもうと"
+    },
+    {
+      "id": "vocab-51de65371af101",
+      "category": "vocabulary",
+      "japanese": "じびき"
+    },
+    {
+      "id": "vocab-f22d9193ee903b",
+      "category": "vocabulary",
+      "japanese": "ベッド"
+    },
+    {
+      "id": "vocab-2fa40d1bbf08a0",
+      "category": "vocabulary",
+      "japanese": "ひる"
+    },
+    {
+      "id": "vocab-431bbd12d9465a",
+      "category": "vocabulary",
+      "japanese": "かえす"
+    },
+    {
+      "id": "vocab-ae75e7b1fada69",
+      "category": "vocabulary",
+      "japanese": "すわる"
+    },
+    {
+      "id": "vocab-2ac0fc65990c56",
+      "category": "vocabulary",
+      "japanese": "ギター"
+    },
+    {
+      "id": "vocab-65e0fd8dd2c54b",
+      "category": "vocabulary",
+      "japanese": "～まい"
+    },
+    {
+      "id": "vocab-dbe73ae5accfb5",
+      "category": "vocabulary",
+      "japanese": "まがる"
+    },
+    {
+      "id": "vocab-60845c2d51a569",
+      "category": "vocabulary",
+      "japanese": "ならべる"
+    },
+    {
+      "id": "vocab-4805828cfabff6",
+      "category": "vocabulary",
+      "japanese": "あれ"
+    },
+    {
+      "id": "vocab-69b47ac38bae44",
+      "category": "vocabulary",
+      "japanese": "あるく"
+    },
+    {
+      "id": "vocab-b3948ba477f168",
+      "category": "vocabulary",
+      "japanese": "くらい"
+    },
+    {
+      "id": "vocab-76c0919d57db0a",
+      "category": "vocabulary",
+      "japanese": "ようふく"
+    },
+    {
+      "id": "vocab-f93707df77fb7a",
+      "category": "vocabulary",
+      "japanese": "がいこく"
+    },
+    {
+      "id": "vocab-9f4a7616a3f2de",
+      "category": "vocabulary",
+      "japanese": "ほんとうに"
+    },
+    {
+      "id": "vocab-9549477aabc995",
+      "category": "vocabulary",
+      "japanese": "はたち"
+    },
+    {
+      "id": "vocab-b8f3c59d191289",
+      "category": "vocabulary",
+      "japanese": "その"
+    },
+    {
+      "id": "vocab-ff5beaa09d0e38",
+      "category": "vocabulary",
+      "japanese": "けさ"
+    },
+    {
+      "id": "vocab-377531d00da3f5",
+      "category": "vocabulary",
+      "japanese": "おとうさん"
+    },
+    {
+      "id": "vocab-2fe364064bfd25",
+      "category": "vocabulary",
+      "japanese": "みち"
+    },
+    {
+      "id": "vocab-63dede5524922b",
+      "category": "vocabulary",
+      "japanese": "おぼえる"
+    },
+    {
+      "id": "vocab-ebd2044e913883",
+      "category": "vocabulary",
+      "japanese": "いつか"
+    },
+    {
+      "id": "vocab-ca1c119188d331",
+      "category": "vocabulary",
+      "japanese": "いく"
+    },
+    {
+      "id": "vocab-8b4f85c5b96e80",
+      "category": "vocabulary",
+      "japanese": "コップ"
+    },
+    {
+      "id": "vocab-a9e98f1ecbdc0e",
+      "category": "vocabulary",
+      "japanese": "それから"
+    },
+    {
+      "id": "vocab-692cd17cd1cf47",
+      "category": "vocabulary",
+      "japanese": "じしょ"
+    },
+    {
+      "id": "vocab-f53fb06096ea14",
+      "category": "vocabulary",
+      "japanese": "もう",
+      "aliases": []
+    },
+    {
+      "id": "vocab-077af894233ad4",
+      "category": "vocabulary",
+      "japanese": "れい"
+    },
+    {
+      "id": "vocab-aefeb29615f030",
+      "category": "vocabulary",
+      "japanese": "じゅうがつ"
+    },
+    {
+      "id": "vocab-1cb78413247942",
+      "category": "vocabulary",
+      "japanese": "テーブル"
+    },
+    {
+      "id": "vocab-3ca06bc7ce4ec8",
+      "category": "vocabulary",
+      "japanese": "たべもの"
+    },
+    {
+      "id": "vocab-f5e74b78cd87d8",
+      "category": "vocabulary",
+      "japanese": "つける"
+    },
+    {
+      "id": "vocab-360d9362676978",
+      "category": "vocabulary",
+      "japanese": "アパート"
+    },
+    {
+      "id": "vocab-19c5c6983587d4",
+      "category": "vocabulary",
+      "japanese": "そら"
+    },
+    {
+      "id": "vocab-202675d28ed339",
+      "category": "vocabulary",
+      "japanese": "ぎゅうにく"
+    },
+    {
+      "id": "vocab-d7b31a5b72bab0",
+      "category": "vocabulary",
+      "japanese": "たてもの"
+    },
+    {
+      "id": "vocab-4e16b36496f5d4",
+      "category": "vocabulary",
+      "japanese": "～かい",
+      "aliases": []
+    },
+    {
+      "id": "vocab-f008b3146f1f50",
+      "category": "vocabulary",
+      "japanese": "おにいさん"
+    },
+    {
+      "id": "vocab-83c5cff59dd33a",
+      "category": "vocabulary",
+      "japanese": "スカート"
+    },
+    {
+      "id": "vocab-0bf9515c197a12",
+      "category": "vocabulary",
+      "japanese": "はつか"
+    },
+    {
+      "id": "vocab-1fdcb021645e49",
+      "category": "vocabulary",
+      "japanese": "せん"
+    },
+    {
+      "id": "vocab-3930d8643b972a",
+      "category": "vocabulary",
+      "japanese": "おかね"
+    },
+    {
+      "id": "vocab-35717650518d32",
+      "category": "vocabulary",
+      "japanese": "じょうず"
+    },
+    {
+      "id": "vocab-62863a45ba35f5",
+      "category": "vocabulary",
+      "japanese": "でんしゃ"
+    },
+    {
+      "id": "vocab-5e5274dc6d65a4",
+      "category": "vocabulary",
+      "japanese": "ふたつ"
+    },
+    {
+      "id": "vocab-293a6699b50673",
+      "category": "vocabulary",
+      "japanese": "～ちゅう"
+    },
+    {
+      "id": "vocab-c08e5a80e6d16e",
+      "category": "vocabulary",
+      "japanese": "セーター"
+    },
+    {
+      "id": "vocab-25df1363e2c46d",
+      "category": "vocabulary",
+      "japanese": "ボールペン"
+    },
+    {
+      "id": "vocab-ba610db7a50489",
+      "category": "vocabulary",
+      "japanese": "ゼロ"
+    },
+    {
+      "id": "vocab-8fa9e08494fcd5",
+      "category": "vocabulary",
+      "japanese": "てがみ"
+    },
+    {
+      "id": "vocab-659c2e3d9bae66",
+      "category": "vocabulary",
+      "japanese": "～ふん"
+    },
+    {
+      "id": "vocab-ea3853077e022c",
+      "category": "vocabulary",
+      "japanese": "おきる"
+    },
+    {
+      "id": "vocab-63d07253aa8efc",
+      "category": "vocabulary",
+      "japanese": "かぞく"
+    },
+    {
+      "id": "vocab-418aa4c19f9f94",
+      "category": "vocabulary",
+      "japanese": "グラム"
+    },
+    {
+      "id": "vocab-5ae3d6d0f146ff",
+      "category": "vocabulary",
+      "japanese": "ちず"
+    },
+    {
+      "id": "vocab-b0d2f25ff53da7",
+      "category": "vocabulary",
+      "japanese": "こんばん"
+    },
+    {
+      "id": "vocab-cefd432d5b6b04",
+      "category": "vocabulary",
+      "japanese": "いけ"
+    },
+    {
+      "id": "vocab-fe81b6d4be7036",
+      "category": "vocabulary",
+      "japanese": "やる"
+    },
+    {
+      "id": "vocab-817aa95cfd3af5",
+      "category": "vocabulary",
+      "japanese": "おてあらい"
+    },
+    {
+      "id": "vocab-13556ad08521a1",
+      "category": "vocabulary",
+      "japanese": "ストーブ"
+    },
+    {
+      "id": "vocab-19be68bab4df0d",
+      "category": "vocabulary",
+      "japanese": "おべんとう"
+    },
+    {
+      "id": "vocab-c43782e6bff344",
+      "category": "vocabulary",
+      "japanese": "ここのか"
+    },
+    {
+      "id": "vocab-20871fd970596f",
+      "category": "vocabulary",
+      "japanese": "おくる"
+    },
+    {
+      "id": "vocab-cb1e4a16380413",
+      "category": "vocabulary",
+      "japanese": "きいろい"
+    },
+    {
+      "id": "vocab-cdaea16f4a74aa",
+      "category": "vocabulary",
+      "japanese": "だいじょうぶ"
+    },
+    {
+      "id": "vocab-2853995448221d",
+      "category": "vocabulary",
+      "japanese": "はは"
+    },
+    {
+      "id": "vocab-be882451c291b6",
+      "category": "vocabulary",
+      "japanese": "~にん"
+    },
+    {
+      "id": "vocab-5bf4b70bb7f0b5",
+      "category": "vocabulary",
+      "japanese": "それ"
+    },
+    {
+      "id": "vocab-40d516d73ce0a4",
+      "category": "vocabulary",
+      "japanese": "たばこ"
+    },
+    {
+      "id": "vocab-1af481e587b7d0",
+      "category": "vocabulary",
+      "japanese": "きたない"
+    },
+    {
+      "id": "vocab-80c535caa9a228",
+      "category": "vocabulary",
+      "japanese": "はし",
+      "aliases": []
+    },
+    {
+      "id": "vocab-96defc9585ce79",
+      "category": "vocabulary",
+      "japanese": "ぶたにく"
+    },
+    {
+      "id": "vocab-d7954b50edc700",
+      "category": "vocabulary",
+      "japanese": "～ひき"
+    },
+    {
+      "id": "vocab-d82f8f0d7eca8e",
+      "category": "vocabulary",
+      "japanese": "きる",
+      "aliases": []
+    },
+    {
+      "id": "vocab-30a8a889e8b37f",
+      "category": "vocabulary",
+      "japanese": "なのか"
+    },
+    {
+      "id": "vocab-7d297389e8e202",
+      "category": "vocabulary",
+      "japanese": "かるい"
+    },
+    {
+      "id": "vocab-add3d0990841f3",
+      "category": "vocabulary",
+      "japanese": "おかあさん"
+    },
+    {
+      "id": "vocab-b5900d25ebb308",
+      "category": "vocabulary",
+      "japanese": "ならぶ"
+    },
+    {
+      "id": "vocab-69812ed36ede86",
+      "category": "vocabulary",
+      "japanese": "ねる"
+    },
+    {
+      "id": "vocab-91eceb718f1560",
+      "category": "vocabulary",
+      "japanese": "さらいねん"
+    },
+    {
+      "id": "vocab-e27328d582e246",
+      "category": "vocabulary",
+      "japanese": "うち"
+    },
+    {
+      "id": "vocab-436c9d42b9ba85",
+      "category": "vocabulary",
+      "japanese": "おんなのこ"
+    },
+    {
+      "id": "vocab-48cb18d4d5d3f2",
+      "category": "vocabulary",
+      "japanese": "おとな"
+    },
+    {
+      "id": "vocab-ebe88d480c1a7e",
+      "category": "vocabulary",
+      "japanese": "みなみ"
+    },
+    {
+      "id": "vocab-9505056d1b6cbd",
+      "category": "vocabulary",
+      "japanese": "まん"
+    },
+    {
+      "id": "vocab-bbab7cb4ba5527",
+      "category": "vocabulary",
+      "japanese": "ことば"
+    },
+    {
+      "id": "vocab-ef7c3186e08dd0",
+      "category": "vocabulary",
+      "japanese": "いちにち"
+    },
+    {
+      "id": "vocab-d0a059fa843298",
+      "category": "vocabulary",
+      "japanese": "～すぎ"
+    },
+    {
+      "id": "vocab-6815a3dc993c66",
+      "category": "vocabulary",
+      "japanese": "みせ"
+    },
+    {
+      "id": "vocab-50ac07c8a17a31",
+      "category": "vocabulary",
+      "japanese": "キロ",
+      "aliases": []
+    },
+    {
+      "id": "vocab-83e5c6623a97ac",
+      "category": "vocabulary",
+      "japanese": "ひとつき"
+    },
+    {
+      "id": "vocab-ad2b4d110a72ab",
+      "category": "vocabulary",
+      "japanese": "よぶ"
+    },
+    {
+      "id": "vocab-efc39220b9ae51",
+      "category": "vocabulary",
+      "japanese": "きょねん"
+    },
+    {
+      "id": "vocab-f2e1589971e355",
+      "category": "vocabulary",
+      "japanese": "かめら"
+    },
+    {
+      "id": "vocab-5808e61c63bbbc",
+      "category": "vocabulary",
+      "japanese": "りゅうがくせい"
+    },
+    {
+      "id": "vocab-f4946774dd7b8a",
+      "category": "vocabulary",
+      "japanese": "あたたかい"
+    },
+    {
+      "id": "vocab-bf466a9b8b7423",
+      "category": "vocabulary",
+      "japanese": "でんき"
+    },
+    {
+      "id": "vocab-6365c003ad2890",
+      "category": "vocabulary",
+      "japanese": "なく"
+    },
+    {
+      "id": "vocab-bf26131a94a820",
+      "category": "vocabulary",
+      "japanese": "りょうしん"
+    },
+    {
+      "id": "vocab-6376c1f85974f0",
+      "category": "vocabulary",
+      "japanese": "～じ"
+    },
+    {
+      "id": "vocab-f86a0e6d088798",
+      "category": "vocabulary",
+      "japanese": "まいあさ"
+    },
+    {
+      "id": "vocab-fda7126b010e0c",
+      "category": "vocabulary",
+      "japanese": "みぎ"
+    },
+    {
+      "id": "vocab-69484dcfd61dea",
+      "category": "vocabulary",
+      "japanese": "まるい"
+    },
+    {
+      "id": "vocab-dd679bca1b8e64",
+      "category": "vocabulary",
+      "japanese": "まいばん"
+    },
+    {
+      "id": "vocab-e05ad2d4356fb7",
+      "category": "vocabulary",
+      "japanese": "かいもの"
+    },
+    {
+      "id": "vocab-483ef0ad4a30e8",
+      "category": "vocabulary",
+      "japanese": "もんだい"
+    },
+    {
+      "id": "vocab-07c21a38761c39",
+      "category": "vocabulary",
+      "japanese": "おおぜい"
+    },
+    {
+      "id": "vocab-27ade909c717fb",
+      "category": "vocabulary",
+      "japanese": "スプーン"
+    },
+    {
+      "id": "vocab-98c7cdf849c9a5",
+      "category": "vocabulary",
+      "japanese": "きょう"
+    },
+    {
+      "id": "vocab-9ad9faf9a77a16",
+      "category": "vocabulary",
+      "japanese": "くもり"
+    },
+    {
+      "id": "vocab-0c61b85853d54c",
+      "category": "vocabulary",
+      "japanese": "ざっし"
+    },
+    {
+      "id": "vocab-bfd14526290630",
+      "category": "vocabulary",
+      "japanese": "～まえ"
+    },
+    {
+      "id": "vocab-3e65716a4d3511",
+      "category": "vocabulary",
+      "japanese": "あたらしい"
+    },
+    {
+      "id": "vocab-3e8ddbd44e5a15",
+      "category": "vocabulary",
+      "japanese": "かぶる"
+    },
+    {
+      "id": "vocab-70df585bbdb59a",
+      "category": "vocabulary",
+      "japanese": "ふるい"
+    },
+    {
+      "id": "vocab-b08b1d721749d4",
+      "category": "vocabulary",
+      "japanese": "あそこ"
+    },
+    {
+      "id": "vocab-81d1de86a6942f",
+      "category": "vocabulary",
+      "japanese": "ぎんこう"
+    },
+    {
+      "id": "vocab-699a2cd2c30aef",
+      "category": "vocabulary",
+      "japanese": "おなじ"
+    },
+    {
+      "id": "vocab-416419ca7c5ec5",
+      "category": "vocabulary",
+      "japanese": "ネクタイ"
+    },
+    {
+      "id": "vocab-9009f4b4bc6420",
+      "category": "vocabulary",
+      "japanese": "ここのつ"
+    },
+    {
+      "id": "vocab-3191557b840dd8",
+      "category": "vocabulary",
+      "japanese": "ならう"
+    },
+    {
+      "id": "vocab-3404de72e781fc",
+      "category": "vocabulary",
+      "japanese": "ひゃく"
+    },
+    {
+      "id": "vocab-236d58a5d96134",
+      "category": "vocabulary",
+      "japanese": "みる"
+    },
+    {
+      "id": "vocab-5a0894412fea50",
+      "category": "vocabulary",
+      "japanese": "いりぐち"
+    },
+    {
+      "id": "vocab-428e0ddb2e5017",
+      "category": "vocabulary",
+      "japanese": "しょうゆ"
+    },
+    {
+      "id": "vocab-42f1295d710cbf",
+      "category": "vocabulary",
+      "japanese": "もつ"
+    },
+    {
+      "id": "vocab-d0cc4ecb836d1f",
+      "category": "vocabulary",
+      "japanese": "しめる",
+      "aliases": []
+    },
+    {
+      "id": "vocab-afe73f447779cf",
+      "category": "vocabulary",
+      "japanese": "あまい"
+    },
+    {
+      "id": "vocab-3ecbbd7c12f77f",
+      "category": "vocabulary",
+      "japanese": "でます"
+    },
+    {
+      "id": "vocab-957cef539fc2b9",
+      "category": "vocabulary",
+      "japanese": "さき"
+    },
+    {
+      "id": "vocab-bffac1621425aa",
+      "category": "vocabulary",
+      "japanese": "かいしゃ"
+    },
+    {
+      "id": "vocab-1cd83bf3635f09",
+      "category": "vocabulary",
+      "japanese": "ほそい"
+    },
+    {
+      "id": "vocab-0fc7b996ecdb42",
+      "category": "vocabulary",
+      "japanese": "にぎやか"
+    },
+    {
+      "id": "vocab-a682e6ffa626dd",
+      "category": "vocabulary",
+      "japanese": "いる",
+      "aliases": []
+    },
+    {
+      "id": "vocab-d74894a0753f65",
+      "category": "vocabulary",
+      "japanese": "にがつ"
+    },
+    {
+      "id": "vocab-4b0cc8c84279c7",
+      "category": "vocabulary",
+      "japanese": "あちら"
+    },
+    {
+      "id": "vocab-11a73f73f1be46",
+      "category": "vocabulary",
+      "japanese": "あに"
+    },
+    {
+      "id": "vocab-7b3a54b0ec82d5",
+      "category": "vocabulary",
+      "japanese": "けっこん"
+    },
+    {
+      "id": "vocab-1e883221651ea3",
+      "category": "vocabulary",
+      "japanese": "わたる"
+    },
+    {
+      "id": "vocab-5c1a6944cdfba6",
+      "category": "vocabulary",
+      "japanese": "いつつ"
+    },
+    {
+      "id": "vocab-e65141d6dd0bb0",
+      "category": "vocabulary",
+      "japanese": "しがつ"
+    },
+    {
+      "id": "vocab-27cf4c14eb0731",
+      "category": "vocabulary",
+      "japanese": "つぎ"
+    },
+    {
+      "id": "vocab-470448cdfaf622",
+      "category": "vocabulary",
+      "japanese": "ほんだな"
+    },
+    {
+      "id": "vocab-482049bcd1f1c7",
+      "category": "vocabulary",
+      "japanese": "おとこ"
+    },
+    {
+      "id": "vocab-8960a2517b23f9",
+      "category": "vocabulary",
+      "japanese": "べんきょう"
+    },
+    {
+      "id": "vocab-39ef745364c3ea",
+      "category": "vocabulary",
+      "japanese": "ワイシャツ"
+    },
+    {
+      "id": "vocab-1760cea17433a5",
+      "category": "vocabulary",
+      "japanese": "つかれる"
+    },
+    {
+      "id": "vocab-1b71f1a6d56130",
+      "category": "vocabulary",
+      "japanese": "えき"
+    },
+    {
+      "id": "vocab-29430241434d93",
+      "category": "vocabulary",
+      "japanese": "あし"
+    },
+    {
+      "id": "vocab-5e926debacc62b",
+      "category": "vocabulary",
+      "japanese": "たいせつ"
+    },
+    {
+      "id": "vocab-084e0f9253ae4e",
+      "category": "vocabulary",
+      "japanese": "えいが"
+    },
+    {
+      "id": "vocab-98ba4131a15193",
+      "category": "vocabulary",
+      "japanese": "そと"
+    },
+    {
+      "id": "vocab-38cc5b2e1d2af1",
+      "category": "vocabulary",
+      "japanese": "うすい"
+    },
+    {
+      "id": "vocab-cf331fec9d5d9e",
+      "category": "vocabulary",
+      "japanese": "よる"
+    },
+    {
+      "id": "vocab-451f0fe68ac6de",
+      "category": "vocabulary",
+      "japanese": "りょこう"
+    },
+    {
+      "id": "vocab-540ccd5023e65d",
+      "category": "vocabulary",
+      "japanese": "～かげつ"
+    },
+    {
+      "id": "vocab-d3cd1a0c27a3e5",
+      "category": "vocabulary",
+      "japanese": "ちいさい"
+    },
+    {
+      "id": "vocab-b8f5ae2eb652a6",
+      "category": "vocabulary",
+      "japanese": "ズボン"
+    },
+    {
+      "id": "vocab-6cd6c36306a65a",
+      "category": "vocabulary",
+      "japanese": "いう"
+    },
+    {
+      "id": "vocab-ad5d938e80035f",
+      "category": "vocabulary",
+      "japanese": "けす"
+    },
+    {
+      "id": "vocab-c138f4bcabfb52",
+      "category": "vocabulary",
+      "japanese": "えん"
+    },
+    {
+      "id": "vocab-c965851ace47cb",
+      "category": "vocabulary",
+      "japanese": "つく"
+    },
+    {
+      "id": "vocab-ec91f3576b44fd",
+      "category": "vocabulary",
+      "japanese": "さくぶん"
+    },
+    {
+      "id": "vocab-907da77958e7ea",
+      "category": "vocabulary",
+      "japanese": "じかん"
+    },
+    {
+      "id": "vocab-b36c291a876628",
+      "category": "vocabulary",
+      "japanese": "～じん"
+    },
+    {
+      "id": "vocab-a83914056bbbbc",
+      "category": "vocabulary",
+      "japanese": "～ご"
+    },
+    {
+      "id": "vocab-7722e414428639",
+      "category": "vocabulary",
+      "japanese": "じょうぶ"
+    },
+    {
+      "id": "vocab-ece39f1d8b45c9",
+      "category": "vocabulary",
+      "japanese": "テープレコーダー"
+    },
+    {
+      "id": "vocab-20cbaee9c1ee94",
+      "category": "vocabulary",
+      "japanese": "はな",
+      "aliases": []
+    },
+    {
+      "id": "vocab-647c609e605929",
+      "category": "vocabulary",
+      "japanese": "がいこくじん"
+    },
+    {
+      "id": "vocab-93235e60df40a7",
+      "category": "vocabulary",
+      "japanese": "じゅぎょう"
+    },
+    {
+      "id": "vocab-f54b2bbe118067",
+      "category": "vocabulary",
+      "japanese": "～がります"
+    },
+    {
+      "id": "vocab-28d17d7fc2cd97",
+      "category": "vocabulary",
+      "japanese": "まち"
+    },
+    {
+      "id": "vocab-dc496e142169f7",
+      "category": "vocabulary",
+      "japanese": "あき"
+    },
+    {
+      "id": "vocab-c40eafdb205430",
+      "category": "vocabulary",
+      "japanese": "～や"
+    },
+    {
+      "id": "vocab-95e1861fb26e92",
+      "category": "vocabulary",
+      "japanese": "～こ"
+    },
+    {
+      "id": "vocab-48234c572ec2e4",
+      "category": "vocabulary",
+      "japanese": "ながい"
+    },
+    {
+      "id": "vocab-53050f1e5f06da",
+      "category": "vocabulary",
+      "japanese": "かど"
+    },
+    {
+      "id": "vocab-0c19ca1c9e167b",
+      "category": "vocabulary",
+      "japanese": "ひとつ"
+    },
+    {
+      "id": "vocab-82171f75faaa8f",
+      "category": "vocabulary",
+      "japanese": "へや"
+    },
+    {
+      "id": "vocab-7012509ed967b7",
+      "category": "vocabulary",
+      "japanese": "レストラン"
+    },
+    {
+      "id": "vocab-5f3f36bf219dc7",
+      "category": "vocabulary",
+      "japanese": "えいがかん"
+    },
+    {
+      "id": "vocab-5d9c6f22f5522e",
+      "category": "vocabulary",
+      "japanese": "だんだん"
+    },
+    {
+      "id": "vocab-8937f0ae79383f",
+      "category": "vocabulary",
+      "japanese": "はちがつ"
+    },
+    {
+      "id": "vocab-8626955ace36ae",
+      "category": "vocabulary",
+      "japanese": "ニュース"
+    },
+    {
+      "id": "vocab-ca81d6158ec5fd",
+      "category": "vocabulary",
+      "japanese": "がっこう"
+    },
+    {
+      "id": "vocab-27721631d6729f",
+      "category": "vocabulary",
+      "japanese": "のる"
+    },
+    {
+      "id": "vocab-3d654c79a55219",
+      "category": "vocabulary",
+      "japanese": "こえ"
+    },
+    {
+      "id": "vocab-6c2a719a505fff",
+      "category": "vocabulary",
+      "japanese": "ひま"
+    },
+    {
+      "id": "vocab-1bd112569d8254",
+      "category": "vocabulary",
+      "japanese": "ちち"
+    },
+    {
+      "id": "vocab-7cae2c54863cec",
+      "category": "vocabulary",
+      "japanese": "あの",
+      "aliases": []
+    },
+    {
+      "id": "vocab-69a6adcc590956",
+      "category": "vocabulary",
+      "japanese": "ボタン"
+    },
+    {
+      "id": "vocab-a244231e33c718",
+      "category": "vocabulary",
+      "japanese": "じどうしゃ"
+    },
+    {
+      "id": "vocab-0add88d1c05184",
+      "category": "vocabulary",
+      "japanese": "のむ"
+    },
+    {
+      "id": "vocab-42d3aaf5227a3d",
+      "category": "vocabulary",
+      "japanese": "にし"
+    },
+    {
+      "id": "vocab-0e6a95a888f21d",
+      "category": "vocabulary",
+      "japanese": "おんな"
+    },
+    {
+      "id": "vocab-f0a4064738f66a",
+      "category": "vocabulary",
+      "japanese": "かた"
+    },
+    {
+      "id": "vocab-f2314ff54e05eb",
+      "category": "vocabulary",
+      "japanese": "いろいろ"
+    },
+    {
+      "id": "vocab-0125571fa7d0e1",
+      "category": "vocabulary",
+      "japanese": "ごがつ"
+    },
+    {
+      "id": "vocab-bb6cded15d3dc0",
+      "category": "vocabulary",
+      "japanese": "えいご"
+    },
+    {
+      "id": "vocab-e615a364998672",
+      "category": "vocabulary",
+      "japanese": "かさ"
+    },
+    {
+      "id": "vocab-f0cf5f17315c60",
+      "category": "vocabulary",
+      "japanese": "ごご"
+    },
+    {
+      "id": "vocab-b63a4258471b12",
+      "category": "vocabulary",
+      "japanese": "それでは"
+    },
+    {
+      "id": "vocab-bdeb5c03fb7f85",
+      "category": "vocabulary",
+      "japanese": "～さい"
+    },
+    {
+      "id": "vocab-5f14c088c54f81",
+      "category": "vocabulary",
+      "japanese": "くに"
+    },
+    {
+      "id": "vocab-752e0ba62da5e3",
+      "category": "vocabulary",
+      "japanese": "いろ"
+    },
+    {
+      "id": "vocab-0b5502be6c4e5b",
+      "category": "vocabulary",
+      "japanese": "はじめ"
+    },
+    {
+      "id": "vocab-53f011b94a9135",
+      "category": "vocabulary",
+      "japanese": "わるい"
+    },
+    {
+      "id": "vocab-c175020ce30041",
+      "category": "vocabulary",
+      "japanese": "おばさん"
+    },
+    {
+      "id": "vocab-507c0b3cdc7add",
+      "category": "vocabulary",
+      "japanese": "およぐ"
+    },
+    {
+      "id": "vocab-f7a1a1998d9bf3",
+      "category": "vocabulary",
+      "japanese": "あそぶ"
+    },
+    {
+      "id": "vocab-d6062e6d469346",
+      "category": "vocabulary",
+      "japanese": "～しゅうかん"
+    },
+    {
+      "id": "vocab-c3f33b96d9f018",
+      "category": "vocabulary",
+      "japanese": "ごしゅじん"
+    },
+    {
+      "id": "vocab-5752d5ec3b790e",
+      "category": "vocabulary",
+      "japanese": "かみ"
+    },
+    {
+      "id": "vocab-07d0f152b71ac4",
+      "category": "vocabulary",
+      "japanese": "プール"
+    },
+    {
+      "id": "vocab-9b7ca7b0c6d2b6",
+      "category": "vocabulary",
+      "japanese": "あおい"
+    },
+    {
+      "id": "vocab-af480b15708f3f",
+      "category": "vocabulary",
+      "japanese": "ある",
+      "aliases": []
+    },
+    {
+      "id": "vocab-e9d980d7c2d76d",
+      "category": "vocabulary",
+      "japanese": "まつ"
+    },
+    {
+      "id": "vocab-9ed3b75be40be0",
+      "category": "vocabulary",
+      "japanese": "あね"
+    },
+    {
+      "id": "vocab-c7d7fdb86d6624",
+      "category": "vocabulary",
+      "japanese": "れんしゅう"
+    },
+    {
+      "id": "vocab-300eeb603f0116",
+      "category": "vocabulary",
+      "japanese": "だいがく"
+    },
+    {
+      "id": "vocab-45555851d23fbd",
+      "category": "vocabulary",
+      "japanese": "かりる"
+    },
+    {
+      "id": "vocab-d2e58a175c17b0",
+      "category": "vocabulary",
+      "japanese": "～ねん"
+    },
+    {
+      "id": "vocab-2abca981c98fdc",
+      "category": "vocabulary",
+      "japanese": "みなさん"
+    },
+    {
+      "id": "vocab-1404638c05b34b",
+      "category": "vocabulary",
+      "japanese": "テスト"
+    },
+    {
+      "id": "vocab-69a2b09d83e357",
+      "category": "vocabulary",
+      "japanese": "あたま"
+    },
+    {
+      "id": "vocab-129145922fc5e5",
+      "category": "vocabulary",
+      "japanese": "あける"
+    },
+    {
+      "id": "vocab-d336a80b2986c7",
+      "category": "vocabulary",
+      "japanese": "ひく",
+      "aliases": []
+    },
+    {
+      "id": "vocab-ddbf7afabf37aa",
+      "category": "vocabulary",
+      "japanese": "つくる"
+    },
+    {
+      "id": "vocab-a6b391d6b698ab",
+      "category": "vocabulary",
+      "japanese": "いくら"
+    },
+    {
+      "id": "vocab-e4c9c449093074",
+      "category": "vocabulary",
+      "japanese": "くつ"
+    },
+    {
+      "id": "vocab-5b480c94de8cc9",
+      "category": "vocabulary",
+      "japanese": "おもしろい"
+    },
+    {
+      "id": "vocab-7b17b79350af76",
+      "category": "vocabulary",
+      "japanese": "おおきい"
+    },
+    {
+      "id": "vocab-30718b05a86d38",
+      "category": "vocabulary",
+      "japanese": "きらい"
+    },
+    {
+      "id": "vocab-a7bfe3e6a70f09",
+      "category": "vocabulary",
+      "japanese": "しろい"
+    },
+    {
+      "id": "vocab-5e3cae6f9ee652",
+      "category": "vocabulary",
+      "japanese": "そうして"
+    },
+    {
+      "id": "vocab-9fe9f3c0b5817e",
+      "category": "vocabulary",
+      "japanese": "かびん"
+    },
+    {
+      "id": "vocab-e84cda9798a581",
+      "category": "vocabulary",
+      "japanese": "メートル"
+    },
+    {
+      "id": "vocab-9cbdc50f407800",
+      "category": "vocabulary",
+      "japanese": "デパート"
+    },
+    {
+      "id": "vocab-6fb0c72191416f",
+      "category": "vocabulary",
+      "japanese": "せまい"
+    },
+    {
+      "id": "vocab-5dcd578aef8047",
+      "category": "vocabulary",
+      "japanese": "ごはん"
+    },
+    {
+      "id": "vocab-f95e0cd9c05187",
+      "category": "vocabulary",
+      "japanese": "くすり"
+    },
+    {
+      "id": "vocab-916b0834d99d78",
+      "category": "vocabulary",
+      "japanese": "ばん"
+    },
+    {
+      "id": "vocab-80a81245abd38b",
+      "category": "vocabulary",
+      "japanese": "からい"
+    },
+    {
+      "id": "vocab-a8478293414bc5",
+      "category": "vocabulary",
+      "japanese": "おいしい"
+    },
+    {
+      "id": "vocab-dd6ec3cbeb4362",
+      "category": "vocabulary",
+      "japanese": "～はん"
+    },
+    {
+      "id": "vocab-8babc34546aa82",
+      "category": "vocabulary",
+      "japanese": "おす"
+    },
+    {
+      "id": "vocab-641352c7fadbbd",
+      "category": "vocabulary",
+      "japanese": "さんぽ"
+    },
+    {
+      "id": "vocab-323bfc538bf9f9",
+      "category": "vocabulary",
+      "japanese": "はく"
+    },
+    {
+      "id": "vocab-2ea1d81eb9ea18",
+      "category": "vocabulary",
+      "japanese": "せいと"
+    },
+    {
+      "id": "vocab-6fc703740753fb",
+      "category": "vocabulary",
+      "japanese": "ひらがな"
+    },
+    {
+      "id": "vocab-d549e6844af8fb",
+      "category": "vocabulary",
+      "japanese": "はじまる"
+    },
+    {
+      "id": "vocab-7814a340de0913",
+      "category": "vocabulary",
+      "japanese": "ぺん"
+    },
+    {
+      "id": "vocab-cdd81768389c44",
+      "category": "vocabulary",
+      "japanese": "バス"
+    },
+    {
+      "id": "vocab-02aa6a4ac59f9a",
+      "category": "vocabulary",
+      "japanese": "からだ"
+    },
+    {
+      "id": "vocab-c32d72e8874e9a",
+      "category": "vocabulary",
+      "japanese": "きって"
+    },
+    {
+      "id": "vocab-0612f9587e98f7",
+      "category": "vocabulary",
+      "japanese": "しんぶん"
+    },
+    {
+      "id": "vocab-4cedfa2a663892",
+      "category": "vocabulary",
+      "japanese": "おととし"
+    },
+    {
+      "id": "vocab-787c550736d025",
+      "category": "vocabulary",
+      "japanese": "そう"
+    },
+    {
+      "id": "vocab-c72103acd8756e",
+      "category": "vocabulary",
+      "japanese": "フォーク"
+    },
+    {
+      "id": "vocab-e64f51b3eca43a",
+      "category": "vocabulary",
+      "japanese": "たのしい"
+    },
+    {
+      "id": "vocab-fb6e73f33ab239",
+      "category": "vocabulary",
+      "japanese": "あう"
+    },
+    {
+      "id": "vocab-277c077ecdf706",
+      "category": "vocabulary",
+      "japanese": "おくさん"
+    },
+    {
+      "id": "vocab-a6933d326b325c",
+      "category": "vocabulary",
+      "japanese": "ちかい"
+    },
+    {
+      "id": "vocab-19f9f11c5d9217",
+      "category": "vocabulary",
+      "japanese": "ええ"
+    },
+    {
+      "id": "vocab-6144e1aa8f06ee",
+      "category": "vocabulary",
+      "japanese": "いす"
+    },
+    {
+      "id": "vocab-c10267c1250bf4",
+      "category": "vocabulary",
+      "japanese": "やさい"
+    },
+    {
+      "id": "vocab-8c88baf8f1c676",
+      "category": "vocabulary",
+      "japanese": "くつした"
+    },
+    {
+      "id": "vocab-5128e82002a0f7",
+      "category": "vocabulary",
+      "japanese": "ちがう"
+    },
+    {
+      "id": "vocab-894115b3065d10",
+      "category": "vocabulary",
+      "japanese": "こんな"
+    },
+    {
+      "id": "vocab-948e149da3e31c",
+      "category": "vocabulary",
+      "japanese": "いや"
+    },
+    {
+      "id": "vocab-d59612326da039",
+      "category": "vocabulary",
+      "japanese": "たいてい"
+    },
+    {
+      "id": "vocab-34d12749ce0f41",
+      "category": "vocabulary",
+      "japanese": "なまえ"
+    },
+    {
+      "id": "vocab-ab7fa54a9cc08a",
+      "category": "vocabulary",
+      "japanese": "いたい"
+    },
+    {
+      "id": "vocab-213e153b8e7ac0",
+      "category": "vocabulary",
+      "japanese": "ふつか"
+    },
+    {
+      "id": "vocab-14714b0bdb7c6e",
+      "category": "vocabulary",
+      "japanese": "しまる"
+    },
+    {
+      "id": "vocab-92295b9acfe897",
+      "category": "vocabulary",
+      "japanese": "しゅくだい"
+    },
+    {
+      "id": "vocab-03acdda3fd178c",
+      "category": "vocabulary",
+      "japanese": "すう"
+    },
+    {
+      "id": "vocab-d4978f61dfd03e",
+      "category": "vocabulary",
+      "japanese": "あめ"
+    },
+    {
+      "id": "vocab-f3917fd8672a47",
+      "category": "vocabulary",
+      "japanese": "へん"
+    },
+    {
+      "id": "vocab-1a8e3c2ea89d4f",
+      "category": "vocabulary",
+      "japanese": "あらう"
+    },
+    {
+      "id": "vocab-78b8b8e9a10f38",
+      "category": "vocabulary",
+      "japanese": "はこ"
+    },
+    {
+      "id": "vocab-96a66b1bd24bf1",
+      "category": "vocabulary",
+      "japanese": "しお"
+    },
+    {
+      "id": "vocab-9c4818d540abb9",
+      "category": "vocabulary",
+      "japanese": "あかい"
+    },
+    {
+      "id": "vocab-e1128747e03dcb",
+      "category": "vocabulary",
+      "japanese": "おちゃ"
+    },
+    {
+      "id": "vocab-69748fd661043e",
+      "category": "vocabulary",
+      "japanese": "びょういん"
+    },
+    {
+      "id": "vocab-d3f29d23efd1aa",
+      "category": "vocabulary",
+      "japanese": "あげる"
+    },
+    {
+      "id": "vocab-68d67b03197108",
+      "category": "vocabulary",
+      "japanese": "げんかん"
+    },
+    {
+      "id": "vocab-40fb2bb6bb3d10",
+      "category": "vocabulary",
+      "japanese": "さん"
+    },
+    {
+      "id": "vocab-a38008143af442",
+      "category": "vocabulary",
+      "japanese": "ふく",
+      "aliases": []
+    },
+    {
+      "id": "vocab-b9ddb46b0f190f",
+      "category": "vocabulary",
+      "japanese": "さく"
+    },
+    {
+      "id": "vocab-b22fbe1f47ad9a",
+      "category": "vocabulary",
+      "japanese": "うる"
+    },
+    {
+      "id": "vocab-86fc7308d44971",
+      "category": "vocabulary",
+      "japanese": "こまる"
+    },
+    {
+      "id": "vocab-5c5df08e141aff",
+      "category": "vocabulary",
+      "japanese": "また"
+    },
+    {
+      "id": "vocab-dde6721758b81e",
+      "category": "vocabulary",
+      "japanese": "いくつ"
+    },
+    {
+      "id": "vocab-c238f9e182709b",
+      "category": "vocabulary",
+      "japanese": "すずしい"
+    },
+    {
+      "id": "vocab-33124d6f1e87aa",
+      "category": "vocabulary",
+      "japanese": "はじめて"
+    },
+    {
+      "id": "vocab-c758567719cf4e",
+      "category": "vocabulary",
+      "japanese": "ページ"
+    },
+    {
+      "id": "vocab-1616856e8367b0",
+      "category": "vocabulary",
+      "japanese": "おく"
+    },
+    {
+      "id": "vocab-c50a5a60d2f54a",
+      "category": "vocabulary",
+      "japanese": "しちがつ"
+    },
+    {
+      "id": "vocab-e298bbbd614407",
+      "category": "vocabulary",
+      "japanese": "パン"
+    },
+    {
+      "id": "vocab-31a9bce5e1a512",
+      "category": "vocabulary",
+      "japanese": "ほん"
+    },
+    {
+      "id": "vocab-bb358330f7310b",
+      "category": "vocabulary",
+      "japanese": "むずかしい"
+    },
+    {
+      "id": "vocab-ffec287950a34c",
+      "category": "vocabulary",
+      "japanese": "かばん"
+    },
+    {
+      "id": "vocab-a299ebacb6a373",
+      "category": "vocabulary",
+      "japanese": "おわる"
+    },
+    {
+      "id": "vocab-21ad0ce3e7e6ab",
+      "category": "vocabulary",
+      "japanese": "おかし"
+    },
+    {
+      "id": "vocab-7ef84178bfd256",
+      "category": "vocabulary",
+      "japanese": "たんじょうび"
+    },
+    {
+      "id": "vocab-f44e9afd13fbbc",
+      "category": "vocabulary",
+      "japanese": "はいざら"
+    },
+    {
+      "id": "vocab-31d701ea8f3d18",
+      "category": "vocabulary",
+      "japanese": "たぶん"
+    },
+    {
+      "id": "vocab-bdce1723aef5b0",
+      "category": "vocabulary",
+      "japanese": "ひだり"
+    },
+    {
+      "id": "vocab-cbe885c331cd6e",
+      "category": "vocabulary",
+      "japanese": "はる",
+      "aliases": []
+    },
+    {
+      "id": "vocab-6e843134111040",
+      "category": "vocabulary",
+      "japanese": "かける",
+      "aliases": []
+    },
+    {
+      "id": "vocab-12741859edaad4",
+      "category": "vocabulary",
+      "japanese": "いそがしい"
+    },
+    {
+      "id": "vocab-08b66c8a3cc178",
+      "category": "vocabulary",
+      "japanese": "いみ"
+    },
+    {
+      "id": "vocab-e2b419623aeb86",
+      "category": "vocabulary",
+      "japanese": "まいとし/まいねん"
+    },
+    {
+      "id": "vocab-9ef460652b4583",
+      "category": "vocabulary",
+      "japanese": "しょくどう"
+    },
+    {
+      "id": "vocab-4071582175cda9",
+      "category": "vocabulary",
+      "japanese": "こちら"
+    },
+    {
+      "id": "vocab-ed9b956f137b51",
+      "category": "vocabulary",
+      "japanese": "みじかい"
+    },
+    {
+      "id": "vocab-315c422c324831",
+      "category": "vocabulary",
+      "japanese": "いちばん"
+    },
+    {
+      "id": "vocab-cb73cd20d01efb",
+      "category": "vocabulary",
+      "japanese": "わすれる"
+    },
+    {
+      "id": "vocab-3619c7e1197105",
+      "category": "vocabulary",
+      "japanese": "じてんしゃ"
+    },
+    {
+      "id": "vocab-bc459f856d9ab1",
+      "category": "vocabulary",
+      "japanese": "なつ"
+    },
+    {
+      "id": "vocab-a446a48d33950e",
+      "category": "vocabulary",
+      "japanese": "たまご"
+    },
+    {
+      "id": "vocab-7d07ce54341ad6",
+      "category": "vocabulary",
+      "japanese": "はがき"
+    },
+    {
+      "id": "vocab-6f74998a65e739",
+      "category": "vocabulary",
+      "japanese": "めがね"
+    },
+    {
+      "id": "vocab-4159ea02802e4a",
+      "category": "vocabulary",
+      "japanese": "さす"
+    },
+    {
+      "id": "vocab-a8b718989f0bc3",
+      "category": "vocabulary",
+      "japanese": "おとうと"
+    },
+    {
+      "id": "vocab-b313997d12af6c",
+      "category": "vocabulary",
+      "japanese": "かいだん"
+    },
+    {
+      "id": "vocab-86664722c5bbf1",
+      "category": "vocabulary",
+      "japanese": "なつやすみ"
+    },
+    {
+      "id": "vocab-02bce7411cfafa",
+      "category": "vocabulary",
+      "japanese": "する"
+    },
+    {
+      "id": "vocab-4781e6ef6ab52c",
+      "category": "vocabulary",
+      "japanese": "らいねん"
+    },
+    {
+      "id": "vocab-df1641d1d30cdc",
+      "category": "vocabulary",
+      "japanese": "おとこのこ"
+    },
+    {
+      "id": "vocab-0729d6ce8033e3",
+      "category": "vocabulary",
+      "japanese": "あまり"
+    },
+    {
+      "id": "vocab-d9fb0f7eb23860",
+      "category": "vocabulary",
+      "japanese": "はしる"
+    },
+    {
+      "id": "vocab-0ed697c5fa0918",
+      "category": "vocabulary",
+      "japanese": "すむ"
+    },
+    {
+      "id": "vocab-b8590fa192789f",
+      "category": "vocabulary",
+      "japanese": "らいしゅう"
+    },
+    {
+      "id": "vocab-0b6b11aaab86e9",
+      "category": "vocabulary",
+      "japanese": "ひと"
+    },
+    {
+      "id": "vocab-8c23bdcdc29757",
+      "category": "vocabulary",
+      "japanese": "テレビ"
+    },
+    {
+      "id": "vocab-4a29460c7776d9",
+      "category": "vocabulary",
+      "japanese": "～など"
+    },
+    {
+      "id": "vocab-6fe4b5faae13ee",
+      "category": "vocabulary",
+      "japanese": "さむい"
+    },
+    {
+      "id": "vocab-e827f4306e9a36",
+      "category": "vocabulary",
+      "japanese": "たいしかん"
+    },
+    {
+      "id": "vocab-8d2cffd4344d65",
+      "category": "vocabulary",
+      "japanese": "くる"
+    },
+    {
+      "id": "vocab-e2037c6608df02",
+      "category": "vocabulary",
+      "japanese": "みんな"
+    },
+    {
+      "id": "vocab-7c8a0608abc232",
+      "category": "vocabulary",
+      "japanese": "くち"
+    },
+    {
+      "id": "vocab-c23f88720b7e5a",
+      "category": "vocabulary",
+      "japanese": "かす"
+    },
+    {
+      "id": "vocab-e33b8d78176ce6",
+      "category": "vocabulary",
+      "japanese": "あびる"
+    },
+    {
+      "id": "vocab-58823cf2501404",
+      "category": "vocabulary",
+      "japanese": "いっしょ"
+    },
+    {
+      "id": "vocab-8062d111e0ae99",
+      "category": "vocabulary",
+      "japanese": "みっつ"
+    },
+    {
+      "id": "vocab-a66b2df3614af4",
+      "category": "vocabulary",
+      "japanese": "おそい"
+    },
+    {
+      "id": "vocab-879bf5bb84fd4a",
+      "category": "vocabulary",
+      "japanese": "わかる"
+    },
+    {
+      "id": "vocab-505780cd14defe",
+      "category": "vocabulary",
+      "japanese": "あさ"
+    },
+    {
+      "id": "vocab-1a0be004496293",
+      "category": "vocabulary",
+      "japanese": "ほか"
+    },
+    {
+      "id": "vocab-0ce752de640776",
+      "category": "vocabulary",
+      "japanese": "パーテイー"
+    },
+    {
+      "id": "vocab-ed1b4610d73469",
+      "category": "vocabulary",
+      "japanese": "きょうだい"
+    },
+    {
+      "id": "vocab-b7086b82a588d5",
+      "category": "vocabulary",
+      "japanese": "～たち"
+    },
+    {
+      "id": "vocab-c334cc9c605a48",
+      "category": "vocabulary",
+      "japanese": "おととい"
+    },
+    {
+      "id": "vocab-2c296261dbebcf",
+      "category": "vocabulary",
+      "japanese": "はれる"
+    },
+    {
+      "id": "vocab-14518132fec165",
+      "category": "vocabulary",
+      "japanese": "まいしゅう"
+    },
+    {
+      "id": "vocab-42fc17aa8e055d",
+      "category": "vocabulary",
+      "japanese": "いい / よい"
+    },
+    {
+      "id": "vocab-9f8f20615cada5",
+      "category": "vocabulary",
+      "japanese": "たかい"
+    },
+    {
+      "id": "vocab-0ba540c6c5851f",
+      "category": "vocabulary",
+      "japanese": "だいどころ"
+    },
+    {
+      "id": "vocab-f745a14d161f38",
+      "category": "vocabulary",
+      "japanese": "よむ"
+    },
+    {
+      "id": "vocab-81a4184b5baa54",
+      "category": "vocabulary",
+      "japanese": "ください"
+    },
+    {
+      "id": "vocab-dd0e0efd9bf1eb",
+      "category": "vocabulary",
+      "japanese": "せい"
+    },
+    {
+      "id": "vocab-d9e1c66eab60d4",
+      "category": "vocabulary",
+      "japanese": "こんげつ"
+    },
+    {
+      "id": "vocab-84fcd8442894fe",
+      "category": "vocabulary",
+      "japanese": "ぬぐ"
+    },
+    {
+      "id": "vocab-ef985222f74eec",
+      "category": "vocabulary",
+      "japanese": "せんせい"
+    },
+    {
+      "id": "vocab-7b2b6a5c9a2952",
+      "category": "vocabulary",
+      "japanese": "かう"
+    },
+    {
+      "id": "vocab-db59b46a0023f0",
+      "category": "vocabulary",
+      "japanese": "レコード"
+    },
+    {
+      "id": "vocab-9d0d6430fe7e4e",
+      "category": "vocabulary",
+      "japanese": "いしゃ"
+    },
+    {
+      "id": "vocab-1421d6559f9b4d",
+      "category": "vocabulary",
+      "japanese": "やっつ"
+    },
+    {
+      "id": "vocab-96263c8a12c7bc",
+      "category": "vocabulary",
+      "japanese": "やおや"
+    },
+    {
+      "id": "vocab-3e679b2e32f56b",
+      "category": "vocabulary",
+      "japanese": "たつ"
+    },
+    {
+      "id": "vocab-5b92f154651087",
+      "category": "vocabulary",
+      "japanese": "しゃしん"
+    },
+    {
+      "id": "vocab-fbc854b3122cf4",
+      "category": "vocabulary",
+      "japanese": "いいえ"
+    },
+    {
+      "id": "vocab-bf61bed1541657",
+      "category": "vocabulary",
+      "japanese": "かかる"
+    },
+    {
+      "id": "vocab-6a310733c3a024",
+      "category": "vocabulary",
+      "japanese": "かぜ",
+      "aliases": []
+    },
+    {
+      "id": "vocab-878a8d5b5b1bfd",
+      "category": "vocabulary",
+      "japanese": "りっぱ"
+    },
+    {
+      "id": "vocab-8071e63d6e8281",
+      "category": "vocabulary",
+      "japanese": "ぎゅうにゅう"
+    },
+    {
+      "id": "vocab-9cfdee34a46d10",
+      "category": "vocabulary",
+      "japanese": "おじいさん"
+    },
+    {
+      "id": "vocab-9b4bd666c0f92b",
+      "category": "vocabulary",
+      "japanese": "ハンカチ"
+    },
+    {
+      "id": "vocab-8ed7aa3c69da54",
+      "category": "vocabulary",
+      "japanese": "した"
+    },
+    {
+      "id": "vocab-838d3715ba3d04",
+      "category": "vocabulary",
+      "japanese": "らいげつ"
+    },
+    {
+      "id": "vocab-fb701a67074a4e",
+      "category": "vocabulary",
+      "japanese": "みみ"
+    },
+    {
+      "id": "vocab-957902951722bc",
+      "category": "vocabulary",
+      "japanese": "やま"
+    },
+    {
+      "id": "vocab-3d7f8514b723ec",
+      "category": "vocabulary",
+      "japanese": "しかし"
+    },
+    {
+      "id": "vocab-88d4c1a21431f6",
+      "category": "vocabulary",
+      "japanese": "～はい"
+    },
+    {
+      "id": "vocab-c9bc136b3dc28a",
+      "category": "vocabulary",
+      "japanese": "くるま"
+    },
+    {
+      "id": "vocab-0a7ee511cfce10",
+      "category": "vocabulary",
+      "japanese": "いちがつ"
+    },
+    {
+      "id": "vocab-8fbe9c55554d75",
+      "category": "vocabulary",
+      "japanese": "そこ"
+    },
+    {
+      "id": "vocab-5d3952eea2ab7d",
+      "category": "vocabulary",
+      "japanese": "ひくい"
+    },
+    {
+      "id": "vocab-ecdcb6d9467721",
+      "category": "vocabulary",
+      "japanese": "でんわ"
+    },
+    {
+      "id": "vocab-8d37afa4a4ce25",
+      "category": "vocabulary",
+      "japanese": "はいる"
+    },
+    {
+      "id": "vocab-8f556540a2d01a",
+      "category": "vocabulary",
+      "japanese": "テープ"
+    },
+    {
+      "id": "vocab-5bc9e5a53fcf16",
+      "category": "vocabulary",
+      "japanese": "よっつ"
+    },
+    {
+      "id": "vocab-efa5a5a96ec5ff",
+      "category": "vocabulary",
+      "japanese": "むいか"
+    },
+    {
+      "id": "vocab-eb63d292a33059",
+      "category": "vocabulary",
+      "japanese": "こども"
+    },
+    {
+      "id": "vocab-5d0dba0bb9e4f2",
+      "category": "vocabulary",
+      "japanese": "せんげつ"
+    },
+    {
+      "id": "vocab-38a08f86c360a7",
+      "category": "vocabulary",
+      "japanese": "やすい"
+    },
+    {
+      "id": "vocab-b0c875c926c117",
+      "category": "vocabulary",
+      "japanese": "まずい"
+    },
+    {
+      "id": "vocab-6e3ffb730b8b50",
+      "category": "vocabulary",
+      "japanese": "バター"
+    },
+    {
+      "id": "vocab-0f4e680e140339",
+      "category": "vocabulary",
+      "japanese": "うまれる"
+    },
+    {
+      "id": "vocab-ecd3eaa9a8295d",
+      "category": "vocabulary",
+      "japanese": "だいすき"
+    },
+    {
+      "id": "vocab-ca1118b57718b8",
+      "category": "vocabulary",
+      "japanese": "ほしい"
+    },
+    {
+      "id": "vocab-a386cbe3e6c443",
+      "category": "vocabulary",
+      "japanese": "ぐらい"
+    },
+    {
+      "id": "vocab-2a2e36cdfe1e57",
+      "category": "vocabulary",
+      "japanese": "おなか"
+    },
+    {
+      "id": "vocab-1cf8b6244e1b44",
+      "category": "vocabulary",
+      "japanese": "そちら"
+    },
+    {
+      "id": "vocab-1c127fe70aea85",
+      "category": "vocabulary",
+      "japanese": "もの"
+    },
+    {
+      "id": "vocab-f644d9518a8541",
+      "category": "vocabulary",
+      "japanese": "でぐち"
+    },
+    {
+      "id": "vocab-8398eed59a8f5d",
+      "category": "vocabulary",
+      "japanese": "コート"
+    },
+    {
+      "id": "vocab-97ebd81f5db1f6",
+      "category": "vocabulary",
+      "japanese": "うた"
+    },
+    {
+      "id": "vocab-ef5ab259f7ad5a",
+      "category": "vocabulary",
+      "japanese": "へた"
+    },
+    {
+      "id": "vocab-66a84bacf7ecad",
+      "category": "vocabulary",
+      "japanese": "くろい"
+    },
+    {
+      "id": "vocab-84f48a334d5536",
+      "category": "vocabulary",
+      "japanese": "こたえる"
+    },
+    {
+      "id": "vocab-bb18b4fb4fcfdd",
+      "category": "vocabulary",
+      "japanese": "べんり"
+    },
+    {
+      "id": "vocab-a71dfe424f4285",
+      "category": "vocabulary",
+      "japanese": "ひこうき"
+    },
+    {
+      "id": "vocab-3ed978efa7bb25",
+      "category": "vocabulary",
+      "japanese": "よこ"
+    },
+    {
+      "id": "vocab-1a11de581e7173",
+      "category": "vocabulary",
+      "japanese": "わたし"
+    },
+    {
+      "id": "vocab-a25ba721561d46",
+      "category": "vocabulary",
+      "japanese": "できる"
+    },
+    {
+      "id": "vocab-f90989ba700163",
+      "category": "vocabulary",
+      "japanese": "しつもん"
+    },
+    {
+      "id": "vocab-5e6caff3df33eb",
+      "category": "vocabulary",
+      "japanese": "おじさん"
+    },
+    {
+      "id": "vocab-eb618dd9d7557e",
+      "category": "vocabulary",
+      "japanese": "つくえ"
+    },
+    {
+      "id": "vocab-d12ebb8ac02f66",
+      "category": "vocabulary",
+      "japanese": "つめたい"
+    },
+    {
+      "id": "vocab-14a3e481028211",
+      "category": "vocabulary",
+      "japanese": "いれる"
+    },
+    {
+      "id": "vocab-3b91527ddbe6a0",
+      "category": "vocabulary",
+      "japanese": "ろくがつ"
+    },
+    {
+      "id": "vocab-0466df7894de54",
+      "category": "vocabulary",
+      "japanese": "まっすぐに"
+    },
+    {
+      "id": "vocab-05447b391809ae",
+      "category": "vocabulary",
+      "japanese": "ばんごう"
+    },
+    {
+      "id": "vocab-83f960edcb0a9a",
+      "category": "vocabulary",
+      "japanese": "きえる"
+    },
+    {
+      "id": "vocab-d6552a521b6549",
+      "category": "vocabulary",
+      "japanese": "ちゃいろ"
+    },
+    {
+      "id": "vocab-e85422243b0d77",
+      "category": "vocabulary",
+      "japanese": "すき"
+    },
+    {
+      "id": "vocab-62ba1e95921c7e",
+      "category": "vocabulary",
+      "japanese": "なる"
+    },
+    {
+      "id": "vocab-340521ca97f0c4",
+      "category": "vocabulary",
+      "japanese": "やすみ"
+    },
+    {
+      "id": "vocab-889eb64cfed1cb",
+      "category": "vocabulary",
+      "japanese": "おさら"
+    },
+    {
+      "id": "vocab-c7786c98cb2bf2",
+      "category": "vocabulary",
+      "japanese": "おねえさん"
+    },
+    {
+      "id": "vocab-6d83893480a737",
+      "category": "vocabulary",
+      "japanese": "あく"
+    },
+    {
+      "id": "vocab-a1ae6544c5f292",
+      "category": "vocabulary",
+      "japanese": "かく"
+    },
+    {
+      "id": "vocab-8f3c0844010781",
+      "category": "vocabulary",
+      "japanese": "しごと"
+    },
+    {
+      "id": "vocab-013075d60e2311",
+      "category": "vocabulary",
+      "japanese": "せびろ"
+    },
+    {
+      "id": "vocab-3e1be76e0d5a95",
+      "category": "vocabulary",
+      "japanese": "～さん"
+    },
+    {
+      "id": "vocab-56cec58eb1525d",
+      "category": "vocabulary",
+      "japanese": "みせる"
+    },
+    {
+      "id": "vocab-bdaf86bc632549",
+      "category": "vocabulary",
+      "japanese": "さあ"
+    },
+    {
+      "id": "vocab-7e553ec84157f0",
+      "category": "vocabulary",
+      "japanese": "きっさてん"
+    },
+    {
+      "id": "vocab-eed05b07901ba2",
+      "category": "vocabulary",
+      "japanese": "あぶない"
+    },
+    {
+      "id": "vocab-87680425121e80",
+      "category": "vocabulary",
+      "japanese": "これ"
+    },
+    {
+      "id": "vocab-d425348d5a62a0",
+      "category": "vocabulary",
+      "japanese": "かわ"
+    },
+    {
+      "id": "vocab-1a0b98675555da",
+      "category": "vocabulary",
+      "japanese": "もっと"
+    },
+    {
+      "id": "vocab-ab10460e393132",
+      "category": "vocabulary",
+      "japanese": "みがく"
+    },
+    {
+      "id": "vocab-672a6c5d413f19",
+      "category": "vocabulary",
+      "japanese": "ふとい"
+    },
+    {
+      "id": "vocab-e7d951c0c8006b",
+      "category": "vocabulary",
+      "japanese": "げんき"
+    },
+    {
+      "id": "vocab-5539a4ec8e055c",
+      "category": "vocabulary",
+      "japanese": "ここ"
+    },
+    {
+      "id": "vocab-16cc9f00c921c2",
+      "category": "vocabulary",
+      "japanese": "ようか"
+    },
+    {
+      "id": "vocab-f7b25e1731432b",
+      "category": "vocabulary",
+      "japanese": "ばんごはん"
+    },
+    {
+      "id": "vocab-66d3e0c269f207",
+      "category": "vocabulary",
+      "japanese": "おふろ"
+    },
+    {
+      "id": "vocab-ec9ec0447af239",
+      "category": "vocabulary",
+      "japanese": "おばあさん"
+    },
+    {
+      "id": "vocab-874518acdace38",
+      "category": "vocabulary",
+      "japanese": "ついたち"
+    },
+    {
+      "id": "vocab-8db5cff59462db",
+      "category": "vocabulary",
+      "japanese": "でかける"
+    },
+    {
+      "id": "vocab-f9ca86fe259a4b",
+      "category": "vocabulary",
+      "japanese": "ちゃわん"
+    },
+    {
+      "id": "vocab-b4e4c7ee8cb798",
+      "category": "vocabulary",
+      "japanese": "わたす"
+    },
+    {
+      "id": "vocab-18d6ee4412353a",
+      "category": "vocabulary",
+      "japanese": "こうえん"
+    },
+    {
+      "id": "vocab-9a93afb811212e",
+      "category": "vocabulary",
+      "japanese": "きた"
+    },
+    {
+      "id": "vocab-c5870ecf18b450",
+      "category": "vocabulary",
+      "japanese": "えんぴつ"
+    },
+    {
+      "id": "vocab-2b8b74435d729e",
+      "category": "vocabulary",
+      "japanese": "かない"
+    },
+    {
+      "id": "vocab-9fdb52ced5d8a9",
+      "category": "vocabulary",
+      "japanese": "～さつ"
+    },
+    {
+      "id": "vocab-c5141b75ca9054",
+      "category": "vocabulary",
+      "japanese": "スリッパ"
+    },
+    {
+      "id": "vocab-c90b45d78de9a7",
+      "category": "vocabulary",
+      "japanese": "じゅうにがつ"
+    },
+    {
+      "id": "vocab-dae1340f2e62f2",
+      "category": "vocabulary",
+      "japanese": "のぼる"
+    },
+    {
+      "id": "vocab-24e6f089ee5786",
+      "category": "vocabulary",
+      "japanese": "きれい"
+    },
+    {
+      "id": "vocab-bf0ee800c733e7",
+      "category": "vocabulary",
+      "japanese": "あかるい"
+    },
+    {
+      "id": "vocab-319f25d1cdfd29",
+      "category": "vocabulary",
+      "japanese": "いつ"
+    },
+    {
+      "id": "vocab-0bb73bffe3b8ea",
+      "category": "vocabulary",
+      "japanese": "カレンダー"
+    },
+    {
+      "id": "vocab-3dd5488f323b38",
+      "category": "vocabulary",
+      "japanese": "まんねんひつ"
+    },
+    {
+      "id": "vocab-4044d272df508f",
+      "category": "vocabulary",
+      "japanese": "では"
+    },
+    {
+      "id": "vocab-c59dd1ee3508f1",
+      "category": "vocabulary",
+      "japanese": "もん"
+    },
+    {
+      "id": "vocab-f2dcf26cc703ff",
+      "category": "vocabulary",
+      "japanese": "ななつ"
+    },
+    {
+      "id": "vocab-9a60114de62985",
+      "category": "vocabulary",
+      "japanese": "マッチ"
+    },
+    {
+      "id": "vocab-d0fe9ef06ac5dc",
+      "category": "vocabulary",
+      "japanese": "ああ"
+    },
+    {
+      "id": "vocab-466c97e62e21ec",
+      "category": "vocabulary",
+      "japanese": "れいぞうこ"
+    },
+    {
+      "id": "vocab-945f4f007a5355",
+      "category": "vocabulary",
+      "japanese": "タクシー"
+    },
+    {
+      "id": "vocab-935e90661b2d36",
+      "category": "vocabulary",
+      "japanese": "おみず"
+    },
+    {
+      "id": "vocab-2205138820295f",
+      "category": "vocabulary",
+      "japanese": "いえ"
+    },
+    {
+      "id": "vocab-8c87d58721efac",
+      "category": "vocabulary",
+      "japanese": "しぬ"
+    },
+    {
+      "id": "vocab-6785d247201acb",
+      "category": "vocabulary",
+      "japanese": "おさけ"
+    },
+    {
+      "id": "vocab-e72083d79a9491",
+      "category": "vocabulary",
+      "japanese": "おりる"
+    },
+    {
+      "id": "vocab-4fbbb7abd94b2b",
+      "category": "vocabulary",
+      "japanese": "あさごはん"
+    },
+    {
+      "id": "vocab-fec3423f4bd9e3",
+      "category": "vocabulary",
+      "japanese": "はんぶん"
+    },
+    {
+      "id": "vocab-a2943c299732a1",
+      "category": "vocabulary",
+      "japanese": "やすむ"
+    },
+    {
+      "id": "vocab-1a94e1e199514b",
+      "category": "vocabulary",
+      "japanese": "そば"
+    },
+    {
+      "id": "vocab-8b5e4bdb0e7f1c",
+      "category": "vocabulary",
+      "japanese": "あなた"
+    },
+    {
+      "id": "vocab-22b2dd5d60ca6c",
+      "category": "vocabulary",
+      "japanese": "ふうとう"
+    },
+    {
+      "id": "vocab-62d18dbdb03a4e",
+      "category": "vocabulary",
+      "japanese": "かぎ"
+    },
+    {
+      "id": "vocab-8763e2be6e7a75",
+      "category": "vocabulary",
+      "japanese": "みっか"
+    },
+    {
+      "id": "vocab-588e6ec7914c6d",
+      "category": "vocabulary",
+      "japanese": "ナイフ"
+    },
+    {
+      "id": "vocab-ec29471fbd1a44",
+      "category": "vocabulary",
+      "japanese": "おもい"
+    },
+    {
+      "id": "vocab-d44a66626e52e7",
+      "category": "vocabulary",
+      "japanese": "じぶん"
+    },
+    {
+      "id": "vocab-f982a2f4fe4143",
+      "category": "vocabulary",
+      "japanese": "ノート"
+    },
+    {
+      "id": "vocab-4559095955f31e",
+      "category": "vocabulary",
+      "japanese": "~ほん"
+    },
+    {
+      "id": "vocab-b415412e52b0d7",
+      "category": "vocabulary",
+      "japanese": "かわいい"
+    },
+    {
+      "id": "vocab-9a085b0e9855ea",
+      "category": "vocabulary",
+      "japanese": "うみ"
+    },
+    {
+      "id": "vocab-8761824dd2125d",
+      "category": "vocabulary",
+      "japanese": "きょうしつ"
+    },
+    {
+      "id": "vocab-4e198f85b5defe",
+      "category": "vocabulary",
+      "japanese": "きゅう"
+    },
+    {
+      "id": "vocab-a847b5795adaa1",
+      "category": "vocabulary",
+      "japanese": "なか"
+    },
+    {
+      "id": "vocab-2e85ec94ac4838",
+      "category": "vocabulary",
+      "japanese": "さとう"
+    },
+    {
+      "id": "vocab-95fefe78bba413",
+      "category": "vocabulary",
+      "japanese": "ふる"
+    },
+    {
+      "id": "vocab-99c7075e214162",
+      "category": "vocabulary",
+      "japanese": "こうばん"
+    },
+    {
+      "id": "vocab-b6f7b85a5c3807",
+      "category": "vocabulary",
+      "japanese": "しる"
+    },
+    {
+      "id": "vocab-77f6b7f3d184b4",
+      "category": "vocabulary",
+      "japanese": "せっけん"
+    },
+    {
+      "id": "vocab-39bda950be6bf3",
+      "category": "vocabulary",
+      "japanese": "つかう"
+    },
+    {
+      "id": "vocab-75d4fa10ffb7c1",
+      "category": "vocabulary",
+      "japanese": "ちかてつ"
+    },
+    {
+      "id": "vocab-7474356f087471",
+      "category": "vocabulary",
+      "japanese": "たべる"
+    },
+    {
+      "id": "vocab-d82dfd5973da85",
+      "category": "vocabulary",
+      "japanese": "～ずつ"
+    },
+    {
+      "id": "vocab-74cd841464eb98",
+      "category": "vocabulary",
+      "japanese": "りょうり"
+    },
+    {
+      "id": "vocab-d31c98b70fa555",
+      "category": "vocabulary",
+      "japanese": "うわぎ"
+    },
+    {
+      "id": "vocab-c56baf96900020",
+      "category": "vocabulary",
+      "japanese": "～じかん"
+    },
+    {
+      "id": "vocab-9f7484bf568c4e",
+      "category": "vocabulary",
+      "japanese": "くだもの"
+    },
+    {
+      "id": "vocab-cc2de357353756",
+      "category": "vocabulary",
+      "japanese": "よっか"
+    },
+    {
+      "id": "vocab-07577a1994902b",
+      "category": "vocabulary",
+      "japanese": "はなし"
+    },
+    {
+      "id": "vocab-3ca8e7047afd85",
+      "category": "vocabulary",
+      "japanese": "のみもの"
+    }
   ]
 }

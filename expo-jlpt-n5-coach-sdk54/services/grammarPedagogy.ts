@@ -365,9 +365,8 @@ export function getGrammarExerciseInstruction(kind: GrammarExerciseKind): string
   if (kind === 'blank_input') return 'Tape exactement l’élément manquant.';
   if (kind === 'translation_qcm') return 'Lis la phrase japonaise puis choisis le sens français.';
   if (kind === 'keyword_input') return 'Retrouve le marqueur clé de la règle.';
-  if (kind === 'situation_qcm') return 'Choisis la règle adaptée à la situation.';
   if (kind === 'dialogue_response_qcm') return 'Choisis la réponse naturelle dans cette situation.';
-  return 'Choisis la formule qui explique le mieux cette règle.';
+  return 'Choisis la réponse qui convient dans la phrase.';
 }
 
 function escapeRegExp(value: string): string {
@@ -426,9 +425,6 @@ export function buildGrammarQuickReminder(question: GrammarQuizQuestion): string
   }
   if (question.kind === 'translation_qcm') {
     return `Rappel : lis d’abord la structure, puis le vocabulaire. Ici la règle visée est : ${humanizeGrammarPattern(question.lesson)}.`;
-  }
-  if (question.kind === 'situation_qcm') {
-    return `Rappel : pars de l’intention de la phrase. Cette situation appelle : ${question.correctAnswer}.`;
   }
   return `Rappel : ${humanizeGrammarPattern(question.lesson)}. ${question.lesson.trap}`;
 }

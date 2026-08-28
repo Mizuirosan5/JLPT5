@@ -1,5 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { applyDiagnosticCurriculumPlacement } from './curriculum';
+import type { AptitudeLevelMetric } from './aptitudeAssessment';
 
 type AptitudeDomainRow = {
   domain: string;
@@ -11,9 +12,12 @@ type AptitudeDomainRow = {
 
 export type AptitudeReportSnapshot = {
   score: number;
+  rawScore: number;
+  completionRate: number;
   globalLabel: string;
   summary: string;
   domainRows: AptitudeDomainRow[];
+  levelRows: AptitudeLevelMetric[];
   strengths: string[];
   priorities: string[];
   maintenance: string[];
@@ -144,9 +148,21 @@ export function normalizeAptitudeReport(
     : [];
   return {
     score: typeof value.score === 'number' ? value.score : row.score,
+    rawScore: typeof value.rawScore === 'number' ? value.rawScore : row.score,
+    completionRate: typeof value.completionRate === 'number' ? value.completionRate : 100,
     globalLabel: typeof value.globalLabel === 'string' ? value.globalLabel : row.global_label,
     summary: typeof value.summary === 'string' ? value.summary : 'Rapport restaure depuis une version precedente.',
     domainRows,
+    levelRows: Array.isArray(value.levelRows)
+      ? value.levelRows.filter((item): item is AptitudeLevelMetric => {
+          if (!item || typeof item !== 'object') return false;
+          const candidate = item as Partial<AptitudeLevelMetric>;
+          return (candidate.level === 1 || candidate.level === 2 || candidate.level === 3)
+            && typeof candidate.rate === 'number'
+            && typeof candidate.correct === 'number'
+            && typeof candidate.total === 'number';
+        })
+      : [],
     strengths: stringArray(value.strengths),
     priorities: stringArray(value.priorities),
     maintenance: stringArray(value.maintenance),

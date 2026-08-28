@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { styles } from '../appStyles';
 import { HIRAGANA_STANDARD, KATAKANA_STANDARD } from '../data/kanaTables';
+import { KANA_FAMILIES, KANA_THEORY, getKanaFamily, type KanaFamilyId } from '../data/kanaFamilies';
 import { FilterButton, SegmentButton } from './formControls';
 import { LoadingView } from './sharedUi';
 import { KanaReferenceTable } from './KanaReferenceTable';
@@ -16,6 +17,10 @@ import { recordSrsReviewForQuestionAttempt } from '../services/srs';
 import { filterKanaForCurriculum, loadCurriculumProfile } from '../services/curriculum';
 import type { CurriculumCode } from '../data/curriculum';
 import { detectOfflineAudio, speakJapanese as speakOfflineJapanese, stopOfflineAudio, type OfflineAudioState } from '../services/audio';
+import { loadMasteryMap, masteryKey, summarizeMastery, type MasteryView } from '../services/mastery';
+import { DomainProgressHeader } from './DomainProgressHeader';
+import { playAnswerFeedback } from '../services/feedbackAudio';
+import { playEmbeddedAudioText } from '../services/embeddedAudio';
 import type {
   KanaCard,
   KanaDisplayStyle,
@@ -61,7 +66,7 @@ export function KanaScreen() {
   const [answerMode, setAnswerMode] = useState<KanaQuizAnswerMode>('multiple_choice');
   const [practiceMode, setPracticeMode] = useState<KanaPracticeMode>('standard');
   const [includeCombinedKana, setIncludeCombinedKana] = useState(false);
-  const [timerEnabled, setTimerEnabled] = useState(false);
+  const [timerEnabled, setTimerEnabled] = useState(true);
   const [timerTick, setTimerTick] = useState(Date.now());
   const [timeRecords, setTimeRecords] = useState<KanaTimeRecord[]>([]);
   const [quizSession, setQuizSession] = useState<KanaQuizSession | null>(null);
@@ -71,6 +76,10 @@ export function KanaScreen() {
   const [matchingRomaji, setMatchingRomaji] = useState<string | null>(null);
   const [audio, setAudio] = useState<OfflineAudioState>({ available: false, japaneseVoiceId: null });
   const [curriculumCode, setCurriculumCode] = useState<CurriculumCode>('1A');
+  const [masteryById, setMasteryById] = useState<Record<string, MasteryView>>({});
+  const [family, setFamily] = useState<KanaFamilyId | 'all'>('all');
+  const [showTheory, setShowTheory] = useState(false);
+  const [showFamilies, setShowFamilies] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -122,18 +131,9 @@ export function KanaScreen() {
         tab
       );
 
-      const validCharacters =
-        tab === 'hiragana'
-          ? new Set(HIRAGANA_STANDARD.flat().filter(Boolean))
-          : tab === 'katakana'
-            ? new Set(KATAKANA_STANDARD.flat().filter(Boolean))
-            : null;
-
       const curriculum = await loadCurriculumProfile(db);
       setCurriculumCode(curriculum.currentCode);
-      const filteredRows = validCharacters
-        ? rows.filter((row) => validCharacters.has(row.character))
-        : rows.filter((row) => !row.character.includes('?'));
+      const filteredRows = rows.filter((row) => !row.character.includes('?'));
 
       const enriched = await Promise.all(
         filteredRows.map(async (row) => {
@@ -186,7 +186,14 @@ export function KanaScreen() {
         })
       );
 
-      setCards(sortKanaCards(enriched, tab));
+      const sortedCards = sortKanaCards(enriched, tab);
+      setCards(sortedCards);
+      const mastery = await loadMasteryMap(db, sortedCards.map((card) => ({ itemId: card.id, itemType: 'kana' as const })));
+      setMasteryById(sortedCards.reduce<Record<string, MasteryView>>((acc, card) => {
+        const view = mastery[masteryKey('kana', card.id)];
+        if (view) acc[card.id] = view;
+        return acc;
+      }, {}));
       setFocusIndex(0);
     } catch (error) {
       console.error('Unable to load kana cards', error);
@@ -210,13 +217,15 @@ export function KanaScreen() {
         );
       const matchesFilter =
         filter === 'all' ||
-        (filter === 'known' && card.favorite === 1) ||
-        (filter === 'review' && card.review === 1) ||
-        (filter === 'mastered' && card.mastered === 1) ||
-        (filter === 'unseen' && card.seen_count === 0);
-      return matchesSearch && matchesFilter;
+        (filter === 'learning' && masteryById[card.id]?.status === 'learning') ||
+        (filter === 'known' && (card.correct_count > 0 || ['learning', 'known', 'mastered'].includes(masteryById[card.id]?.status ?? ''))) ||
+        (filter === 'review' && (masteryById[card.id]?.status === 'review' || card.review === 1)) ||
+        (filter === 'mastered' && masteryById[card.id]?.status === 'mastered') ||
+        (filter === 'unseen' && (!masteryById[card.id] || masteryById[card.id].status === 'new'));
+      const matchesFamily = family === 'all' || getKanaFamily(card) === family;
+      return matchesSearch && matchesFilter && matchesFamily;
     });
-  }, [cards, filter, search]);
+  }, [cards, family, filter, masteryById, search]);
 
   const focusedCard = visibleCards[Math.min(focusIndex, Math.max(0, visibleCards.length - 1))];
   const viewerCard =
@@ -228,12 +237,14 @@ export function KanaScreen() {
       ? 0
       : Math.min(viewerIndex, Math.max(0, visibleCards.length - 1));
   const kanaStats = useMemo(() => {
-    const seen = cards.filter((card) => card.seen_count > 0).length;
-    const mastered = cards.filter((card) => card.mastered === 1).length;
-    const review = cards.filter((card) => card.review === 1).length;
-    const known = cards.filter((card) => card.favorite === 1).length;
-    return { seen, mastered, review, known };
-  }, [cards]);
+    const mastery = summarizeMastery(cards.map((card) => masteryById[card.id]).filter((item): item is MasteryView => !!item));
+    return { seen: mastery.total - mastery.new, mastered: mastery.mastered, review: mastery.review, known: mastery.known, learning: mastery.learning, new: mastery.new };
+  }, [cards, masteryById]);
+  const familyStats = useMemo(() => KANA_FAMILIES.map((entry) => {
+    const familyCards = cards.filter((card) => getKanaFamily(card) === entry.id);
+    const summary = summarizeMastery(familyCards.map((card) => masteryById[card.id]).filter((item): item is MasteryView => !!item));
+    return { ...entry, total: familyCards.length, summary };
+  }).filter((entry) => entry.total > 0), [cards, masteryById]);
 
   const guidedCards = useMemo(() => filterKanaForCurriculum(cards, curriculumCode), [cards, curriculumCode]);
   const smartDeck = useMemo(() => buildSmartKanaDeck(guidedCards), [guidedCards]);
@@ -368,7 +379,11 @@ export function KanaScreen() {
 
   const speakKanaCard = (card: KanaCard) => {
     stopOfflineAudio();
-    speakJapanese(buildKanaSpeechText(card), true);
+    playEmbeddedAudioText(card.character, true)
+      .then((played) => {
+        if (!played) speakJapanese(buildKanaSpeechText(card), true);
+      })
+      .catch(() => speakJapanese(buildKanaSpeechText(card), true));
   };
 
   const startSingleCardQuiz = (card: KanaCard) => {
@@ -463,6 +478,7 @@ export function KanaScreen() {
     setExerciseChoice(submittedChoice);
     const correctAnswer = exercise.direction === 'kana_to_romaji' ? exercise.prompt.romaji : exercise.prompt.character;
     const isCorrect = normalizeAnswer(submittedChoice) === normalizeAnswer(correctAnswer);
+    void playAnswerFeedback(isCorrect);
     await db.runAsync(
       `
       INSERT INTO app_question_attempt_local (
@@ -485,6 +501,9 @@ export function KanaScreen() {
       sourceMode: 'kana_exercise',
       isCorrect,
     });
+    const mastery = await loadMasteryMap(db, [{ itemId: exercise.prompt.id, itemType: 'kana' }]);
+    const updatedMastery = mastery[masteryKey('kana', exercise.prompt.id)];
+    if (updatedMastery) setMasteryById((current) => ({ ...current, [exercise.prompt.id]: updatedMastery }));
     await updateKanaCardState(exercise.prompt.id, {
       seenDelta: 1,
       correctDelta: isCorrect ? 1 : 0,
@@ -527,6 +546,18 @@ export function KanaScreen() {
       await saveKanaTimeRecord(nextSession);
     }
   };
+
+  useEffect(() => {
+    if (!quizSession || !exerciseChoice || quizSession.finished) return;
+    const exercise = quizSession.questions[quizSession.currentIndex];
+    if (!exercise) return;
+    const expected = exercise.direction === 'kana_to_romaji' ? exercise.prompt.romaji : exercise.prompt.character;
+    if (normalizeAnswer(exerciseChoice) !== normalizeAnswer(expected)) return;
+    const answerCount = quizSession.answers.length;
+    const milestone = answerCount > 0 && answerCount % 5 === 0;
+    const timer = setTimeout(() => { void nextExercise(); }, milestone ? 1700 : 850);
+    return () => clearTimeout(timer);
+  }, [exerciseChoice, quizSession?.answers.length, quizSession?.currentIndex, quizSession?.finished]);
 
   const quitExercise = () => {
     setQuizSession(null);
@@ -751,18 +782,54 @@ export function KanaScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={96}>
+    <ScrollView contentContainerStyle={styles.content} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled">
       <View style={styles.segmented}>
         <SegmentButton label="Apprendre" active={mode === 'learn'} onPress={() => setMode('learn')} />
         <SegmentButton label="Exercices" active={mode === 'exercise'} onPress={() => setMode('exercise')} />
       </View>
 
-      <View style={styles.segmented}>
-        <SegmentButton label="Hiragana" active={tab === 'hiragana'} onPress={() => setTab('hiragana')} />
-        <SegmentButton label="Katakana" active={tab === 'katakana'} onPress={() => setTab('katakana')} />
-      </View>
+      {mode === 'learn' && <View style={styles.segmented}>
+        <SegmentButton label="Hiragana" active={tab === 'hiragana'} onPress={() => { setTab('hiragana'); setFamily('all'); }} />
+        <SegmentButton label="Katakana" active={tab === 'katakana'} onPress={() => { setTab('katakana'); setFamily('all'); }} />
+        <SegmentButton label="Sons liés" active={tab === 'combined'} onPress={() => { setTab('combined'); setFamily('all'); }} />
+      </View>}
 
-      <View style={styles.kanaToolbar}>
+      {mode === 'learn' && <DomainProgressHeader
+        label="Progression Kana"
+        mastered={kanaStats.mastered}
+        total={cards.length}
+        review={kanaStats.review}
+        attempts={Object.values(masteryById).reduce((sum, item) => sum + item.attempts, 0)}
+        recommendation={kanaStats.review ? 'Reprendre les signes fragiles avant le sprint.' : 'Continuer la famille sonore actuelle.'}
+        actionLabel={kanaStats.review ? 'Revoir' : 'Continuer'}
+        onContinue={() => { setMode('learn'); setFilter(kanaStats.review ? 'review' : 'learning'); }}
+      />}
+
+      {mode === 'learn' && (
+        <View style={styles.kanaFamilySection}>
+          <View style={styles.kanaFamilyHeadingRow}>
+            <View style={styles.kanaFamilyHeadingCopy}><Text style={styles.kanaFamilyHeading}>Familles de sons</Text><Text style={styles.kanaFamilySubheading}>Choisis un groupe précis ou parcours l’ensemble.</Text></View>
+            <View style={styles.kanaFamilyHeadingActions}>
+              <Pressable accessibilityRole="button" onPress={() => setShowFamilies((value) => !value)} style={styles.kanaTheoryButton}><Text style={styles.kanaTheoryButtonText}>{showFamilies ? 'Masquer' : 'Choisir'}</Text></Pressable>
+              <Pressable accessibilityRole="button" onPress={() => setShowTheory((value) => !value)} style={styles.kanaTheoryButton}><Text style={styles.kanaTheoryButtonText}>{showTheory ? 'Fermer' : 'Théorie'}</Text></Pressable>
+            </View>
+          </View>
+          {showFamilies && <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.kanaFamilyRail}>
+            <Pressable onPress={() => setFamily('all')} style={[styles.kanaFamilyCard, family === 'all' && styles.kanaFamilyCardActive]}><Text style={[styles.kanaFamilyLabel, family === 'all' && styles.kanaFamilyLabelActive]}>Tout</Text><Text style={[styles.kanaFamilyMeta, family === 'all' && styles.kanaFamilyMetaActive]}>{cards.length} signes</Text></Pressable>
+            {familyStats.map((entry) => (
+              <Pressable key={entry.id} onPress={() => setFamily(entry.id)} style={[styles.kanaFamilyCard, family === entry.id && styles.kanaFamilyCardActive]}>
+                <Text style={[styles.kanaFamilyLabel, family === entry.id && styles.kanaFamilyLabelActive]}>{entry.label}</Text>
+                <Text style={[styles.kanaFamilyHint, family === entry.id && styles.kanaFamilyMetaActive]}>{entry.hint}</Text>
+                <View style={styles.kanaFamilyStatusRow}><Text style={styles.kanaFamilyStatusReview}>{entry.summary.review}</Text><Text style={styles.kanaFamilyStatusKnown}>{entry.summary.known + entry.summary.mastered}</Text><Text style={styles.kanaFamilyStatusNew}>{entry.summary.new + entry.summary.learning}</Text></View>
+              </Pressable>
+            ))}
+          </ScrollView>}
+          {showTheory && <View style={styles.kanaTheoryPanel}>{KANA_THEORY.map((chapter, index) => <View key={chapter.title} style={styles.kanaTheoryChapter}><Text style={styles.kanaTheoryIndex}>{String(index + 1).padStart(2, '0')}</Text><View style={styles.kanaTheoryCopy}><Text style={styles.kanaTheoryTitle}>{chapter.title}</Text><Text style={styles.kanaTheoryText}>{chapter.text}</Text></View></View>)}</View>}
+        </View>
+      )}
+
+      {mode === 'learn' && <View style={styles.kanaToolbar}>
         <View style={styles.kanaProgressHeader}>
           <Text style={styles.kanaProgressTitle}>{visibleCards.length}/{cards.length} cartes</Text>
           <Text style={styles.kanaProgressHint}>
@@ -786,6 +853,7 @@ export function KanaScreen() {
         />
         <View style={styles.filterBar}>
           <FilterButton label="Tout" active={filter === 'all'} onPress={() => setFilter('all')} />
+          <FilterButton label="En apprentissage" active={filter === 'learning'} onPress={() => setFilter('learning')} />
           <FilterButton label="Connus" active={filter === 'known'} onPress={() => setFilter('known')} />
           <FilterButton label="À revoir" active={filter === 'review'} onPress={() => setFilter('review')} />
           <FilterButton label="Maîtrisés" active={filter === 'mastered'} onPress={() => setFilter('mastered')} />
@@ -844,7 +912,7 @@ export function KanaScreen() {
             </Text>
           </Pressable>
         </View>
-      </View>
+      </View>}
 
       {mode === 'learn' ? (
         <>
@@ -995,7 +1063,7 @@ export function KanaScreen() {
           timerEnabled={timerEnabled}
           elapsedMs={liveElapsedMs}
           timeRecords={timeRecords}
-          availableCount={visibleCards.length}
+          availableCount={guidedCards.length}
           selectedChoice={exerciseChoice}
           directInput={directInput}
           selectedMatchingKanaId={matchingKanaId}
@@ -1018,5 +1086,6 @@ export function KanaScreen() {
         />
       )}
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

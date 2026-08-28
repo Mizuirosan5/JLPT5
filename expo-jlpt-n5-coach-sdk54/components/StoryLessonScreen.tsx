@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Modal, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { styles } from '../appStyles';
 import type { WordLookupEntry } from '../models';
 import { loadStoryLessons, loadStoryProgress, recordStoryOpened, recordStoryResult } from '../services/stories';
 import type { ImmersionProgress } from '../services/immersion';
 import { recordSrsReviewForQuestionAttempt } from '../services/srs';
+import { shuffleChoices } from '../services/random';
 import { JapaneseLookupText, useVocabularyLookupIndex, WordLookupPanel } from './JapaneseLookup';
 import { OfflineAudioButton } from './OfflineAudioButton';
 import { Metric, Section } from './sharedUi';
@@ -16,10 +17,15 @@ export function StoryLessonScreen() {
   const stories = useMemo(() => loadStoryLessons(), []);
   const [selectedId, setSelectedId] = useState(stories[0]?.id ?? '');
   const [selectedLookup, setSelectedLookup] = useState<WordLookupEntry | null>(null);
+  const [openedStoryId, setOpenedStoryId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [progress, setProgress] = useState<Record<string, ImmersionProgress>>({});
   const selectedStory = stories.find((story) => story.id === selectedId) ?? stories[0];
   const selectedProgress = selectedStory ? progress[selectedStory.id] : null;
+  const questionChoices = useMemo(
+    () => Object.fromEntries((selectedStory?.questions ?? []).map((question) => [question.prompt, shuffleChoices(question.choices, question.answer)])),
+    [selectedStory?.id]
+  );
 
   const loadProgress = useCallback(async () => {
     try {
@@ -35,9 +41,9 @@ export function StoryLessonScreen() {
   }, [loadProgress]);
 
   useEffect(() => {
-    if (!selectedStory) return;
+    if (!selectedStory || openedStoryId !== selectedStory.id) return;
     recordStoryOpened(db, selectedStory.id).then(loadProgress).catch((error) => console.error('Unable to record story open', error));
-  }, [db, loadProgress, selectedStory]);
+  }, [db, loadProgress, openedStoryId, selectedStory]);
 
   if (!selectedStory) return null;
 
@@ -91,6 +97,7 @@ export function StoryLessonScreen() {
                 key={story.id}
                 onPress={() => {
                   setSelectedId(story.id);
+                  setOpenedStoryId(story.id);
                   setAnswers({});
                   setSelectedLookup(null);
                 }}
@@ -108,60 +115,72 @@ export function StoryLessonScreen() {
         </View>
       </Section>
 
-      <View style={styles.pathSummaryGrid}>
-        <Metric label="Niveau" value={selectedStory.level} />
-        <Metric label="Repliques" value={selectedStory.lines.length} />
-        <Metric label="Score" value={`${selectedProgress?.correct_count ?? correct}/${selectedStory.questions.length}`} />
-        <Metric label="Ouvert" value={selectedProgress?.opened_count ?? 0} />
-      </View>
-
-      <Section title={selectedStory.title}>
-        <View style={styles.correctionInsightCard}>
-          <Text style={styles.correctionInsightLabel}>Objectif</Text>
-          <Text style={styles.correctionInsightText}>{selectedStory.goal}</Text>
-          {selectedStory.lines.map((line, index) => (
-            <View key={`${line.speaker}-${index}`} style={styles.pathRequirementItem}>
-              <Text style={styles.pathRequirementIndex}>{line.speaker.slice(0, 2)}</Text>
-              <View style={styles.vocabularyThemeTextBlock}>
-                <JapaneseLookupText text={line.japanese} entries={entries} onSelect={setSelectedLookup} style={styles.correctionInsightJapanese} />
-                <OfflineAudioButton text={line.japanese} label="Ecouter" slow />
-                <Text style={styles.correctionInsightText}>{line.kana}</Text>
-                <Text style={styles.quickCorrectionText}>{line.translationFr}</Text>
-              </View>
+      <Modal visible={openedStoryId !== null} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setOpenedStoryId(null)}>
+        <SafeAreaView style={styles.lessonPageScreen}>
+          <View style={styles.lessonPageHeader}>
+            <Pressable accessibilityRole="button" onPress={() => setOpenedStoryId(null)} style={styles.lessonPageBackButton}>
+              <Text style={styles.lessonPageBackText}>‹ Dialogues</Text>
+            </Pressable>
+            <Text numberOfLines={1} style={styles.lessonPageHeaderTitle}>{selectedStory.title}</Text>
+          </View>
+          <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+            <View style={styles.pathSummaryGrid}>
+              <Metric label="Niveau" value={selectedStory.level} />
+              <Metric label="Répliques" value={selectedStory.lines.length} />
+              <Metric label="Score" value={`${selectedProgress?.correct_count ?? correct}/${selectedStory.questions.length}`} />
+              <Metric label="Ouvert" value={selectedProgress?.opened_count ?? 0} />
             </View>
-          ))}
-        </View>
-        <WordLookupPanel entry={selectedLookup} onClose={() => setSelectedLookup(null)} />
-      </Section>
 
-      <Section title="Compréhension">
-        <View style={styles.pathRequirementList}>
-          {selectedStory.questions.map((question, index) => {
-            const selected = answers[question.prompt];
-            return (
-              <View key={question.prompt} style={styles.aptitudeDomainCard}>
-                <Text style={styles.pathStageFocus}>{index + 1}. {question.prompt}</Text>
-                {question.choices.map((choice) => (
-                  <Pressable
-                    key={choice}
-                    disabled={!!selected}
-                    onPress={() => answerQuestion(question.prompt, choice)}
-                    style={[
-                      styles.choice,
-                      selected && choice === question.answer && styles.choiceCorrect,
-                      selected === choice && selected !== question.answer && styles.choiceWrong,
-                    ]}
-                  >
-                    <Text style={styles.choiceText}>{choice}</Text>
-                  </Pressable>
+            <Section title={selectedStory.title}>
+              <View style={styles.correctionInsightCard}>
+                <Text style={styles.correctionInsightLabel}>Objectif</Text>
+                <Text style={styles.correctionInsightText}>{selectedStory.goal}</Text>
+                {selectedStory.lines.map((line, index) => (
+                  <View key={`${line.speaker}-${index}`} style={styles.pathRequirementItem}>
+                    <Text style={styles.pathRequirementIndex}>{line.speaker.slice(0, 2)}</Text>
+                    <View style={styles.vocabularyThemeTextBlock}>
+                      <JapaneseLookupText text={line.japanese} entries={entries} onSelect={setSelectedLookup} style={styles.correctionInsightJapanese} />
+                      <OfflineAudioButton text={line.japanese} label="Écouter" slow />
+                      <Text style={styles.correctionInsightText}>{line.kana}</Text>
+                      <Text style={styles.quickCorrectionText}>{line.translationFr}</Text>
+                    </View>
+                  </View>
                 ))}
-                {!!selected && <Text style={styles.feedbackText}>{question.explanation}</Text>}
               </View>
-            );
-          })}
-        </View>
-        <Text style={styles.quizConfigText}>Progression : {answered}/{selectedStory.questions.length} question(s).</Text>
-      </Section>
+              <WordLookupPanel entry={selectedLookup} onClose={() => setSelectedLookup(null)} />
+            </Section>
+
+            <Section title="Compréhension">
+              <View style={styles.pathRequirementList}>
+                {selectedStory.questions.map((question, index) => {
+                  const selected = answers[question.prompt];
+                  return (
+                    <View key={question.prompt} style={styles.aptitudeDomainCard}>
+                      <Text style={styles.pathStageFocus}>{index + 1}. {question.prompt}</Text>
+                      {(questionChoices[question.prompt] ?? question.choices).map((choice) => (
+                        <Pressable
+                          key={choice}
+                          disabled={!!selected}
+                          onPress={() => answerQuestion(question.prompt, choice)}
+                          style={[
+                            styles.choice,
+                            selected && choice === question.answer && styles.choiceCorrect,
+                            selected === choice && selected !== question.answer && styles.choiceWrong,
+                          ]}
+                        >
+                          <Text style={styles.choiceText}>{choice}</Text>
+                        </Pressable>
+                      ))}
+                      {!!selected && <Text style={styles.feedbackText}>{question.explanation}</Text>}
+                    </View>
+                  );
+                })}
+              </View>
+              <Text style={styles.quizConfigText}>Progression : {answered}/{selectedStory.questions.length} question(s).</Text>
+            </Section>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </ScrollView>
   );
 }

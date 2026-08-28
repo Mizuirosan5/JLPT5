@@ -7,6 +7,7 @@ export const USER_DATA_TABLES = [
   'app_kana_card_state',
   'app_kana_mnemonic_local',
   'app_vocabulary_card_state',
+  'app_lookup_favorite_local',
   'app_kana_time_record',
   'app_kana_arcade_score',
   'app_daily_goal_plan',
@@ -20,4 +21,7 @@ export const USER_DATA_TABLES = [
   'app_grammar_lesson_state',
   'app_writing_journal_entry',
   'app_session_state',
+  'app_wallet',
+  'app_reward_ledger',
+  'app_cosmetic_inventory',
 ] as const;

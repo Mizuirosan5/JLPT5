@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { styles } from '../appStyles';
-import type { LearningPreferences } from '../models';
+import type { LearningPreferences, WordLookupEntry } from '../models';
 import { loadLearningPreferences } from '../services/preferences';
 import {
   buildQuickSessionQuestions,
@@ -14,9 +14,15 @@ import {
 import { recordSrsReviewForQuestionAttempt } from '../services/srs';
 import { normalizeAnswer } from '../services/text';
 import { EmptyState, LoadingView } from './sharedUi';
+import { CelebrationBurst, ExerciseChoiceGrid, ExerciseFeedback, ExerciseHeader, SessionSummary } from './ExerciseShell';
+import { playAnswerFeedback } from '../services/feedbackAudio';
+import { useManagedTimers } from '../services/useManagedTimers';
+import { JapaneseLookupText, useVocabularyLookupIndex, WordLookupPanel } from './JapaneseLookup';
+import { useReducedMotion } from '../services/useReducedMotion';
 
 type QuickAnswer = {
   questionId: string;
+  prompt: string;
   choice: string;
   correctAnswer: string;
   isCorrect: boolean;
@@ -24,6 +30,8 @@ type QuickAnswer = {
 
 export function QuickSessionScreen() {
   const db = useSQLiteContext();
+  const reducedMotion = useReducedMotion();
+  const lookupEntries = useVocabularyLookupIndex(db);
   const [loading, setLoading] = useState(true);
   const [preferences, setPreferences] = useState<LearningPreferences | null>(null);
   const [questions, setQuestions] = useState<QuickSessionQuestion[]>([]);
@@ -34,7 +42,11 @@ export function QuickSessionScreen() {
   const [rewardClaimed, setRewardClaimed] = useState(false);
   const rewardAnim = useRef(new Animated.Value(0)).current;
   const sessionId = useRef(`${Date.now()}-${Math.random()}`);
+  const sessionStartedAt = useRef(Date.now());
   const answerInFlight = useRef(false);
+  const [elapsedMs, setElapsedMs] = useState(0);
+  const [selectedLookup, setSelectedLookup] = useState<WordLookupEntry | null>(null);
+  const schedule = useManagedTimers();
 
   const current = questions[currentIndex] ?? null;
   const correctCount = answers.filter((answer) => answer.isCorrect).length;
@@ -46,6 +58,9 @@ export function QuickSessionScreen() {
     setResult(null);
     setRewardClaimed(false);
     sessionId.current = `${Date.now()}-${Math.random()}`;
+    sessionStartedAt.current = Date.now();
+    setElapsedMs(0);
+    setSelectedLookup(null);
     setCurrentIndex(0);
     try {
       const loadedPreferences = await loadLearningPreferences(db);
@@ -67,16 +82,20 @@ export function QuickSessionScreen() {
     if (!result || rewardClaimed) return;
     setRewardClaimed(true);
     rewardAnim.setValue(0);
+    if (reducedMotion) {
+      rewardAnim.setValue(1);
+    } else {
     Animated.spring(rewardAnim, {
       toValue: 1,
       friction: 5,
       tension: 90,
       useNativeDriver: true,
     }).start();
+    }
     claimQuickSessionReward(db, result, sessionId.current).catch((error) => {
       console.error('Unable to claim quick session reward', error);
     });
-  }, [db, result, rewardAnim, rewardClaimed]);
+  }, [db, reducedMotion, result, rewardAnim, rewardClaimed]);
 
   const progressRate = useMemo(() => {
     if (questions.length === 0) return 0;
@@ -88,15 +107,9 @@ export function QuickSessionScreen() {
     answerInFlight.current = true;
     const isCorrect = normalizeAnswer(choice) === normalizeAnswer(current.question.correct_answer);
     setSelectedChoice(choice);
-    setAnswers((existing) => [
-      ...existing,
-      {
-        questionId: current.question.question_id,
-        choice,
-        correctAnswer: current.question.correct_answer,
-        isCorrect,
-      },
-    ]);
+    const nextAnswers = [...answers, { questionId: current.question.question_id, prompt: current.question.prompt_fr, choice, correctAnswer: current.question.correct_answer, isCorrect }];
+    setAnswers(nextAnswers);
+    void playAnswerFeedback(isCorrect, preferences?.audioEnabled ?? true);
     try {
       await db.runAsync(
         `
@@ -123,19 +136,23 @@ export function QuickSessionScreen() {
     } finally {
       answerInFlight.current = false;
     }
+    if (isCorrect) schedule(() => advanceWithAnswers(nextAnswers), getCurrentStreak(nextAnswers) % 5 === 0 ? 1050 : 620);
   }
 
-  function next() {
-    if (!selectedChoice) return;
+  function advanceWithAnswers(answerRows: QuickAnswer[]) {
     const nextIndex = currentIndex + 1;
     if (nextIndex >= questions.length) {
-      const finalCorrect = answers.filter((answer) => answer.isCorrect).length;
+      const finalCorrect = answerRows.filter((answer) => answer.isCorrect).length;
+      setElapsedMs(Date.now() - sessionStartedAt.current);
       setResult(calculateQuickSessionResult(finalCorrect, questions.length));
       return;
     }
     setCurrentIndex(nextIndex);
     setSelectedChoice(null);
+    setSelectedLookup(null);
   }
+
+  function next() { if (selectedChoice) advanceWithAnswers(answers); }
 
   if (loading) return <LoadingView />;
 
@@ -151,95 +168,85 @@ export function QuickSessionScreen() {
   }
 
   if (result) {
-    const rate = result.total > 0 ? Math.round((result.correct / result.total) * 100) : 0;
+    const errors = answers.filter((answer) => !answer.isCorrect);
     return (
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.quickResultHero}>
-          <Text style={styles.quickKicker}>Session terminée</Text>
-          <Animated.View
-            style={{
-              opacity: rewardAnim,
-              transform: [
-                { scale: rewardAnim.interpolate({ inputRange: [0, 1], outputRange: [0.82, 1] }) },
-                { translateY: rewardAnim.interpolate({ inputRange: [0, 1], outputRange: [18, 0] }) },
-              ],
+        <Animated.View style={{ opacity: rewardAnim, transform: [{ scale: rewardAnim.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }) }] }}>
+          <SessionSummary
+            bestStreak={getBestQuickStreak(answers)}
+            correct={result.correct}
+            durationLabel={formatSessionDuration(elapsedMs)}
+            errors={errors.map((answer) => ({ id: answer.questionId, prompt: answer.prompt, selected: answer.choice, expected: answer.correctAnswer }))}
+            onRestart={load}
+            onRetryErrors={() => {
+              const failedIds = new Set(errors.map((answer) => answer.questionId));
+              setQuestions((items) => items.filter((item) => failedIds.has(item.question.question_id)));
+              setAnswers([]);
+              setCurrentIndex(0);
+              setSelectedChoice(null);
+              setResult(null);
+              setRewardClaimed(false);
+              sessionStartedAt.current = Date.now();
             }}
-          >
-            <Text style={styles.quickResultScore}>{rate}%</Text>
-            <Text style={styles.quickResultText}>+{result.xp} XP</Text>
-          </Animated.View>
-          <Text style={styles.quickResultText}>
-            {result.correct}/{result.total} réponses justes. +{result.xp} XP ajoutés à ta progression.
-          </Text>
-        </View>
-        <Pressable onPress={load} style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>Relancer une session</Text>
-        </Pressable>
+            total={result.total}
+            xp={result.xp}
+          />
+        </Animated.View>
       </ScrollView>
     );
   }
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
-      <View style={styles.quickHero}>
-        <View style={styles.quickHeroCopy}>
-          <Text style={styles.quickKicker}>{getStageKicker(current?.stage)}</Text>
-          <Text style={styles.quickTitle}>{current?.stage === 'discovery' ? 'Premiers hiragana' : `${preferences?.preferredSessionLength ?? 5} minutes`}</Text>
-          <Text style={styles.quickText}>{getStageDescription(current?.stage)}</Text>
-        </View>
-        <View style={styles.quickCounter}>
-          <Text style={styles.quickCounterValue}>{currentIndex + 1}</Text>
-          <Text style={styles.quickCounterLabel}>/{questions.length}</Text>
-        </View>
-      </View>
-
-      <View style={styles.quickProgressTrack}>
-        <View style={[styles.quickProgressFill, { width: `${progressRate}%` }]} />
-      </View>
+      <ExerciseHeader
+        current={currentIndex + 1}
+        kicker={getStageKicker(current?.stage)}
+        progress={progressRate}
+        title={current?.stage === 'discovery' ? 'Premiers hiragana' : `${preferences?.preferredSessionLength ?? 5} minutes`}
+        total={questions.length}
+      />
+      <Text style={styles.quickText}>{getStageDescription(current?.stage)}</Text>
 
       {current && (
         <View style={styles.quickQuestionCard}>
+          <CelebrationBurst visible={!!selectedChoice && normalizeAnswer(selectedChoice) === normalizeAnswer(current.question.correct_answer) && getCurrentStreak(answers) > 0 && getCurrentStreak(answers) % 5 === 0} streak={getCurrentStreak(answers)} />
           <Text style={styles.quickQuestionSkill}>{formatQuickSkill(current.question.skill_id)}</Text>
           <Text style={styles.quickPrompt}>{current.question.prompt_fr}</Text>
           {!!current.helper && <Text style={styles.quickLearningHelper}>{current.helper}</Text>}
-          {!!current.question.prompt_ja && <Text style={styles.quickJapanese}>{current.question.prompt_ja}</Text>}
+          {!!current.question.prompt_ja && (
+            <JapaneseLookupText
+              text={current.question.prompt_ja}
+              entries={lookupEntries}
+              onSelect={setSelectedLookup}
+              style={styles.quickJapanese}
+            />
+          )}
+          <WordLookupPanel entry={selectedLookup} onClose={() => setSelectedLookup(null)} />
 
-          <View style={styles.quickChoiceList}>
-            {current.choices.map((choice, choiceIndex) => {
-              const isSelected = selectedChoice === choice;
-              const isCorrect = normalizeAnswer(choice) === normalizeAnswer(current.question.correct_answer);
-              return (
-                <Pressable
-                  key={`${current.question.question_id}-${choiceIndex}-${choice}`}
-                  disabled={!!selectedChoice}
-                  onPress={() => answer(choice)}
-                  style={[
-                    styles.quickChoiceButton,
-                    isSelected && (isCorrect ? styles.quickChoiceCorrect : styles.quickChoiceWrong),
-                    selectedChoice && isCorrect && styles.quickChoiceCorrect,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.quickChoiceText,
-                      (isSelected || (selectedChoice && isCorrect)) && styles.quickChoiceTextActive,
-                    ]}
-                  >
-                    {choice}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          <ExerciseChoiceGrid
+            choices={current.choices}
+            disabled={!!selectedChoice}
+            getState={(choice) => {
+              if (!selectedChoice) return 'idle';
+              if (normalizeAnswer(choice) === normalizeAnswer(current.question.correct_answer)) return 'correct';
+              if (choice === selectedChoice) return 'wrong';
+              return 'muted';
+            }}
+            onChoose={answer}
+          />
+
+          {!selectedChoice && (
+            <Pressable onPress={() => answer('Je ne sais pas')} style={styles.quickUnknownButton}>
+              <Text style={styles.quickUnknownButtonText}>Je ne sais pas</Text>
+            </Pressable>
+          )}
 
           {selectedChoice && (
-            <View style={styles.quickCorrectionBox}>
-              <Text style={styles.quickCorrectionTitle}>
-                {normalizeAnswer(selectedChoice) === normalizeAnswer(current.question.correct_answer) ? 'Bonne réponse' : 'À revoir'}
-              </Text>
-              <Text style={styles.quickCorrectionText}>{current.question.explanation_fr}</Text>
-              <Text style={styles.quickCorrectionAnswer}>Réponse : {current.question.correct_answer}</Text>
-            </View>
+            <ExerciseFeedback
+              answer={current.question.correct_answer}
+              correct={normalizeAnswer(selectedChoice) === normalizeAnswer(current.question.correct_answer)}
+              explanation={current.question.explanation_fr}
+            />
           )}
         </View>
       )}
@@ -275,4 +282,26 @@ function formatQuickSkill(skill: string): string {
   if (skill === 'vocabulary') return 'Vocabulaire · sens';
   if (skill === 'kanji') return 'Kanji · sens';
   return skill.replace(/_/g, ' ');
+}
+
+function getBestQuickStreak(answers: QuickAnswer[]): number {
+  let current = 0;
+  let best = 0;
+  answers.forEach((answer) => {
+    current = answer.isCorrect ? current + 1 : 0;
+    best = Math.max(best, current);
+  });
+  return best;
+}
+
+function getCurrentStreak(answers: QuickAnswer[]): number {
+  let streak = 0;
+  for (let index = answers.length - 1; index >= 0 && answers[index]?.isCorrect; index -= 1) streak += 1;
+  return streak;
+}
+
+function formatSessionDuration(elapsedMs: number): string {
+  const seconds = Math.max(1, Math.round(elapsedMs / 1000));
+  if (seconds < 60) return `${seconds}s`;
+  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
 }

@@ -67,6 +67,10 @@ export function formatQuizModeLabel(mode: string): string {
   if (mode === 'grammar_quiz') return 'Quiz Grammaire';
   if (mode === 'grammar_matching') return 'Associations grammaire';
   if (mode === 'exam_mode') return 'Mode examen';
+  if (mode === 'practice_conjugation') return 'Conjugaison';
+  if (mode === 'practice_sentences') return 'Construction de phrases';
+  if (mode === 'practice_numbers') return 'Nombres japonais';
+  if (mode === 'practice_kana_sprint') return 'Sprint kana';
   return mode;
 }
 

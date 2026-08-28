@@ -1,7 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import type { SrsItemType, SrsStatus } from './srs';
 import { recordSrsReviewForQuestionAttempt } from './srs';
-import { shuffle } from './random';
+import { shuffle, shuffleChoices } from './random';
 import { getWritingSystem, keepChoicesInWritingSystem } from './text';
 import { getJapaneseTextCurriculumCode, getQuestionCurriculumCode, isCurriculumAccessible, loadCurriculumCatalog, loadCurriculumProfile } from './curriculum';
 
@@ -358,7 +358,7 @@ async function buildReviewChoices(
           skillId,
           questionId
         );
-  return shuffle(keepChoicesInWritingSystem(correctAnswer, [correctAnswer, ...distractors.map((choice) => choice.choice_text), ...fallback.map((choice) => choice.choice_text)]))
+  return shuffleChoices(keepChoicesInWritingSystem(correctAnswer, [correctAnswer, ...distractors.map((choice) => choice.choice_text), ...fallback.map((choice) => choice.choice_text)]), correctAnswer)
     .filter((choice, index, all) => all.indexOf(choice) === index)
     .slice(0, 4);
 }
@@ -370,7 +370,7 @@ function buildErrorFlashcardChoices(correctAnswer: string, selectedAnswer: strin
   const base = [correctAnswer, selectedAnswer, ...neutralChoices].filter(
     (choice): choice is string => Boolean(choice?.trim())
   );
-  return shuffle(keepChoicesInWritingSystem(correctAnswer, base.filter((choice, index, all) => all.indexOf(choice) === index))).slice(0, 4);
+  return shuffleChoices(keepChoicesInWritingSystem(correctAnswer, base.filter((choice, index, all) => all.indexOf(choice) === index)), correctAnswer).slice(0, 4);
 }
 
 function getSectionRank(section: SrsQueueSection): number {

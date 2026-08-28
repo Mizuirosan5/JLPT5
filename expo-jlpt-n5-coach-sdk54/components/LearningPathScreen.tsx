@@ -13,6 +13,8 @@ import {
 import { buildCurriculumLearningPathStages } from '../services/learningPath';
 import { loadCurriculumProfile } from '../services/curriculum';
 import { loadLatestAptitudeResult, saveAptitudeResult, type AptitudeResultSnapshot } from '../services/aptitudeTest';
+import { calculateAptitudeMetrics } from '../services/aptitudeAssessment';
+import { shuffle } from '../services/random';
 import {
   ensureDailyGoalPlan,
   loadDashboardGoalData,
@@ -261,12 +263,12 @@ const APTITUDE_QUESTIONS: AptitudeQuestion[] = [
     id: 'apt-3-kanji-a',
     level: 3,
     domain: 'kanji',
-    prompt: 'Quel sens correspond le mieux au kanji dans ce mot ?',
-    display: '高い',
-    choices: ['haut / cher', 'bas', 'ancien', 'petit'],
-    answer: 'haut / cher',
-    skill: 'kanji:n5:word_context',
-    explanation: '高い signifie haut ou cher selon le contexte.',
+    prompt: 'Quelle lecture correspond à ce mot en kanji ?',
+    display: '高校',
+    choices: ['こうこう', 'こうご', 'たかこう', 'こうきょう'],
+    answer: 'こうこう',
+    skill: 'kanji:n5:compound_reading',
+    explanation: '高校 se lit こうこう et signifie lycée. Il faut reconnaître la lecture de 高 dans un composé.',
   },
   {
     id: 'apt-3-grammar-a',
@@ -283,10 +285,15 @@ const APTITUDE_QUESTIONS: AptitudeQuestion[] = [
     id: 'apt-3-comp-a',
     level: 3,
     domain: 'comprehension',
-    prompt: 'Quel diagnostic est correct pour cette phrase ?',
+    prompt: 'Quelle traduction rend précisément le sens de cette phrase ?',
     display: '雨がふっていますから、外へ行きません。',
-    choices: ['Cause + consequence', 'Comparaison', 'Invitation', 'Possession'],
-    answer: 'Cause + consequence',
+    choices: [
+      'Comme il pleut, je ne vais pas dehors.',
+      'Je sortirai avant la pluie.',
+      'Il pleut, mais je vais dehors.',
+      'Quand il pleut, allons dehors.',
+    ],
+    answer: 'Comme il pleut, je ne vais pas dehors.',
     skill: 'comprehension:because_sentence',
     explanation: 'から indique la cause : comme il pleut, je ne vais pas dehors.',
   },
@@ -382,32 +389,37 @@ const APTITUDE_QUESTIONS: AptitudeQuestion[] = [
     id: 'apt-3-vocab-b',
     level: 3,
     domain: 'vocabulaire',
-    prompt: 'Quel choix correspond au sens inverse de "preter" ?',
-    display: 'preter',
-    choices: ['借りる', '貸す', '聞く', '出る'],
-    answer: '借りる',
-    skill: 'vocabulary:n5:borrow_lend_contrast',
-    explanation: 'Face a 貸す = preter, le mouvement inverse est 借りる = emprunter.',
+    prompt: 'Quel adjectif complète la phrase avec le sens opposé ?',
+    display: 'このかばんは重いです。あのかばんは ___ です。',
+    choices: ['軽い', '高い', '古い', '近い'],
+    answer: '軽い',
+    skill: 'vocabulary:n5:adjective_contrast',
+    explanation: '重い signifie lourd. Son contraire contextuel est 軽い, léger.',
   },
   {
     id: 'apt-3-kanji-b',
     level: 3,
     domain: 'kanji',
-    prompt: 'Dans ce mot, quel sens porte le kanji 新 ?',
-    display: '新しい',
-    choices: ['nouveau', 'ancien', 'grand', 'rapide'],
-    answer: 'nouveau',
-    skill: 'kanji:n5:atarashii',
-    explanation: '新しい signifie nouveau. Le kanji 新 porte l idee de nouveaute.',
+    prompt: 'Quelle lecture correspond à ce mot courant ?',
+    display: '新聞',
+    choices: ['しんぶん', 'しんもん', 'あたらぶん', 'しんぷん'],
+    answer: 'しんぶん',
+    skill: 'kanji:n5:shinbun',
+    explanation: '新聞 se lit しんぶん et signifie journal. Le second son devient ぶん dans ce mot.',
   },
   {
     id: 'apt-3-grammar-b',
     level: 3,
     domain: 'grammaire',
-    prompt: 'Quelle nuance exprime la structure ?',
+    prompt: 'Quelle traduction correspond à la phrase ?',
     display: 'コーヒーをのみながら、べんきょうします。',
-    choices: ['deux actions en meme temps', 'interdiction', 'ordre', 'comparaison'],
-    answer: 'deux actions en meme temps',
+    choices: [
+      'J’étudie en buvant du café.',
+      'Je bois du café après avoir étudié.',
+      'Il est interdit de boire du café.',
+      'Je préfère le café aux études.',
+    ],
+    answer: 'J’étudie en buvant du café.',
     skill: 'grammar:nagara',
     explanation: 'ながら indique deux actions simultanees : etudier en buvant un cafe.',
   },
@@ -717,7 +729,10 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
           </View>
           <View style={styles.pathStageMetaRow}>
             <Text style={styles.pathStageFocus}>{selectedStage.focus}</Text>
-            <Text style={styles.pathStageCount}>{selectedStage.done}/{selectedStage.total}</Text>
+            <Text style={styles.pathStageCount}>
+              {selectedStage.done}/{selectedStage.total}
+              {selectedStage.estimatedMinutes ? ` · ${selectedStage.estimatedMinutes} min` : ''}
+            </Text>
           </View>
           {!!selectedStage.nextActionHint && (
             <View style={styles.pathGuidanceBox}>
@@ -1059,6 +1074,7 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
                 <Text style={styles.pathStageSubtitle}>{stage.subtitle}</Text>
                 {stage.status === 'locked' && !!stage.lockedReason && (
                   <View style={styles.pathLockedReasonBox}>
+                    <Text style={styles.pathGuidanceLabel}>Accessible maintenant</Text>
                     <Text style={styles.pathLockedReasonText}>{stage.lockedReason}</Text>
                   </View>
                 )}
@@ -1070,7 +1086,9 @@ export function LearningPathScreen({ onNavigate }: { onNavigate: (screen: Screen
                 )}
                 <View style={styles.pathStageMetaRow}>
                   <Text style={styles.pathStageFocus}>{stage.focus}</Text>
-                  <Text style={styles.pathStageCount}>{stage.done}/{stage.total}</Text>
+                  <Text style={styles.pathStageCount}>
+                    {stage.done}/{stage.total}{stage.estimatedMinutes ? ` · ${stage.estimatedMinutes} min` : ''}
+                  </Text>
                 </View>
                 <View style={styles.pathProgressTrack}>
                   <View style={[styles.pathProgressFill, { width: `${stage.progress}%` }]} />
@@ -1195,6 +1213,7 @@ export function AptitudeTestPanel({ db, onFinished }: { db: SQLiteDatabase; onFi
   const [resultSaved, setResultSaved] = useState(false);
   const questions = APTITUDE_QUESTIONS;
   const current = questions[currentIndex];
+  const displayChoices = useMemo(() => shuffle(current?.choices ?? []), [current?.id]);
   const answeredCount = Object.keys(answers).length;
   const progress = Math.round((answeredCount / questions.length) * 100);
 
@@ -1247,6 +1266,12 @@ export function AptitudeTestPanel({ db, onFinished }: { db: SQLiteDatabase; onFi
     }
     setCurrentIndex((value) => value + 1);
   };
+
+  useEffect(() => {
+    if (!current || answers[current.id] !== current.answer) return;
+    const timer = setTimeout(next, 450);
+    return () => clearTimeout(timer);
+  }, [answers, current?.id]);
 
   const restart = () => {
     setStarted(false);
@@ -1311,6 +1336,16 @@ export function AptitudeTestPanel({ db, onFinished }: { db: SQLiteDatabase; onFi
             <Text style={styles.aptitudeInsightValue}>{report.level3Rate}%</Text>
             <Text style={styles.pathDetailSubStepText}>{report.difficultyAdvice}</Text>
           </View>
+        </View>
+
+        <View style={styles.aptitudeInsightGrid}>
+          {report.levelRows.map((row) => (
+            <View key={row.level} style={styles.aptitudeInsightCard}>
+              <Text style={styles.pathNextLabel}>Niveau {row.level}</Text>
+              <Text style={styles.aptitudeInsightValue}>{row.rate}%</Text>
+              <Text style={styles.pathDetailSubStepText}>{row.correct}/{row.total} correctes</Text>
+            </View>
+          ))}
         </View>
 
         <View style={styles.aptitudeDomainGrid}>
@@ -1417,7 +1452,7 @@ export function AptitudeTestPanel({ db, onFinished }: { db: SQLiteDatabase; onFi
       <Text style={styles.pathEvaluationTitle}>{current.prompt}</Text>
       <Text style={styles.aptitudeQuestionDisplay}>{current.display}</Text>
       <View style={styles.choiceList}>
-        {current.choices.map((choice) => {
+        {displayChoices.map((choice) => {
           const isSelected = selected === choice;
           const isCorrect = choice === current.answer;
           return (
@@ -1436,6 +1471,11 @@ export function AptitudeTestPanel({ db, onFinished }: { db: SQLiteDatabase; onFi
           );
         })}
       </View>
+      {!selected && (
+        <Pressable style={styles.secondaryFullButton} onPress={() => answer('__unknown__')}>
+          <Text style={styles.secondaryFullButtonText}>Je ne sais pas</Text>
+        </Pressable>
+      )}
       {!!selected && (
         <View style={styles.feedback}>
           <Text style={styles.feedbackTitle}>{selected === current.answer ? 'Correct' : 'A analyser'}</Text>
@@ -1451,28 +1491,16 @@ export function AptitudeTestPanel({ db, onFinished }: { db: SQLiteDatabase; onFi
 }
 
 function buildAptitudeReport(questions: AptitudeQuestion[], answers: Record<string, string>) {
-  const completed = questions.filter((question) => answers[question.id]);
-  const totalCorrect = completed.filter((question) => answers[question.id] === question.answer).length;
-  const score = completed.length ? Math.round((totalCorrect / completed.length) * 100) : 0;
-  const domains = Array.from(new Set(questions.map((question) => question.domain)));
-  const domainRows = domains.map((domain) => {
-    const domainQuestions = questions.filter((question) => question.domain === domain);
-    const correct = domainQuestions.filter((question) => answers[question.id] === question.answer).length;
-    const rate = Math.round((correct / domainQuestions.length) * 100);
-    return {
-      domain,
-      correct,
-      total: domainQuestions.length,
-      rate,
-      comment: getAptitudeDomainComment(domain, rate),
-    };
-  });
+  const metrics = calculateAptitudeMetrics(questions, answers);
+  const score = metrics.weightedScore;
+  const domainRows = metrics.domainRows.map((row) => ({
+    ...row,
+    domain: row.domain as AptitudeDomain,
+    comment: getAptitudeDomainComment(row.domain as AptitudeDomain, row.rate),
+  }));
   const weak = domainRows.filter((row) => row.rate < 67).sort((a, b) => a.rate - b.rate);
   const strong = domainRows.filter((row) => row.rate >= 67).sort((a, b) => b.rate - a.rate);
-  const level3 = questions.filter((question) => question.level === 3);
-  const level3Rate = Math.round(
-    (level3.filter((question) => answers[question.id] === question.answer).length / Math.max(1, level3.length)) * 100
-  );
+  const level3Rate = metrics.levelRows.find((row) => row.level === 3)?.rate ?? 0;
   const globalLabel = score >= 85 ? 'Profil N5 avance' : score >= 65 ? 'Profil N5 en construction' : 'Profil N5 a consolider';
   const summary =
     level3Rate >= 70
@@ -1502,9 +1530,12 @@ function buildAptitudeReport(questions: AptitudeQuestion[], answers: Record<stri
   const thirtyDayPlan = buildAptitudeThirtyDayPlan(weak, strong, score);
   return {
     score,
+    rawScore: metrics.rawScore,
+    completionRate: metrics.completionRate,
     globalLabel,
     summary,
     domainRows,
+    levelRows: metrics.levelRows,
     strengths,
     priorities,
     maintenance,

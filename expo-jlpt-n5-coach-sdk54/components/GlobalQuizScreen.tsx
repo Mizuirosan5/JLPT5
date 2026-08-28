@@ -25,6 +25,8 @@ import { useManagedTimers } from '../services/useManagedTimers';
 import type { GlobalQuizScreenProps, GlobalQuizSnapshot } from './globalQuizModels';
 import type { KanjiAnswerTarget } from '../services/globalQuizFactory';
 import { getCurriculumIndex } from '../services/curriculum';
+import { CelebrationBurst, ExerciseChoiceGrid, ExerciseFeedback, ExerciseHeader, SessionSummary } from './ExerciseShell';
+import { playAnswerFeedback } from '../services/feedbackAudio';
 
 const GLOBAL_QUIZ_SESSION_KEY = 'quiz:global';
 export function GlobalQuizScreen({
@@ -156,6 +158,7 @@ export function GlobalQuizScreen({
         ? globalQuizSession.mistakes
         : [...globalQuizSession.mistakes, { question: current, selected: choice }],
     });
+    void playAnswerFeedback(isCorrect, preferences.audioEnabled);
     setGlobalDirectInput('');
     try {
       await db.runAsync(
@@ -185,17 +188,15 @@ export function GlobalQuizScreen({
     } finally {
       answerInFlight.current = false;
     }
+    if (isCorrect) schedule(advanceGlobalQuiz, nextStreak > 0 && nextStreak % 5 === 0 ? 1050 : 620);
   };
 
   const advanceGlobalQuiz = () => {
-    if (!globalQuizSession) return;
     setSelectedWordLookup(null);
-    const nextIndex = globalQuizSession.currentIndex + 1;
-    setGlobalQuizSession({
-      ...globalQuizSession,
-      currentIndex: Math.min(nextIndex, globalQuizSession.questions.length - 1),
-      selected: null,
-      finished: nextIndex >= globalQuizSession.questions.length,
+    setGlobalQuizSession((session) => {
+      if (!session) return session;
+      const nextIndex = session.currentIndex + 1;
+      return { ...session, currentIndex: Math.min(nextIndex, session.questions.length - 1), selected: null, finished: nextIndex >= session.questions.length };
     });
   };
 
@@ -534,12 +535,18 @@ export function GlobalQuizScreen({
           </>
         ) : globalQuizSession?.finished ? (
           <>
-            <View style={styles.resultCard}>
-              <Text style={styles.resultKicker}>{activeMode.title} terminé</Text>
-              <Text style={styles.resultScore}>{globalQuizSession.score}</Text>
-              <Text style={styles.resultPercent}>{rate}% · {globalQuizSession.correctCount}/{globalQuizSession.questions.length} réponses justes</Text>
-              <Text style={styles.resultTime}>Meilleure série : {globalQuizSession.bestStreak} · Erreurs : {globalQuizSession.mistakes.length}</Text>
-            </View>
+            <SessionSummary
+              bestStreak={globalQuizSession.bestStreak}
+              correct={globalQuizSession.correctCount}
+              durationLabel="session"
+              errors={globalQuizSession.mistakes.map((mistake) => ({ id: mistake.question.id, prompt: mistake.question.prompt, selected: mistake.selected, expected: mistake.question.correctAnswer }))}
+              onContinue={quitGlobalQuiz}
+              onRestart={startGlobalQuiz}
+              onRetryErrors={() => setGlobalQuizSession(createGlobalQuizSession(globalQuizSession.mistakes.map((mistake) => mistake.question)))}
+              rewardLabel={`${globalQuizSession.score} pts`}
+              total={globalQuizSession.questions.length}
+              xp={0}
+            />
             <View style={styles.globalResultGrid}>
               {domainResults.map((result) => (
                 <View key={result.domain} style={styles.globalResultCard}>
@@ -548,30 +555,17 @@ export function GlobalQuizScreen({
                 </View>
               ))}
             </View>
-            <Pressable style={styles.primaryButton} onPress={startGlobalQuiz}>
-              <Text style={styles.primaryButtonText}>Rejouer</Text>
-            </Pressable>
-            <Pressable style={styles.secondaryFullButton} onPress={quitGlobalQuiz}>
-              <Text style={styles.secondaryFullButtonText}>Quitter</Text>
-            </Pressable>
           </>
         ) : globalQuizSession && currentQuestion ? (
           <>
-            <View style={styles.arcadeHud}>
-              <View>
-                <Text style={styles.questionMeta}>Question {globalQuizSession.currentIndex + 1}/{globalQuizSession.questions.length}</Text>
-                <Text style={styles.arcadeHudScore}>{globalQuizSession.correctCount} justes</Text>
-              </View>
-              <Text style={styles.quizScorePill}>{getGlobalDomainLabel(currentQuestion.domain)}</Text>
-            </View>
-            <View style={styles.pathProgressTrack}>
-              <View
-                style={[
-                  styles.pathProgressFill,
-                  { width: `${Math.round(((globalQuizSession.currentIndex + (globalQuizSession.selected ? 1 : 0)) / globalQuizSession.questions.length) * 100)}%` },
-                ]}
-              />
-            </View>
+            <CelebrationBurst visible={globalQuizSession.selected !== null && normalizeAnswer(globalQuizSession.selected) === normalizeAnswer(currentQuestion.correctAnswer) && globalQuizSession.streak > 0 && globalQuizSession.streak % 5 === 0} streak={globalQuizSession.streak} />
+            <ExerciseHeader
+              current={globalQuizSession.currentIndex + 1}
+              kicker={`${getGlobalDomainLabel(currentQuestion.domain)} · ${currentQuestion.formatLabel}`}
+              progress={Math.round(((globalQuizSession.currentIndex + (globalQuizSession.selected ? 1 : 0)) / globalQuizSession.questions.length) * 100)}
+              title={activeMode.title}
+              total={globalQuizSession.questions.length}
+            />
             <View style={styles.arcadeHud}>
               <Text style={styles.quizScorePill}>{globalQuizSession.score} pts</Text>
               <Text style={styles.quizScorePill}>Combo x{getGrammarStreakMultiplier(globalQuizSession.streak)}</Text>
@@ -589,35 +583,17 @@ export function GlobalQuizScreen({
             />
             <WordLookupPanel entry={selectedWordLookup} onClose={() => setSelectedWordLookup(null)} />
             {currentQuestion.choices.length > 0 ? (
-              <View style={styles.choiceList}>
-                {currentQuestion.choices.map((choice) => {
-                  const correct = normalizeAnswer(choice) === normalizeAnswer(currentQuestion.correctAnswer);
-                  const selectedChoice = globalQuizSession.selected === choice;
-                  return (
-                    <Pressable
-                      key={choice}
-                      disabled={globalQuizSession.selected !== null}
-                      onPress={() => answerGlobalQuiz(choice)}
-                      style={[
-                        styles.choice,
-                        globalQuizSession.selected && correct && styles.choiceCorrect,
-                        globalQuizSession.selected && selectedChoice && !correct && styles.choiceWrong,
-                      ]}
-                    >
-                      {globalQuizSession.selected !== null && hasJapaneseText(choice) ? (
-                        <JapaneseLookupText
-                          text={choice}
-                          entries={vocabularyLookupEntries}
-                          onSelect={setSelectedWordLookup}
-                          style={styles.choiceText}
-                        />
-                      ) : (
-                        <Text style={styles.choiceText}>{choice}</Text>
-                      )}
-                    </Pressable>
-                  );
-                })}
-              </View>
+              <ExerciseChoiceGrid
+                choices={currentQuestion.choices}
+                disabled={globalQuizSession.selected !== null}
+                getState={(choice) => {
+                  if (globalQuizSession.selected === null) return 'idle';
+                  if (normalizeAnswer(choice) === normalizeAnswer(currentQuestion.correctAnswer)) return 'correct';
+                  if (choice === globalQuizSession.selected) return 'wrong';
+                  return 'muted';
+                }}
+                onChoose={answerGlobalQuiz}
+              />
             ) : (
               <View style={styles.directAnswerBox}>
                 <TextInput
@@ -637,12 +613,17 @@ export function GlobalQuizScreen({
                 </Pressable>
               </View>
             )}
+            {globalQuizSession.selected === null && (
+              <Pressable onPress={() => answerGlobalQuiz('Je ne sais pas')} style={styles.quickUnknownButton}>
+                <Text style={styles.quickUnknownButtonText}>Je ne sais pas</Text>
+              </Pressable>
+            )}
             {globalQuizSession.selected !== null && (
-              <View style={styles.feedback}>
-                <Text style={styles.feedbackTitle}>
-                  {normalizeAnswer(globalQuizSession.selected) === normalizeAnswer(currentQuestion.correctAnswer) ? 'Correct' : 'À revoir'}
-                </Text>
-                <Text style={styles.feedbackText}>Réponse : {currentQuestion.correctAnswer}</Text>
+              <ExerciseFeedback
+                answer={currentQuestion.correctAnswer}
+                correct={normalizeAnswer(globalQuizSession.selected) === normalizeAnswer(currentQuestion.correctAnswer)}
+                explanation={currentQuestion.explanation}
+              >
                 <View style={styles.correctionInsightCard}>
                   <Text style={styles.correctionInsightKicker}>Analyse</Text>
                   {buildQuizFeedbackInsights({
@@ -684,7 +665,7 @@ export function GlobalQuizScreen({
                     {globalQuizSession.currentIndex + 1 >= globalQuizSession.questions.length ? 'Voir le résultat' : 'Question suivante'}
                   </Text>
                 </Pressable>
-              </View>
+              </ExerciseFeedback>
             )}
             <Pressable style={styles.secondaryFullButton} onPress={quitGlobalQuiz}>
               <Text style={styles.secondaryFullButtonText}>Quitter</Text>

@@ -133,7 +133,7 @@ export async function ensureDailyGoalPlan(
   });
 }
 
-type DailyGoalProfile = {
+export type DailyGoalProfile = {
   level: number;
   accuracy: number;
   totalAttempts: number;
@@ -238,12 +238,14 @@ function buildAttendanceBonuses(todayKey: string, streakDays: number): Attendanc
   }));
 }
 
-function buildAdaptiveDailyGoals(day: string, dayIndex: number, profile: DailyGoalProfile): GoalDefinition[] {
+export function buildAdaptiveDailyGoals(day: string, _dayIndex: number, profile: DailyGoalProfile): GoalDefinition[] {
+  const dateSeed = getDateSeed(day);
+  const rotationIndex = dateSeed;
   const difficulty = Math.max(1, Math.min(5, Math.floor((profile.level - 1) / 12) + 1));
-  const wave = dayIndex % 7;
-  const longWave = dayIndex % 30;
-  const domain = pickDailyDomain(profile.weakDomain, profile.learningPlanMode, dayIndex);
-  const questionTarget = 10 + difficulty * 4 + (wave % 3) * 2 + Math.floor(dayIndex / 30);
+  const wave = rotationIndex % 7;
+  const longWave = rotationIndex % 30;
+  const domain = pickDailyDomain(profile.weakDomain, profile.learningPlanMode, rotationIndex);
+  const questionTarget = Math.min(48, 10 + difficulty * 4 + (wave % 3) * 2 + Math.floor((rotationIndex % 180) / 45));
   const precisionTarget = Math.min(94, 68 + difficulty * 4 + (profile.accuracy >= 80 ? 4 : 0) + (longWave % 4));
   const minimumPrecisionAnswers = 8 + difficulty * 2;
   const sessionTarget = difficulty >= 5 ? 3 : difficulty >= 3 ? 2 : 1;
@@ -254,20 +256,38 @@ function buildAdaptiveDailyGoals(day: string, dayIndex: number, profile: DailyGo
     ['Révision active', `Faire ${questionTarget} réponses pour consolider les acquis fragiles.`, 'review'],
     ['Endurance N5', `Tenir ${questionTarget} questions sans casser le rythme.`, 'endurance'],
     ['Exploration mixte', `Explorer ${questionTarget} questions sur plusieurs familles N5.`, 'question'],
+    ['Point faible du jour', `Travailler ${questionTarget} questions centrées sur ${domain}.`, 'focus'],
+    ['Rappel espacé', `Réussir ${questionTarget} réponses parmi les notions déjà rencontrées.`, 'review'],
+    ['Tour des acquis', `Parcourir ${questionTarget} questions adaptées aux acquis actuels.`, 'question'],
+    ['Consolidation ciblée', `Renforcer ${domain} avec ${questionTarget} réponses attentives.`, 'focus'],
+    ['Rythme régulier', `Compléter ${questionTarget} questions en gardant une cadence stable.`, 'endurance'],
+    ['Mémoire active', `Rappeler ${questionTarget} notions sans aide immédiate.`, 'review'],
+    ['Défi équilibré', `Répondre à ${questionTarget} questions entre acquis et point faible.`, 'question'],
+    [`Priorité ${domain}`, `Accumuler ${questionTarget} réponses utiles dans le domaine ${domain}.`, 'focus'],
   ];
   const precisionVariants = [
     ['Précision propre', `Atteindre ${precisionTarget}% avec au moins ${minimumPrecisionAnswers} réponses.`, 'precision'],
     ['Zéro hasard', `Viser ${precisionTarget}% : lis avant de répondre, surtout en ${domain}.`, 'precision'],
     ['Contrôle qualité', `Garder ${precisionTarget}% de réussite minimum aujourd’hui.`, 'precision'],
+    ['Réponses sûres', `Obtenir ${precisionTarget}% après au moins ${minimumPrecisionAnswers} réponses réfléchies.`, 'precision'],
+    ['Cap précision', `Dépasser ${precisionTarget}% sans sacrifier le rythme de la session.`, 'precision'],
+    ['Lecture attentive', `Maintenir ${precisionTarget}% en vérifiant chaque proposition japonaise.`, 'precision'],
+    ['Maîtrise mesurée', `Valider ${precisionTarget}% sur un minimum de ${minimumPrecisionAnswers} réponses.`, 'precision'],
+    ['Qualité avant vitesse', `Atteindre ${precisionTarget}% avec des réponses posées et cohérentes.`, 'precision'],
   ];
   const sessionVariants = [
-    ['Session guidée', `Terminer ${sessionTarget} session guidée adaptée au niveau pédagogique actuel.`, 'session'],
+    ['Session guidée', `Terminer ${sessionTarget} session${sessionTarget > 1 ? 's' : ''} guidée${sessionTarget > 1 ? 's' : ''} adaptée${sessionTarget > 1 ? 's' : ''} au niveau actuel.`, 'session'],
     [`Atelier ${domain}`, `Finir ${sessionTarget} activité quiz/grammaire orientée ${domain}.`, 'quiz'],
     ['Bloc application', `Valider ${sessionTarget} entraînement complet après la révision.`, 'grammar'],
+    ['Défi pratique', `Achever ${sessionTarget} quiz complet adapté au niveau actuel.`, 'quiz'],
+    ['Atelier de transfert', `Finir ${sessionTarget} activité pour réutiliser les notions apprises.`, 'session'],
+    ['Grammaire en contexte', `Valider ${sessionTarget} entraînement grammatical avec des phrases N5.`, 'grammar'],
+    ['Révision puis quiz', `Terminer ${sessionTarget} session mêlant rappel et application.`, 'session'],
+    ['Contrôle du jour', `Achever ${sessionTarget} quiz court sans quitter la session.`, 'quiz'],
   ];
-  const question = questionVariants[dayIndex % questionVariants.length];
-  const precision = precisionVariants[(dayIndex + difficulty) % precisionVariants.length];
-  const session = sessionVariants[(dayIndex + wave) % sessionVariants.length];
+  const question = questionVariants[rotationIndex % questionVariants.length];
+  const precision = precisionVariants[(rotationIndex + difficulty * 3) % precisionVariants.length];
+  const session = sessionVariants[(rotationIndex + wave + difficulty) % sessionVariants.length];
   return [
     {
       id: `daily-${question[2]}-${dayCode}`,
@@ -280,7 +300,7 @@ function buildAdaptiveDailyGoals(day: string, dayIndex: number, profile: DailyGo
       period: 'daily',
     },
     {
-      id: `daily-${precision[2]}-${dayCode}`,
+      id: `daily-${precision[2]}-m${minimumPrecisionAnswers}-${dayCode}`,
       title: precision[0],
       description: precision[1],
       target: precisionTarget,
@@ -300,6 +320,12 @@ function buildAdaptiveDailyGoals(day: string, dayIndex: number, profile: DailyGo
       period: 'daily',
     },
   ];
+}
+
+function getDateSeed(day: string): number {
+  const [year, month, date] = day.split('-').map(Number);
+  if (!year || !month || !date) return 0;
+  return Math.floor(Date.UTC(year, month - 1, date) / 86_400_000);
 }
 
 function pickDailyDomain(weakDomain: string, learningPlanMode: LearningPlanMode, dayIndex: number): string {
@@ -478,7 +504,7 @@ export async function loadDashboardQuizData(db: SQLiteDatabase): Promise<Dashboa
         SUM(CASE WHEN source_mode IN ('adaptive_quiz', 'grammar_quiz', 'grammar_lesson') THEN 1 ELSE 0 END) AS adaptiveAttempts,
         SUM(CASE WHEN source_mode = 'exam_mode' THEN 1 ELSE 0 END) AS examAttempts
       FROM app_question_attempt_local
-      WHERE source_mode IN ('kana_arcade', 'adaptive_quiz', 'exam_mode', 'grammar_quiz', 'grammar_lesson')
+      WHERE source_mode IN ('kana_arcade', 'adaptive_quiz', 'exam_mode', 'grammar_quiz', 'grammar_lesson', 'practice_conjugation', 'practice_sentences', 'practice_numbers', 'practice_kana_sprint')
     `),
     db.getFirstAsync<{
       bestScore: number | null;
@@ -501,7 +527,7 @@ export async function loadDashboardQuizData(db: SQLiteDatabase): Promise<Dashboa
              SUM(is_correct) AS correct,
              ROUND(SUM(is_correct) * 100.0 / COUNT(*)) AS rate
       FROM app_question_attempt_local
-      WHERE source_mode IN ('kana_arcade', 'adaptive_quiz', 'exam_mode', 'grammar_quiz', 'grammar_lesson')
+      WHERE source_mode IN ('kana_arcade', 'adaptive_quiz', 'exam_mode', 'grammar_quiz', 'grammar_lesson', 'practice_conjugation', 'practice_sentences', 'practice_numbers', 'practice_kana_sprint')
       GROUP BY date(answered_at)
       ORDER BY day DESC
       LIMIT 14
@@ -512,7 +538,7 @@ export async function loadDashboardQuizData(db: SQLiteDatabase): Promise<Dashboa
              SUM(is_correct) AS correct,
              ROUND(SUM(is_correct) * 100.0 / COUNT(*)) AS rate
       FROM app_question_attempt_local
-      WHERE source_mode IN ('kana_arcade', 'adaptive_quiz', 'exam_mode', 'grammar_quiz', 'grammar_lesson')
+      WHERE source_mode IN ('kana_arcade', 'adaptive_quiz', 'exam_mode', 'grammar_quiz', 'grammar_lesson', 'practice_conjugation', 'practice_sentences', 'practice_numbers', 'practice_kana_sprint')
       GROUP BY source_mode
       ORDER BY attempts DESC
     `),
@@ -532,7 +558,7 @@ export async function loadDashboardQuizData(db: SQLiteDatabase): Promise<Dashboa
              SUM(is_correct) AS correct,
              ROUND(SUM(is_correct) * 100.0 / COUNT(*)) AS rate
       FROM app_question_attempt_local
-      WHERE source_mode IN ('kana_arcade', 'adaptive_quiz', 'exam_mode', 'grammar_quiz', 'grammar_lesson')
+      WHERE source_mode IN ('kana_arcade', 'adaptive_quiz', 'exam_mode', 'grammar_quiz', 'grammar_lesson', 'practice_conjugation', 'practice_sentences', 'practice_numbers', 'practice_kana_sprint')
       GROUP BY skill_id
       HAVING attempts >= 2
       ORDER BY rate ASC, attempts DESC

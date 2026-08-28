@@ -1,45 +1,49 @@
 # Rapport d'execution V2 publication
 
-Date : 24 aout 2026
+Date : 28 aout 2026
 Version : 2.0.0
 Branche : `stabilisation-v2`
 
-## Resultat
+## Resultat local
 
-L'implementation locale necessaire a un build candidat V2 est terminee. Le code compile, les donnees critiques sont controlees, l'export Web fonctionne et la configuration mobile est presente.
+Le candidat V2 est valide localement : compilation, base, contenus, audio,
+export Web, navigation responsive et principaux flux pedagogiques passent les
+controles automatises. La soumission boutique reste conditionnee aux essais sur
+iPhone physique, aux comptes de publication et aux droits editoriaux.
 
-La publication boutique ne doit pas encore etre declaree terminee : les comptes, certificats, droits de contenu et essais sur appareils physiques appartiennent au proprietaire du produit.
+## Couverture actuelle
 
-## Travaux valides
+- curriculum progressif de 30 sous-niveaux, de 1A a 10C ;
+- 119 points de grammaire, 80 kanji, 612 mots guides et 228 kana indexes ;
+- bibliotheques librement accessibles, recommandations et quiz bornes au niveau ;
+- 934 MP3 japonais embarques avec repli vocal local ;
+- SRS, erreurs, favoris, objectifs quotidiens, recompenses et economie locale ;
+- diagnostic de 30 questions, 3 niveaux, 6 domaines et rapport pondere ;
+- cartes kanji recto-verso, audio et plein ecran pour les 80 caracteres ;
+- objectifs adaptatifs : 3 par jour, identifiants uniques sur au moins 186 jours ;
+- reduction des mouvements appliquee aux transitions et celebrations principales.
 
-- migration V7 vers V8 additive avec inventaire des tables utilisateur, transactions, comptages et controle d'integrite ;
-- sauvegarde JSON versionnee, restauration validee, suppression locale et diagnostic technique ;
-- reprise des principaux quiz et des annales, protection contre les doubles appuis et recompenses idempotentes ;
-- base compacte de 13,8 Mo et suppression des tris SQL aleatoires ;
-- pagination des 2 112 cartes de vocabulaire et chargements bornes des files SRS ;
-- retour Android, fermeture du clavier, menu lateral scrollable et accessibilite des controles principaux ;
-- suppression de la derniere illustration distante Kana et garde-fou contre toute dependance HTTP applicative ;
-- exclusion des annales dependantes d'une image dans le mode 5 minutes ;
-- identite visuelle V2 pour iOS, Android, splash et favicon ;
-- version 2.0.0, identifiants mobile, versions de build, profils EAS et politique de confidentialite.
+## Preuves du 28 aout 2026
 
-## Preuves
-
-- `npm ci` : reussi ;
 - `npm run test:release` : reussi deux fois consecutivement ;
-- tests : 13 unitaires et 5 integration ;
+- tests : 36 unitaires et 7 integration, aucun echec ;
 - `npx expo-doctor` : 18/18 ;
-- Playwright : 60/60 checkpoints, aucun crash, ecran vide, debordement horizontal, bouton coupe ou question rapide invalide ;
-- SQLite : integrite valide, 8 064 questions, 31 728 choix, 2 112 mots, 80 kanji, 132 annales ;
+- audit Playwright : 66 vues sur 375x667, 390x844 et 430x932, aucun echec ;
+- inspection additionnelle : 402x874, tablette 768x1024 et bureau 1440x900 ;
+- aucun crash, ecran vide, debordement horizontal ou bouton coupe ;
+- SQLite : integrite valide, 80 kanji et 132 questions d'annales ;
+- audio strict : 934/934 fichiers, 0 manquant ;
+- visuels de vocabulaire guide : 612/612 semantiques, 0 generique ;
 - `git diff --check` : reussi.
 
-## Blocages externes
+## Limites externes restantes
 
-1. Tester une migration avec une vraie base V7 remplie provenant d'une ancienne installation.
-2. Executer `TEST_PLAN_IPHONE.md`, notamment mode avion, voix japonaise, VoiceOver, texte agrandi et clavier.
-3. Connecter EAS au compte Expo; fournir certificats Apple et cle Google Play.
-4. Installer les builds via TestFlight et piste interne, puis observer le candidat pendant 48 heures.
+1. Tester une migration avec une vraie base V7 remplie issue d'une ancienne installation.
+2. Executer `TEST_PLAN_IPHONE.md`, notamment mode avion, audio, VoiceOver, texte agrandi et clavier reel.
+3. Relier EAS au compte Expo et fournir les certificats Apple/Google.
+4. Installer les builds TestFlight et piste interne, puis observer le candidat 48 heures.
 5. Confirmer les droits des annales, textes et images.
-6. Publier les URLs de support et de confidentialite, puis preparer les captures stores.
+6. Publier les URL de support et confidentialite, puis finaliser les captures stores.
 
-Ces six points ne peuvent pas etre remplaces par une simulation locale.
+Ces operations exigent l'appareil, les comptes ou une decision du proprietaire ;
+elles ne doivent pas etre cochees a partir d'une simulation locale.

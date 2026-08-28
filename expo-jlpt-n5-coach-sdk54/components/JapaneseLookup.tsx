@@ -6,7 +6,7 @@ import { styles } from '../appStyles';
 import type { JapaneseTextToken, VocabularyExample, WordLookupEntry } from '../models';
 import { saveErrorFlashcard } from '../services/errorFlashcards';
 import { markSrsItemForReview, type SrsItemType } from '../services/srs';
-import { getVocabularyCategory } from '../services/vocabulary';
+import { getVocabularyCategory, updateVocabularyCardFlag } from '../services/vocabulary';
 
 export type CorrectionToken = JapaneseTextToken;
 export type CorrectionInsight = {
@@ -22,19 +22,38 @@ export function useVocabularyLookupIndex(db: SQLiteDatabase): WordLookupEntry[] 
 
   useEffect(() => {
     let mounted = true;
-    db.getAllAsync<VocabularyExample & { theme: string | null; importance: number | null }>(`
-      SELECT id, japanese, kana, kanji, romaji, meaning_fr, theme, importance
-      FROM canonical_vocabulary
-      ORDER BY length(COALESCE(kanji, japanese, kana)) DESC
-      LIMIT 2500
-    `)
-      .then((rows) => {
+    Promise.all([
+      db.getAllAsync<VocabularyExample & { theme: string | null; importance: number | null }>(`
+        SELECT id, japanese, kana, kanji, romaji, meaning_fr, theme, importance
+        FROM canonical_vocabulary
+        ORDER BY length(COALESCE(kanji, japanese, kana)) DESC
+        LIMIT 2500
+      `),
+      db.getAllAsync<{ id: string; character: string; meaning_fr: string; onyomi: string | null; kunyomi: string | null; n5_readings: string | null }>(`
+        SELECT id, character, meaning_fr, onyomi, kunyomi, n5_readings
+        FROM canonical_kanji
+        WHERE needs_review = 0
+        ORDER BY importance DESC, character
+      `),
+    ])
+      .then(([rows, kanjiRows]) => {
         if (!mounted) return;
         setEntries([
           ...CORE_GRAMMAR_LOOKUP_ENTRIES,
+          ...kanjiRows.map<WordLookupEntry>((row) => ({
+            id: row.id,
+            japanese: row.character,
+            kana: [row.onyomi, row.kunyomi].filter(Boolean).join(' / '),
+            kanji: row.character,
+            romaji: row.n5_readings ?? '',
+            meaning_fr: row.meaning_fr,
+            usage: 'Kanji N5. Les lectures on et kun sont affichées ensemble; ouvre sa fiche complète pour les mots associés.',
+            lookupType: 'kanji',
+          })),
           ...rows.map((row) => ({
             ...row,
             usage: buildVocabularyUsage(row),
+            lookupType: 'vocabulary' as const,
           })),
         ]);
       })
@@ -87,9 +106,28 @@ export function JapaneseLookupText({
 export function WordLookupPanel({ entry, onClose }: { entry: WordLookupEntry | null; onClose: () => void }) {
   const db = useSQLiteContext();
   const [reviewAdded, setReviewAdded] = useState(false);
+  const [favorite, setFavorite] = useState(false);
   useEffect(() => {
     setReviewAdded(false);
-  }, [entry?.id]);
+    if (!entry) {
+      setFavorite(false);
+      return;
+    }
+    let mounted = true;
+    const favoriteQuery = entry.lookupType === 'vocabulary'
+      ? db.getFirstAsync<{ favorite: number }>('SELECT favorite FROM app_vocabulary_card_state WHERE card_id = ?', entry.id)
+      : db.getFirstAsync<{ favorite: number }>(
+          'SELECT favorite FROM app_lookup_favorite_local WHERE item_id = ? AND item_type = ?',
+          entry.id,
+          getLookupSrsItemType(entry),
+        );
+    favoriteQuery.then((row) => {
+      if (mounted) setFavorite(row?.favorite === 1);
+    }).catch(() => {
+      if (mounted) setFavorite(false);
+    });
+    return () => { mounted = false; };
+  }, [db, entry?.id]);
   if (!entry) return null;
   const itemType = getLookupSrsItemType(entry);
   const addToReview = async () => {
@@ -98,6 +136,26 @@ export function WordLookupPanel({ entry, onClose }: { entry: WordLookupEntry | n
       setReviewAdded(true);
     } catch (error) {
       console.error('Unable to add lookup entry to SRS review', error);
+    }
+  };
+  const toggleFavorite = async () => {
+    const next = !favorite;
+    try {
+      if (entry.lookupType === 'vocabulary') {
+        await updateVocabularyCardFlag(db, entry.id, 'favorite', next);
+      } else {
+        await db.runAsync(
+          `INSERT INTO app_lookup_favorite_local (item_id, item_type, favorite, updated_at)
+           VALUES (?, ?, ?, datetime('now'))
+           ON CONFLICT(item_id, item_type) DO UPDATE SET favorite = excluded.favorite, updated_at = excluded.updated_at`,
+          entry.id,
+          itemType,
+          next ? 1 : 0,
+        );
+      }
+      setFavorite(next);
+    } catch (error) {
+      console.error('Unable to toggle lookup favorite', error);
     }
   };
   return (
@@ -119,6 +177,15 @@ export function WordLookupPanel({ entry, onClose }: { entry: WordLookupEntry | n
       <Text style={styles.wordLookupUsage}>{entry.usage}</Text>
       <View style={styles.wordLookupActionRow}>
         <Pressable
+          accessibilityLabel={favorite ? 'Retirer ce mot des favoris' : 'Ajouter ce mot aux favoris'}
+          accessibilityRole="button"
+          accessibilityState={{ selected: favorite }}
+          style={[styles.wordLookupIconAction, favorite && styles.wordLookupIconActionActive]}
+          onPress={toggleFavorite}
+        >
+          <Text style={[styles.wordLookupIconActionText, favorite && styles.wordLookupIconActionTextActive]}>{favorite ? '★' : '☆'}</Text>
+        </Pressable>
+        <Pressable
           accessibilityLabel={reviewAdded ? 'Mot ajouté aux révisions' : 'Ajouter ce mot aux révisions'}
           accessibilityRole="button"
           accessibilityState={{ disabled: reviewAdded }}
@@ -135,8 +202,9 @@ export function WordLookupPanel({ entry, onClose }: { entry: WordLookupEntry | n
 }
 
 function getLookupSrsItemType(entry: WordLookupEntry): SrsItemType {
+  if (entry.lookupType) return entry.lookupType;
   if (entry.id.startsWith('lookup-')) return 'grammar';
-  return 'vocabulary';
+  return entry.id.startsWith('ckanji_') ? 'kanji' : 'vocabulary';
 }
 
 function formatLookupSrsType(type: SrsItemType): string {

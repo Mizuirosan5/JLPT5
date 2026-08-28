@@ -5,6 +5,7 @@ import { ALL_GRAMMAR_LESSONS } from '../services/grammarCourse';
 import { getGrammarCurriculumCode, getKanaCurriculumCode, getKanjiCurriculumCode, getVocabularyCurriculumPlacement } from '../services/curriculum';
 import type { KanaCard, KanjiItem, VocabularyItem } from '../models';
 import { KANJI_READING_CARDS } from '../data/kanjiReadingCards';
+import { auditTaughtVocabulary, getVocabularyLearningMeta } from '../services/vocabularyLearning';
 
 const python = `
 import sqlite3,json
@@ -24,6 +25,21 @@ const grammarOrders = Object.values(GRAMMAR_ORDERS_BY_LEVEL).flat();
 assert.equal(grammarOrders.length, new Set(grammarOrders).size, 'Une leçon de grammaire ne peut appartenir à deux niveaux.');
 const guidedGrammar = ALL_GRAMMAR_LESSONS.filter((lesson) => getGrammarCurriculumCode(lesson));
 assert.ok(guidedGrammar.length >= 110, `Cours de grammaire guidé trop petit: ${guidedGrammar.length}.`);
+const normalizedGrammarExplanations = ALL_GRAMMAR_LESSONS.map((lesson) =>
+  lesson.explanation.normalize('NFKC').toLocaleLowerCase('fr').replace(/\s+/g, ' ').trim()
+);
+assert.equal(
+  new Set(normalizedGrammarExplanations).size,
+  ALL_GRAMMAR_LESSONS.length,
+  'Chaque leçon de grammaire doit avoir une explication propre, sans doublon.',
+);
+ALL_GRAMMAR_LESSONS.forEach((lesson) => {
+  assert.ok(lesson.explanation.trim().length >= 45, `${lesson.id}: explication de grammaire trop courte.`);
+  assert.ok(lesson.examples.length >= 2, `${lesson.id}: au moins deux exemples sont requis.`);
+  lesson.examples.forEach((example, index) => {
+    assert.ok(example.kana && example.fr, `${lesson.id}: exemple ${index + 1} incomplet.`);
+  });
+});
 
 const declaredKanji = Object.values(KANJI_BY_LEVEL).join('');
 assert.equal(declaredKanji.length, 80, 'Le parcours doit classer les 80 kanji N5.');
@@ -46,6 +62,17 @@ for (const [character, card] of Object.entries(KANJI_READING_CARDS)) {
 const guidedVocabulary = data.vocabulary.filter((item) => getVocabularyCurriculumPlacement(item).track === 'guided');
 assert.ok(guidedVocabulary.length >= 350, `Socle lexical guidé trop petit: ${guidedVocabulary.length}.`);
 assert.ok(guidedVocabulary.length <= 900, `Socle lexical guidé irréaliste pour le N5: ${guidedVocabulary.length}.`);
+guidedVocabulary.forEach((item) => {
+  const example = getVocabularyLearningMeta(item).example;
+  assert.ok(example, `${item.id}: exemple de vocabulaire manquant.`);
+  assert.ok(example.japanese.trim(), `${item.id}: phrase japonaise manquante.`);
+  assert.ok(example.kana.trim(), `${item.id}: lecture kana de la phrase manquante.`);
+  assert.ok(example.french.trim(), `${item.id}: traduction française de la phrase manquante.`);
+  assert.ok(example.usage?.trim(), `${item.id}: explication d'usage manquante.`);
+});
+const vocabularyAudit = auditTaughtVocabulary(data.vocabulary);
+assert.equal(vocabularyAudit.withoutExample.length, 0, 'Tous les mots enseignés doivent avoir un exemple.');
+assert.equal(vocabularyAudit.corrupted.length, 0, 'Les mots enseignés ne doivent contenir aucun texte corrompu.');
 const mappedKana = data.kana.filter((item) => getKanaCurriculumCode(item));
 assert.ok(mappedKana.length >= 200, `Inventaire kana classé incomplet: ${mappedKana.length}.`);
 
@@ -69,5 +96,9 @@ for (const lesson of guidedGrammar) {
 const emptyLevels = CURRICULUM_CODES.filter((code) => (counts.get(code) ?? 0) === 0);
 assert.equal(emptyLevels.length, 0, `Niveaux sans contenu: ${emptyLevels.join(', ')}`);
 const impossibleLevels = CURRICULUM_UNITS.filter((unit) => unit.targetItems > (counts.get(unit.code) ?? 0));
-assert.equal(impossibleLevels.length, 0, `Seuils impossibles: ${impossibleLevels.map((unit) => unit.code).join(', ')}`);
-console.log(JSON.stringify({ units: 30, grammar: guidedGrammar.length, kanji: data.kanji.length, vocabulary: guidedVocabulary.length, kana: mappedKana.length, counts: Object.fromEntries(counts) }, null, 2));
+assert.equal(
+  impossibleLevels.length,
+  0,
+  `Seuils impossibles: ${impossibleLevels.map((unit) => `${unit.code}:${counts.get(unit.code) ?? 0}/${unit.targetItems}`).join(', ')}`,
+);
+console.log(JSON.stringify({ units: 30, grammar: guidedGrammar.length, kanji: data.kanji.length, vocabulary: guidedVocabulary.length, vocabularyExamples: vocabularyAudit.withExample, kana: mappedKana.length, counts: Object.fromEntries(counts) }, null, 2));

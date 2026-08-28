@@ -3,7 +3,7 @@ import type { AudioPackItem } from '../models';
 const withCoreAsset = (item: Omit<AudioPackItem, 'assetKind' | 'assetPath'>): AudioPackItem => ({
   ...item,
   assetKind: 'embedded_file',
-  assetPath: `assets/audio/n5_core/${item.id}.wav`,
+  assetPath: `assets/audio/n5_core/${item.id}.mp3`,
 });
 
 const CORE_AUDIO_PACK_SOURCE: Array<Omit<AudioPackItem, 'assetKind' | 'assetPath'>> = [

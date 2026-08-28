@@ -18,6 +18,96 @@ type VocabularyLoadResult = {
 const vocabularyItemsCache = new WeakMap<SQLiteDatabase, Promise<VocabularyLoadResult>>();
 const kanjiItemsCache = new WeakMap<SQLiteDatabase, Promise<KanjiItem[]>>();
 
+/**
+ * Builds a learning deck from the raw dictionary import. The source contains
+ * kana/kanji spellings and polite/dictionary forms as separate rows; learners
+ * should see those as one concept rather than several identical cards.
+ */
+export function curateVocabularyLearningItems(items: VocabularyItem[]): VocabularyItem[] {
+  const groups = new Map<string, VocabularyItem[]>();
+
+  items.forEach((item) => {
+    const reading = normalizeVocabularyReading(item.kana || item.japanese);
+    const meaning = normalizePrimaryMeaning(item.meaning_fr);
+    const key = `${reading}|${meaning}`;
+    const group = groups.get(key) ?? [];
+    group.push(item);
+    groups.set(key, group);
+  });
+
+  return Array.from(groups.values()).map((group) => {
+    const primary = [...group].sort((a, b) => scoreLearningItem(b) - scoreLearningItem(a))[0];
+    return refineLearningMeaning(primary);
+  });
+}
+
+function refineLearningMeaning(item: VocabularyItem): VocabularyItem {
+  const reading = normalizeVocabularyReading(item.kana || item.japanese);
+  const meaning = item.meaning_fr.toLowerCase();
+  let corrected: string | null = null;
+
+  if (reading === 'あう' && /rencontr/.test(meaning)) corrected = 'rencontrer ; voir quelqu’un';
+  else if (reading === 'あお' && /bleu/.test(meaning)) corrected = 'bleu (nom)';
+  else if (reading === 'あおい' && /bleu|vert/.test(meaning)) corrected = 'bleu (adjectif)';
+  else if (reading === 'がわ' && /side|côté/.test(meaning)) corrected = 'côté ; côté de…';
+  else if (reading === 'いかが' && /combien/.test(meaning)) corrected = 'comment ; que pensez-vous de… ?';
+  else if (reading === 'いっしょ' && /ensembe|ensemble/.test(meaning)) corrected = 'ensemble';
+  else if (reading === 'いっしょに' && /ensemble/.test(meaning)) corrected = 'ensemble ; avec';
+
+  return corrected ? { ...item, meaning_fr: corrected } : item;
+}
+
+function normalizeVocabularyReading(value: string): string {
+  let reading = value
+    .normalize('NFKC')
+    .replace(/[\s~〜・.,;:!?！？。、]/gu, '')
+    .toLowerCase();
+
+  reading = reading
+    .replace(/ませんでした$/u, 'ます')
+    .replace(/ました$/u, 'ます')
+    .replace(/ません$/u, 'ます');
+
+  if (reading === 'します') return 'する';
+  const politeEndings: Array<[RegExp, string]> = [
+    [/います$/u, 'う'],
+    [/きます$/u, 'く'],
+    [/ぎます$/u, 'ぐ'],
+    [/します$/u, 'す'],
+    [/ちます$/u, 'つ'],
+    [/にます$/u, 'ぬ'],
+    [/びます$/u, 'ぶ'],
+    [/みます$/u, 'む'],
+    [/ります$/u, 'る'],
+  ];
+  const ending = politeEndings.find(([pattern]) => pattern.test(reading));
+  return ending ? reading.replace(ending[0], ending[1]) : reading;
+}
+
+function normalizePrimaryMeaning(value: string): string {
+  return value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .split(/[,;/]|\bou\b|\betre\b/u)[0]
+    .replace(/^(un|une|le|la|les|du|de la|des)\s+/u, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function scoreLearningItem(item: VocabularyItem): number {
+  const main = getVocabularyMainText(item);
+  const reading = item.kana?.trim() || '';
+  let score = 0;
+  if (/[\u4E00-\u9FFF]/u.test(main)) score += 8;
+  if (item.kanji?.trim()) score += 4;
+  if (!/ます(?:た|ん(?:でした)?)?$/u.test(reading) && !/ます(?:た|ん(?:でした)?)?$/u.test(main)) score += 6;
+  if (!/[A-Za-z]/u.test(main)) score += 2;
+  if (!/[\s、,;/]/u.test(main)) score += 1;
+  score += Math.max(0, 5 - (item.importance ?? 5)) * 0.1;
+  return score;
+}
+
 export function getVocabularyCategory(item: VocabularyExample): string {
   const text = `${item.japanese} ${item.kana ?? ''} ${item.kanji ?? ''} ${item.romaji ?? ''} ${item.meaning_fr}`.toLowerCase();
   if (/父|母|兄|姉|弟|妹|家族|famille|père|mère|frère|sœur/.test(text)) return 'Famille';
@@ -39,6 +129,15 @@ export function getVocabularyThemeLabel(item: VocabularyItem | VocabularyExample
 
 export function getVocabularyMainText(item: VocabularyExample): string {
   return item.kanji?.trim() || item.japanese?.trim() || item.kana?.trim() || '語';
+}
+
+export function sanitizeRomaji(value?: string | null): string {
+  return (value ?? '')
+    .replace(/[\u3040-\u30ff\u3400-\u9fff]/gu, '')
+    .replace(/[・／]/gu, ' / ')
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s,;/.()-]+|[\s,;/.()-]+$/g, '')
+    .trim();
 }
 
 export function buildVocabularyCards(items: VocabularyItem[], kanjiItems: KanjiItem[] = []): VocabularyCardData[] {

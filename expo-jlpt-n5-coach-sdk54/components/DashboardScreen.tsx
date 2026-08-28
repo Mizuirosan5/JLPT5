@@ -62,6 +62,7 @@ import type {
   SrsOverview,
 } from '../models';
 import { RubricButton } from './shellUi';
+import { useReducedMotion } from '../services/useReducedMotion';
 import {
   BadgeCollection,
   CoachPremiumPanel,
@@ -76,6 +77,7 @@ import {
 
 export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) => void }) {
   const db = useSQLiteContext();
+  const reducedMotion = useReducedMotion();
   const [loading, setLoading] = useState(true);
   const [dashboardTab, setDashboardTab] = useState<DashboardTab>('quiz');
   const [stats, setStats] = useState<DashboardStats>(emptyStats);
@@ -237,6 +239,11 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
   useEffect(() => {
     if (!rewardToast) return;
     rewardAnim.setValue(0);
+    if (reducedMotion) {
+      rewardAnim.setValue(1);
+      const timer = setTimeout(() => setRewardToast(null), getRewardCelebrationDuration(rewardToast));
+      return () => clearTimeout(timer);
+    }
     Animated.sequence([
       Animated.timing(rewardAnim, {
         toValue: 1,
@@ -252,7 +259,7 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
     ]).start(({ finished }) => {
       if (finished) setRewardToast(null);
     });
-  }, [rewardAnim, rewardToast]);
+  }, [reducedMotion, rewardAnim, rewardToast]);
 
   const masteryTotal = masteryDomains.reduce(
     (acc, domain) => ({
@@ -315,7 +322,7 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
   }, [db, loading, localLeague, streakDays, xpTotal]);
 
   useEffect(() => {
-    if (!localLeague.promoted) {
+    if (!localLeague.promoted || reducedMotion) {
       leagueAnim.setValue(0);
       return;
     }
@@ -327,7 +334,7 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
     );
     animation.start();
     return () => animation.stop();
-  }, [leagueAnim, localLeague.promoted]);
+  }, [leagueAnim, localLeague.promoted, reducedMotion]);
 
   if (loading) {
     return <LoadingView />;
@@ -345,7 +352,7 @@ export function DashboardScreen({ onNavigate }: { onNavigate?: (screen: Screen) 
 
       {dashboardTab === 'overview' && (
         <>
-          <RewardCelebrationOverlay reward={rewardToast} anim={rewardAnim} onClose={() => setRewardToast(null)} />
+          <RewardCelebrationOverlay reward={rewardToast} anim={rewardAnim} reducedMotion={reducedMotion} onClose={() => setRewardToast(null)} />
 
           <CoachPremiumPanel
             examReadiness={examReadiness}
@@ -733,10 +740,12 @@ function getRewardCelebrationCopy(reward: RewardToast): { kicker: string; title:
 function RewardCelebrationOverlay({
   reward,
   anim,
+  reducedMotion,
   onClose,
 }: {
   reward: RewardToast | null;
   anim: Animated.Value;
+  reducedMotion: boolean;
   onClose: () => void;
 }) {
   if (!reward) return null;
@@ -798,7 +807,7 @@ function RewardCelebrationOverlay({
               },
             ]}
           />
-          {particles.map((particle) => (
+          {!reducedMotion && particles.map((particle) => (
             <Animated.View
               key={particle}
               style={[
