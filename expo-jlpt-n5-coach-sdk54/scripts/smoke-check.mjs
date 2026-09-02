@@ -221,8 +221,10 @@ if (grammarQuizScreenSource.includes('createGrammarMatchingSession()')) {
 
 const kanjiFlashcardsSource = read('components/KanjiFlashcardsSection.tsx');
 for (const requiredKanjiViewerToken of [
-  'cards.slice(0, 80)',
+  'sortByKanjiLearningOrder(cards',
+  '.slice(0, 80)',
   'KanjiFullscreenViewer',
+  'position={page * CARD_PAGE_SIZE + cardIndex + 1}',
   'Ouvrir les ${deck.length} cartes kanji en plein écran',
   'reading.examples.map',
   'Retourner la carte kanji',

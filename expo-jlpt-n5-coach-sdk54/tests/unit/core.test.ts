@@ -24,6 +24,7 @@ import { buildGlobalQuizQuestions } from '../../services/globalQuizFactory';
 import { analyzeWritingText } from '../../services/writingJournal';
 import { buildAdaptiveDailyGoals, type DailyGoalProfile } from '../../services/dashboardData';
 import { calculateAptitudeMetrics } from '../../services/aptitudeAssessment';
+import { N5_KANJI_LEARNING_ORDER, getKanjiLearningPosition, sortByKanjiLearningOrder } from '../../data/kanjiLearningOrder';
 
 const preferences: LearningPreferences = {
   showRomaji: true,
@@ -36,6 +37,15 @@ const preferences: LearningPreferences = {
 };
 
 describe('moteurs metier critiques', () => {
+  it('ordonne et numerote les 80 kanji selon une progression pedagogique stable', () => {
+    assert.equal(N5_KANJI_LEARNING_ORDER.length, 80);
+    assert.equal(new Set(N5_KANJI_LEARNING_ORDER).size, 80);
+    assert.deepEqual(N5_KANJI_LEARNING_ORDER.slice(0, 14), ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '百', '千', '万', '円']);
+    assert.equal(getKanjiLearningPosition('一'), 1);
+    assert.equal(getKanjiLearningPosition('白'), 80);
+    assert.deepEqual(sortByKanjiLearningOrder(['学', '三', '一'], (item) => item), ['一', '三', '学']);
+  });
+
   it('ne place pas la bonne reponse en premiere position dans un QCM', () => {
     for (let index = 0; index < 100; index += 1) {
       const choices = shuffleChoices(['correct', 'a', 'b', 'c'], 'correct');

@@ -4,6 +4,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { styles } from '../appStyles';
 import { KANJI_READING_CARDS } from '../data/kanjiReadingCards';
+import { sortByKanjiLearningOrder } from '../data/kanjiLearningOrder';
 import type { VocabularyCardData } from '../models';
 import { recordVocabularyCardSeen } from '../services/vocabulary';
 import { getKanjiComponentDetail } from '../services/kanjiComponents';
@@ -14,7 +15,10 @@ const CARD_PAGE_SIZE = 80;
 
 export function KanjiFlashcardsSection({ cards }: { cards: VocabularyCardData[] }) {
   const db = useSQLiteContext();
-  const deck = useMemo(() => cards.slice(0, 80), [cards]);
+  const deck = useMemo(
+    () => sortByKanjiLearningOrder(cards, (card) => card.root).slice(0, 80),
+    [cards],
+  );
   const [page, setPage] = useState(0);
   const [flippedIds, setFlippedIds] = useState<Set<string>>(new Set());
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
@@ -54,7 +58,7 @@ export function KanjiFlashcardsSection({ cards }: { cards: VocabularyCardData[] 
   return (
     <Section title="Cartes kanji N5">
       <Text style={styles.quizConfigText}>
-        Recto : le kanji seul. Verso : ses lectures et un exemple compact. Le plein écran contient tous les exemples.
+        Ordre pédagogique N5 : nombres, temps, personnes, langue, actions et directions. Le JLPT ne publie pas de classement officiel.
       </Text>
       <Pressable
         accessibilityRole="button"
@@ -87,6 +91,8 @@ export function KanjiFlashcardsSection({ cards }: { cards: VocabularyCardData[] 
               setViewerFlipped(false);
               recordSeen(card);
             }}
+            position={page * CARD_PAGE_SIZE + cardIndex + 1}
+            total={deck.length}
           />
         ))}
       </View>
@@ -148,11 +154,15 @@ function KanjiFlashCard({
   flipped,
   onPress,
   onOpenFullscreen,
+  position,
+  total,
 }: {
   card: VocabularyCardData;
   flipped: boolean;
   onPress: () => void;
   onOpenFullscreen: () => void;
+  position: number;
+  total: number;
 }) {
   const readingCard = KANJI_READING_CARDS[card.root];
   return (
@@ -202,6 +212,9 @@ function KanjiFlashCard({
         <Pressable accessibilityRole="button" accessibilityLabel={`Ouvrir ${card.root} en plein écran`} onPress={onOpenFullscreen} style={styles.kanjiFlashCardIconButton}>
           <MaterialCommunityIcons accessibilityElementsHidden color="#152B3A" name="fullscreen" size={23} />
         </Pressable>
+      </View>
+      <View pointerEvents="none" style={styles.kanjiFlashCardOrderBadge}>
+        <Text style={styles.kanjiFlashCardOrderText}>{String(position).padStart(2, '0')}/{total}</Text>
       </View>
     </View>
   );

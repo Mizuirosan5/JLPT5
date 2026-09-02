@@ -11,6 +11,7 @@ import { EmptyState, LoadingView, Section } from './sharedUi';
 import { SegmentButton } from './formControls';
 import { getMasteryColorToken, loadMasteryMap, masteryKey, summarizeMastery, type MasteryStatus, type MasteryView } from '../services/mastery';
 import { KANJI_THEORY, getKanjiForRadical, getPrimaryRadical, type RadicalEntry } from '../data/kanjiRadicals';
+import { sortByKanjiLearningOrder } from '../data/kanjiLearningOrder';
 import { DomainProgressHeader } from './DomainProgressHeader';
 
 type KanjiLearningFilter = 'learn' | 'review' | 'known' | 'all';
@@ -34,7 +35,10 @@ export function KanjiDetailScreen({ onNavigate }: { onNavigate?: (screen: Screen
     Promise.all([loadKanjiItems(db), loadVocabularyItems(db)])
       .then(([kanjiRows, vocabularyResult]) => {
         if (!mounted) return;
-        const n5Kanji = kanjiRows.filter((item) => item.jlpt_level === 'N5');
+        const n5Kanji = sortByKanjiLearningOrder(
+          kanjiRows.filter((item) => item.jlpt_level === 'N5'),
+          (item) => item.character,
+        );
         setKanjiItems(n5Kanji);
         setVocabularyItems(vocabularyResult.rows.filter((item) => (item.jlpt_level ?? 'N5') === 'N5'));
         setSelectedId((current) => current ?? n5Kanji[0]?.id ?? null);
