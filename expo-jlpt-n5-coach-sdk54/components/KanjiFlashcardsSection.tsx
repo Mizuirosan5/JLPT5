@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { Modal, PanResponder, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { Modal, PanResponder, Pressable, SafeAreaView, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { styles } from '../appStyles';
 import { KANJI_READING_CARDS } from '../data/kanjiReadingCards';
 import type { VocabularyCardData } from '../models';
@@ -65,7 +66,7 @@ export function KanjiFlashcardsSection({ cards }: { cards: VocabularyCardData[] 
         }}
       >
         <View style={styles.kanjiViewerLaunchIcon}>
-          <Text style={styles.kanjiViewerLaunchIconText}>全</Text>
+          <MaterialCommunityIcons accessibilityElementsHidden color="#152B3A" name="fullscreen" size={28} />
         </View>
         <View style={styles.kanjiViewerLaunchTextBlock}>
           <Text style={styles.kanjiViewerLaunchTitle}>Apprendre en plein écran</Text>
@@ -199,7 +200,7 @@ function KanjiFlashCard({
       <View style={styles.kanjiFlashCardCornerActions}>
         <OfflineAudioButton iconOnly compact text={card.root} label={`Écouter ${card.root}`} />
         <Pressable accessibilityRole="button" accessibilityLabel={`Ouvrir ${card.root} en plein écran`} onPress={onOpenFullscreen} style={styles.kanjiFlashCardIconButton}>
-          <Text style={styles.kanjiFlashCardIconText}>全</Text>
+          <MaterialCommunityIcons accessibilityElementsHidden color="#152B3A" name="fullscreen" size={23} />
         </Pressable>
       </View>
     </View>
@@ -225,9 +226,11 @@ function KanjiFullscreenViewer({
   onPrevious: () => void;
   onRandom: () => void;
 }) {
+  const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const card = index === null ? null : cards[index] ?? null;
   const readingCard = card ? KANJI_READING_CARDS[card.root] : null;
   const mnemonic = card ? getKanjiComponentDetail(card.root)?.mnemonicFr : null;
+  const frontKanjiSize = Math.max(132, Math.min(240, windowWidth * 0.58, windowHeight * 0.3));
   const panResponder = useMemo(
     () => PanResponder.create({
       onMoveShouldSetPanResponder: (_, gesture) =>
@@ -266,7 +269,13 @@ function KanjiFullscreenViewer({
             >
               {!flipped ? (
                 <View style={styles.kanjiViewerFrontInner}>
-                  <Text adjustsFontSizeToFit numberOfLines={1} style={styles.kanjiViewerFrontKanji}>{card.root}</Text>
+                  <Text
+                    allowFontScaling={false}
+                    numberOfLines={1}
+                    style={[styles.kanjiViewerFrontKanji, { fontSize: frontKanjiSize, lineHeight: frontKanjiSize * 1.14 }]}
+                  >
+                    {card.root}
+                  </Text>
                 </View>
               ) : (
                 <ScrollView nestedScrollEnabled showsVerticalScrollIndicator style={styles.kanjiViewerBackScroll} contentContainerStyle={styles.kanjiViewerBackContent}>

@@ -1,4 +1,5 @@
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer, type AudioSource } from 'expo-audio';
+import { Asset } from 'expo-asset';
 import { AUDIO_ASSET_REGISTRY, AUDIO_TEXT_ASSET_IDS } from '../data/audioAssetRegistry';
 
 let currentPlayer: AudioPlayer | null = null;
@@ -21,6 +22,7 @@ export async function playEmbeddedAudioAsset(itemId: string, slow = false): Prom
   if (!source) return false;
   try {
     currentPlayer?.remove();
+    currentPlayer = null;
     await setAudioModeAsync({
       allowsRecording: false,
       interruptionMode: 'duckOthers',
@@ -28,9 +30,11 @@ export async function playEmbeddedAudioAsset(itemId: string, slow = false): Prom
       shouldPlayInBackground: false,
       shouldRouteThroughEarpiece: false,
     });
-    currentPlayer = createAudioPlayer(source, { downloadFirst: true });
+    const asset = typeof source === 'number' ? Asset.fromModule(source) : null;
+    if (asset) await asset.downloadAsync();
+    const playableSource = asset?.localUri ? { uri: asset.localUri } : source;
+    currentPlayer = createAudioPlayer(playableSource);
     currentPlayer.setPlaybackRate(slow ? 0.84 : 1);
-    currentPlayer.seekTo(0).catch(() => undefined);
     currentPlayer.play();
     return true;
   } catch (error) {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Pressable, Text } from 'react-native';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSQLiteContext } from 'expo-sqlite';
 import { styles } from '../appStyles';
 import { detectOfflineAudio, speakJapanese, type OfflineAudioState } from '../services/audio';
@@ -57,9 +58,11 @@ export function OfflineAudioButton({ compact = false, enabled = true, iconOnly =
         !active && styles.primaryButtonDisabled,
       ]}
     >
-      <Text style={iconOnly ? styles.vocabCardIconText : compact ? styles.vocabSmartActionText : styles.grammarExampleActionText}>
-        {iconOnly ? '♪' : message || label}
-      </Text>
+      {iconOnly ? (
+        <MaterialCommunityIcons accessibilityElementsHidden color="#152B3A" name="volume-high" size={21} />
+      ) : (
+        <Text style={compact ? styles.vocabSmartActionText : styles.grammarExampleActionText}>{message || label}</Text>
+      )}
     </Pressable>
   );
 }

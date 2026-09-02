@@ -32,6 +32,7 @@
     "test:release": "npm run typecheck && npm run test:unit && npm run test:integration && npm run test:content && npm run test:curriculum && npm run test:visuals && npm run test:aptitude && npm run db:validate && npm run smoke && npm run export:web && npm run audio:check:strict"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.0.3",
     "expo": "~54.0.35",
     "expo-asset": "~12.0.13",
     "expo-audio": "~1.1.1",
