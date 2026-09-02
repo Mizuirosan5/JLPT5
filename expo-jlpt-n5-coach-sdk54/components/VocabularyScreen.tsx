@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Modal, PanResponder, Pressable, SafeAreaView, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Svg, { Circle, Defs, G, Line, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { styles } from '../appStyles';
 import type { LearningPreferences, VocabularyCardData, VocabularyItem, VocabularyScope, VocabularyViewMode } from '../models';
@@ -27,9 +28,21 @@ import { getVocabularyLearningMeta, type VocabularyAttribute } from '../services
 import { DomainProgressHeader } from './DomainProgressHeader';
 import { VOCABULARY_ANTONYM_PAIRS } from '../data/vocabularyAntonyms';
 import { shuffle } from '../services/random';
+import {
+  getVocabularyBrowseTheme,
+  getVocabularyMnemonic,
+  type VocabularyBrowseTheme,
+} from '../services/vocabularyThemes';
 
 type VocabularyCardFilter = 'learn' | 'review' | 'known' | 'all' | 'favorites';
 const CARD_PAGE_SIZE = 24;
+const ANTONYM_THEME: VocabularyBrowseTheme = {
+  id: 'antonyms',
+  label: 'Contraires',
+  icon: '反',
+  description: 'Mémoriser les mots par paires opposées.',
+  order: 99,
+};
 
 export function VocabularyScreen() {
   const db = useSQLiteContext();
@@ -94,37 +107,43 @@ export function VocabularyScreen() {
   }, [items, scope]);
 
   const vocabularyThemeGroups = useMemo(() => {
-    const groups = new Map<string, VocabularyItem[]>();
-    items.forEach((item) => {
-      const theme = getVocabularyThemeLabel(item);
-      const group = groups.get(theme) ?? [];
-      group.push(item);
-      groups.set(theme, group);
+    const groups = new Map<string, { theme: VocabularyBrowseTheme; words: VocabularyItem[] }>();
+    scopedItems.forEach((item) => {
+      const theme = getVocabularyBrowseTheme(item);
+      const group = groups.get(theme.id) ?? { theme, words: [] };
+      group.words.push(item);
+      groups.set(theme.id, group);
     });
-    return Array.from(groups.entries()).sort((a, b) => a[0].localeCompare(b[0], 'fr'));
-  }, [items]);
+    return Array.from(groups.values()).sort((a, b) => a.theme.order - b.theme.order);
+  }, [scopedItems]);
 
   useEffect(() => {
-    if (scope !== 'all') return;
-    if (selectedVocabularyTheme && vocabularyThemeGroups.some(([theme]) => theme === selectedVocabularyTheme)) return;
-    setSelectedVocabularyTheme(vocabularyThemeGroups[0]?.[0] ?? null);
-  }, [scope, selectedVocabularyTheme, vocabularyThemeGroups]);
+    setSelectedVocabularyTheme(null);
+    setQuery('');
+    setViewMode('cards');
+  }, [scope]);
+
+  const selectedThemeGroup = useMemo(
+    () => selectedVocabularyTheme === ANTONYM_THEME.id
+      ? { theme: ANTONYM_THEME, words: scopedItems }
+      : vocabularyThemeGroups.find(({ theme }) => theme.id === selectedVocabularyTheme) ?? null,
+    [scopedItems, selectedVocabularyTheme, vocabularyThemeGroups],
+  );
 
   const genericThemeItems = useMemo(() => {
-    if (scope !== 'all' || !selectedVocabularyTheme) return scopedItems;
-    return scopedItems.filter((item) => getVocabularyThemeLabel(item) === selectedVocabularyTheme);
-  }, [scope, scopedItems, selectedVocabularyTheme]);
+    return selectedThemeGroup?.words ?? [];
+  }, [selectedThemeGroup]);
 
   const filteredItems = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    const baseItems = scope === 'all' ? genericThemeItems : scopedItems;
+    const baseItems = genericThemeItems;
     if (!normalized) return baseItems;
     return baseItems.filter((item) =>
       `${item.japanese} ${item.kana ?? ''} ${item.kanji ?? ''} ${item.romaji ?? ''} ${item.meaning_fr}`
         .toLowerCase()
         .includes(normalized)
     );
-  }, [genericThemeItems, scopedItems, query, scope]);
+  }, [genericThemeItems, query]);
 
   const learningIntentItems = useMemo(
     () => filterVocabularyByMastery(filteredItems, cardStates, masteryById, cardFilter),
@@ -147,7 +166,8 @@ export function VocabularyScreen() {
   );
 
   const smartCardStats = useMemo(() => {
-    const allCardIds = filteredItems.map((item) => item.id);
+    const statsItems = selectedThemeGroup?.words ?? scopedItems;
+    const allCardIds = statsItems.map((item) => item.id);
     const flags = allCardIds.reduce(
       (acc, id) => {
         const state = cardStates[id];
@@ -159,7 +179,7 @@ export function VocabularyScreen() {
     );
     const mastery = summarizeMastery(allCardIds.map((id) => masteryById[id]).filter((item): item is MasteryView => !!item));
     return { ...flags, ...mastery, review: Math.max(flags.review, mastery.review) };
-  }, [filteredItems, cardStates, masteryById]);
+  }, [cardStates, masteryById, scopedItems, selectedThemeGroup]);
 
   useEffect(() => {
     setCardPage(0);
@@ -222,13 +242,85 @@ export function VocabularyScreen() {
         attempts={Object.values(masteryById).reduce((sum, item) => sum + item.attempts, 0)}
         recommendation={smartCardStats.review ? 'Reprendre les mots dus avant d’en découvrir de nouveaux.' : 'Découvrir le prochain lot de mots N5.'}
         actionLabel={smartCardStats.review ? 'Revoir' : 'Apprendre'}
-        onContinue={() => { setViewMode('cards'); setCardFilter(smartCardStats.review ? 'review' : 'learn'); }}
+        onContinue={() => {
+          const target = smartCardStats.review
+            ? vocabularyThemeGroups.find(({ words }) => words.some((item) => cardStates[item.id]?.review || masteryById[item.id]?.status === 'review'))
+            : vocabularyThemeGroups[0];
+          setSelectedVocabularyTheme(target?.theme.id ?? vocabularyThemeGroups[0]?.theme.id ?? null);
+          setViewMode('cards');
+          setCardFilter(smartCardStats.review ? 'review' : 'learn');
+        }}
       />
 
       <View style={styles.segmented}>
         <SegmentButton label="JLPT N5" active={scope === 'n5'} onPress={() => setScope('n5')} />
         <SegmentButton label="Tout vocabulaire" active={scope === 'all'} onPress={() => setScope('all')} />
       </View>
+
+      {!selectedThemeGroup ? (
+        <Section title="Choisir un thème">
+          <Text style={styles.quizConfigText}>
+            Ouvre un dossier pour retrouver tous ses mots, leurs illustrations et leurs moyens mnémotechniques.
+          </Text>
+          <View style={styles.vocabularyThemeGrid}>
+            {vocabularyThemeGroups.map(({ theme, words }) => (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Ouvrir ${theme.label}, ${words.length} mots`}
+                key={theme.id}
+                onPress={() => {
+                  setSelectedVocabularyTheme(theme.id);
+                  setCardFilter('all');
+                  setViewMode('cards');
+                  setQuery('');
+                }}
+                style={styles.vocabularyThemeCard}
+              >
+                <View style={styles.vocabularyThemeIconBox}>
+                  <Text style={styles.vocabularyThemeIcon}>{theme.icon}</Text>
+                </View>
+                <View style={styles.vocabularyThemeTextBlock}>
+                  <Text numberOfLines={2} style={styles.vocabularyThemeTitle}>{theme.label}</Text>
+                  <Text numberOfLines={2} style={styles.vocabularyThemeDescription}>{theme.description}</Text>
+                  <Text style={styles.vocabularyThemeCount}>{words.length} mots</Text>
+                </View>
+                <MaterialCommunityIcons color="#C83543" name="chevron-right" size={24} />
+              </Pressable>
+            ))}
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              setSelectedVocabularyTheme(ANTONYM_THEME.id);
+              setViewMode('antonyms');
+            }}
+            style={styles.vocabularySpecialMenu}
+          >
+            <Text style={styles.vocabularySpecialMenuIcon}>反</Text>
+            <View style={styles.vocabularyThemeTextBlock}>
+              <Text style={styles.vocabularySpecialMenuTitle}>S’entraîner aux contraires</Text>
+              <Text style={styles.vocabularySpecialMenuText}>Mémoriser les mots par paires opposées.</Text>
+            </View>
+            <MaterialCommunityIcons color="#F6C85F" name="chevron-right" size={24} />
+          </Pressable>
+        </Section>
+      ) : (
+        <>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Revenir aux thèmes de vocabulaire"
+        onPress={() => {
+          setSelectedVocabularyTheme(null);
+          setQuery('');
+        }}
+        style={styles.vocabularyThemeBackButton}
+      >
+        <MaterialCommunityIcons color="#152B3A" name="arrow-left" size={22} />
+        <View style={styles.vocabularyThemeBackCopy}>
+          <Text style={styles.vocabularyThemeBackLabel}>Tous les thèmes</Text>
+          <Text style={styles.vocabularyThemeBackTitle}>{selectedThemeGroup.theme.icon} {selectedThemeGroup.theme.label}</Text>
+        </View>
+      </Pressable>
 
       <View style={styles.segmented}>
         <SegmentButton label="Flashcards" active={viewMode === 'cards'} onPress={() => setViewMode('cards')} />
@@ -252,49 +344,7 @@ export function VocabularyScreen() {
         <Metric label="Affichés" value={filteredItems.length} />
       </View>
 
-      {scope === 'all' && (
-        <Section title="Dossiers par thème">
-          <View style={styles.vocabularyThemeGrid}>
-            {vocabularyThemeGroups.map(([theme, words]) => (
-              <Pressable
-                key={theme}
-                onPress={() => setSelectedVocabularyTheme(theme)}
-                style={[
-                  styles.vocabularyThemeCard,
-                  selectedVocabularyTheme === theme && styles.vocabularyThemeCardActive,
-                ]}
-              >
-                <GenericVocabularyIllustration
-                  item={words[0]}
-                  size={54}
-                  muted={selectedVocabularyTheme !== theme}
-                />
-                <View style={styles.vocabularyThemeTextBlock}>
-                  <Text
-                    numberOfLines={2}
-                    style={[
-                      styles.vocabularyThemeTitle,
-                      selectedVocabularyTheme === theme && styles.vocabularyThemeTitleActive,
-                    ]}
-                  >
-                    {theme}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.vocabularyThemeCount,
-                      selectedVocabularyTheme === theme && styles.vocabularyThemeCountActive,
-                    ]}
-                  >
-                    {words.length} cartes
-                  </Text>
-                </View>
-              </Pressable>
-            ))}
-          </View>
-        </Section>
-      )}
-
-      <Section title={scope === 'n5' ? 'Recherche vocabulaire N5' : `Recherche · ${selectedVocabularyTheme ?? 'Tout vocabulaire'}`}>
+      <Section title={`Recherche · ${selectedThemeGroup.theme.label}`}>
         <TextInput
           value={query}
           onChangeText={setQuery}
@@ -310,7 +360,7 @@ export function VocabularyScreen() {
       ) : groupedItems.length === 0 ? (
         <EmptyState title="Aucun mot trouvé" />
       ) : viewMode === 'cards' ? (
-        <Section title={scope === 'n5' ? 'Flashcards JLPT N5' : `Flashcards · ${selectedVocabularyTheme ?? 'Tout vocabulaire'}`}>
+        <Section title={`Flashcards · ${selectedThemeGroup.theme.label}`}>
           <Text style={styles.quizConfigText}>
             Chaque carte associe une image, le mot japonais et sa traduction. Touche-la pour afficher sa lecture et ses détails.
           </Text>
@@ -385,6 +435,8 @@ export function VocabularyScreen() {
           </Section>
         ))
       )}
+        </>
+      )}
       <VocabularyLearningDetailModal item={detailItem} onClose={() => setDetailItem(null)} />
     </ScrollView>
   );
@@ -450,12 +502,18 @@ function VocabularyLearningDetailModal({ item, onClose }: { item: VocabularyItem
   if (!item) return null;
   const meta = getVocabularyLearningMeta(item);
   const mainText = getVocabularyMainText(item);
+  const mnemonic = getVocabularyMnemonic(item);
   return (
     <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
       <SafeAreaView style={styles.vocabDetailScreen}>
         <View style={styles.vocabDetailHeader}><View><Text style={styles.vocabDetailKicker}>語 · FICHE DU MOT</Text><Text style={styles.vocabDetailHeaderTitle}>{mainText}</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Fermer la fiche" onPress={onClose} style={styles.vocabDetailClose}><Text style={styles.vocabDetailCloseText}>×</Text></Pressable></View>
         <ScrollView contentContainerStyle={styles.vocabDetailContent}>
           <View style={styles.vocabDetailHero}><GenericVocabularyIllustration item={item} size={132} /><View style={styles.vocabDetailHeroCopy}><Text adjustsFontSizeToFit numberOfLines={1} style={styles.vocabDetailJapanese}>{mainText}</Text><Text style={styles.vocabDetailReading}>{item.kana || item.japanese}</Text><Text style={styles.vocabDetailMeaning}>{item.meaning_fr}</Text><OfflineAudioButton text={mainText} label="Écouter" /></View></View>
+          <Text style={styles.vocabDetailSectionLabel}>Mémo visuel</Text>
+          <View style={styles.vocabMnemonicPanel}>
+            <Text style={styles.vocabMnemonicIcon}>記</Text>
+            <Text style={styles.vocabMnemonicText}>{mnemonic}</Text>
+          </View>
           <Text style={styles.vocabDetailSectionLabel}>Nature et attributs</Text>
           <Text style={styles.vocabDetailPartOfSpeech}>{meta.partOfSpeech}</Text>
           <View style={styles.vocabAttributeRow}>{meta.attributes.map((attribute) => <Pressable key={attribute.id} onPress={() => setSelectedAttribute(selectedAttribute?.id === attribute.id ? null : attribute)} style={[styles.vocabAttributeChip, selectedAttribute?.id === attribute.id && styles.vocabAttributeChipActive]}><Text style={[styles.vocabAttributeChipText, selectedAttribute?.id === attribute.id && styles.vocabAttributeChipTextActive]}>{attribute.label}</Text></Pressable>)}</View>
@@ -767,7 +825,8 @@ function GenericVocabularyFlashCard({
   const mainText = getVocabularyMainText(item);
   const romaji = sanitizeRomaji(item.romaji);
   const reading = [item.kana, showRomaji && romaji ? romaji : null].filter(Boolean).join(' / ') || 'lecture à compléter';
-  const theme = getVocabularyThemeLabel(item);
+  const theme = getVocabularyBrowseTheme(item).label;
+  const mnemonic = getVocabularyMnemonic(item);
 
   return (
     <Pressable
@@ -808,6 +867,10 @@ function GenericVocabularyFlashCard({
               {item.meaning_fr}
             </Text>
             <Text numberOfLines={2} style={styles.genericVocabReading}>{reading}</Text>
+            <View style={styles.genericVocabMnemonic}>
+              <Text style={styles.genericVocabMnemonicIcon}>記</Text>
+              <Text numberOfLines={3} style={styles.genericVocabMnemonicText}>{mnemonic}</Text>
+            </View>
           </View>
           <Text numberOfLines={1} style={styles.genericVocabHintDark}>
             {item.part_of_speech || 'vocabulaire'}
@@ -926,6 +989,21 @@ export function getVocabularyVisual(item: VocabularyItem): { kind: string; picto
   if (/^(?:青|あお)(?:\s|$)|\b(?:le )?bleu\b/.test(text)) {
     return { kind: 'blue-paint', pictogram: '', colors: ['#77C8EA', '#1769AA'] };
   }
+  if (/petit dejeuner|朝ごはん|あさごはん/.test(text)) return { kind: 'food', pictogram: '🍳', colors: ['#F4B94E', '#D46A3D'] };
+  if (/douche|bain|浴び|あびます/.test(text)) return { kind: 'body', pictogram: '🚿', colors: ['#63B8D6', '#34779B'] };
+  if (/lessive|洗濯|せんたく/.test(text)) return { kind: 'object', pictogram: '🧺', colors: ['#65A9C5', '#416C91'] };
+  if (/menage|nettoyer|掃除|そうじ/.test(text)) return { kind: 'action', pictogram: '🧹', colors: ['#D5A35C', '#8B5E3C'] };
+  if (/chanson|musique|歌|うた/.test(text)) return { kind: 'expression', pictogram: '🎵', colors: ['#8B72C5', '#55427E'] };
+  if (/parc|jardin public|公園|こうえん/.test(text)) return { kind: 'nature', pictogram: '🏞️', colors: ['#62A66D', '#33765D'] };
+  if (/toilettes|トイレ/.test(text)) return { kind: 'object', pictogram: '🚻', colors: ['#5C8FA8', '#355A72'] };
+  if (/cinema|film|映画館|えいがかん/.test(text)) return { kind: 'object', pictogram: '🎬', colors: ['#6D718E', '#34384F'] };
+  if (/ascenseur|エレベータ/.test(text)) return { kind: 'object', pictogram: '🛗', colors: ['#66889D', '#3B5368'] };
+  if (/\bcle\b|かぎ/.test(text)) return { kind: 'object', pictogram: '🔑', colors: ['#D7AB42', '#8B6826'] };
+  if (/vase|花瓶|かびん/.test(text)) return { kind: 'object', pictogram: '🏺', colors: ['#B47A63', '#70453F'] };
+  if (/guitare|ギター/.test(text)) return { kind: 'expression', pictogram: '🎸', colors: ['#B36B55', '#683E4A'] };
+  if (/timbre|切手|きって/.test(text)) return { kind: 'object', pictogram: '✉️', colors: ['#5B8FB3', '#394F79'] };
+  if (/ticket|billet|きっぷ/.test(text)) return { kind: 'object', pictogram: '🎫', colors: ['#D89C4A', '#8D6132'] };
+  if (/sel|しお/.test(text)) return { kind: 'food', pictogram: '🧂', colors: ['#BBC9CD', '#71858E'] };
   if (/chat|猫|ねこ/.test(text)) return { kind: 'animal', pictogram: '🐈', colors: ['#5BAE8B', '#286B63'] };
   if (/chien|犬|いぬ/.test(text)) return { kind: 'animal', pictogram: '🐕', colors: ['#B98A5A', '#76543C'] };
   if (/oiseau|鳥|とり/.test(text)) return { kind: 'animal', pictogram: '🐦', colors: ['#65AEDD', '#366B9A'] };

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it, mock } from 'node:test';
-import type { LearningPreferences, MasteryDomainStats } from '../../models';
+import type { LearningPreferences, MasteryDomainStats, VocabularyItem } from '../../models';
 import { buildDateRange, formatDateKey, getGoalProgress } from '../../services/goals';
 import { buildCurriculumLearningPathStages, buildLearningPathStages } from '../../services/learningPath';
 import { getLevelProgressFromXp, masteryProgress } from '../../services/progress';
@@ -25,6 +25,7 @@ import { analyzeWritingText } from '../../services/writingJournal';
 import { buildAdaptiveDailyGoals, type DailyGoalProfile } from '../../services/dashboardData';
 import { calculateAptitudeMetrics } from '../../services/aptitudeAssessment';
 import { N5_KANJI_LEARNING_ORDER, getKanjiLearningPosition, sortByKanjiLearningOrder } from '../../data/kanjiLearningOrder';
+import { VOCABULARY_BROWSE_THEMES, getVocabularyBrowseTheme, getVocabularyMnemonic } from '../../services/vocabularyThemes';
 
 const preferences: LearningPreferences = {
   showRomaji: true,
@@ -36,6 +37,19 @@ const preferences: LearningPreferences = {
   audioEnabled: true,
 };
 
+function vocabularyItem(overrides: Partial<VocabularyItem>): VocabularyItem {
+  return {
+    id: 'test-vocabulary',
+    japanese: 'ことば',
+    kana: 'ことば',
+    kanji: null,
+    romaji: 'kotoba',
+    meaning_fr: 'mot',
+    category: 'Vocabulaire général',
+    ...overrides,
+  };
+}
+
 describe('moteurs metier critiques', () => {
   it('ordonne et numerote les 80 kanji selon une progression pedagogique stable', () => {
     assert.equal(N5_KANJI_LEARNING_ORDER.length, 80);
@@ -44,6 +58,17 @@ describe('moteurs metier critiques', () => {
     assert.equal(getKanjiLearningPosition('一'), 1);
     assert.equal(getKanjiLearningPosition('白'), 80);
     assert.deepEqual(sortByKanjiLearningOrder(['学', '三', '一'], (item) => item), ['一', '三', '学']);
+  });
+
+  it('classe les mots dans des menus stables et fournit une mnemonique pour chacun', () => {
+    assert.equal(new Set(VOCABULARY_BROWSE_THEMES.map((theme) => theme.id)).size, VOCABULARY_BROWSE_THEMES.length);
+    assert.deepEqual(VOCABULARY_BROWSE_THEMES.map((theme) => theme.order), [...VOCABULARY_BROWSE_THEMES.map((_, index) => index + 1)]);
+    const numberWord = vocabularyItem({ japanese: '三', kana: 'さん', kanji: '三', meaning_fr: 'trois', theme: 'Nombres' });
+    const foodWord = vocabularyItem({ japanese: 'りんご', kana: 'りんご', meaning_fr: 'pomme', theme: 'Nourriture et boissons' });
+    assert.equal(getVocabularyBrowseTheme(numberWord).id, 'numbers');
+    assert.equal(getVocabularyBrowseTheme(foodWord).id, 'food');
+    assert.match(getVocabularyMnemonic(numberWord), /trois traits/u);
+    assert.match(getVocabularyMnemonic(foodWord), /りんご/u);
   });
 
   it('ne place pas la bonne reponse en premiere position dans un QCM', () => {
