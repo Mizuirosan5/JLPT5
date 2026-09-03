@@ -6,8 +6,8 @@ DATABASE = Path(__file__).resolve().parents[1] / "assets" / "database" / "jlpt_n
 MOJIBAKE = re.compile(r"(?:Ã[\x80-\xbf]|Â[\x80-\xbf]|â(?:€|€™))")
 
 
-def scalar(connection: sqlite3.Connection, query: str) -> int | str:
-    return connection.execute(query).fetchone()[0]
+def scalar(connection: sqlite3.Connection, query: str, parameters: tuple[object, ...] = ()) -> int | str:
+    return connection.execute(query, parameters).fetchone()[0]
 
 
 def require(condition: bool, message: str) -> None:
@@ -29,6 +29,14 @@ try:
     require(scalar(connection, "SELECT COUNT(*) FROM (SELECT question_id, lower(trim(choice_text)) value FROM app_generated_choice GROUP BY question_id, value HAVING COUNT(*) > 1)") == 0, "Duplicate choices within a question")
     require(scalar(connection, "SELECT COUNT(*) FROM canonical_vocabulary WHERE trim(coalesce(meaning_fr, '')) = ''") == 0, "Vocabulary items with blank meanings")
     require(scalar(connection, "SELECT COUNT(*) FROM canonical_vocabulary WHERE trim(coalesce(romaji, '')) = ''") == 0, "Vocabulary items with blank romaji")
+    require(scalar(connection, "SELECT COUNT(*) FROM canonical_vocabulary WHERE theme LIKE 'Mots essentiels : %'") >= 63, "Core N5 function vocabulary is incomplete")
+    require(scalar(connection, "SELECT COUNT(DISTINCT theme) FROM canonical_vocabulary WHERE theme LIKE 'Mots essentiels : %'") == 6, "Core N5 function groups are incomplete")
+    require(scalar(connection, "SELECT COUNT(*) FROM canonical_vocabulary WHERE theme LIKE 'Mots essentiels : %' AND romaji GLOB '*[ぁ-ヿ一-龯]*'") == 0, "Japanese characters found in core vocabulary romaji")
+    for required_word in ('私', '私たち', 'これ', 'どこ', '何人', '何曜日'):
+        require(
+            scalar(connection, "SELECT COUNT(*) FROM canonical_vocabulary WHERE theme LIKE 'Mots essentiels : %' AND japanese = ?", (required_word,)) >= 1,
+            f"Missing core N5 vocabulary item: {required_word}",
+        )
     require(scalar(connection, "SELECT COUNT(*) FROM canonical_vocabulary WHERE theme LIKE '%?%'") == 0, "Vocabulary themes with broken accents")
     require(scalar(connection, "SELECT COUNT(*) FROM (SELECT japanese, kana, meaning_fr FROM canonical_vocabulary GROUP BY japanese, kana, meaning_fr HAVING COUNT(*) > 1)") == 0, "Strict duplicate vocabulary items")
 

@@ -27,9 +27,10 @@
     "test:e2e": "npm run audit:mobile",
     "test:content": "node scripts/validate-content.mjs",
     "test:curriculum": "node --import ./scripts/register-typescript-test-loader.mjs scripts/audit-curriculum.ts",
+    "test:vocabulary": "node --import ./scripts/register-typescript-test-loader.mjs scripts/audit-n5-vocabulary.ts",
     "test:visuals": "node --import ./scripts/register-typescript-test-loader.mjs scripts/audit-vocabulary-visuals.ts",
     "test:aptitude": "node scripts/audit-aptitude.mjs",
-    "test:release": "npm run typecheck && npm run test:unit && npm run test:integration && npm run test:content && npm run test:curriculum && npm run test:visuals && npm run test:aptitude && npm run db:validate && npm run smoke && npm run export:web && npm run audio:check:strict"
+    "test:release": "npm run typecheck && npm run test:unit && npm run test:integration && npm run test:content && npm run test:curriculum && npm run test:vocabulary && npm run test:visuals && npm run test:aptitude && npm run db:validate && npm run smoke && npm run export:web && npm run audio:check:strict"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

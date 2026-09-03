@@ -1,5 +1,6 @@
 import { SQLiteDatabase, openDatabaseAsync } from 'expo-sqlite';
 import { CORE_AUDIO_PACK } from '../data/audioPack';
+import { CORE_N5_FUNCTION_VOCABULARY } from '../data/n5CoreVocabulary';
 import { DATABASE_NAME, LEGACY_DATABASE_NAME, SCHEMA_VERSION, USER_DATA_TABLES } from './databaseSchema';
 import { assertMigrationCounts, getCommonMigrationColumns } from './databaseMigration';
 
@@ -429,6 +430,57 @@ async function repairCanonicalVocabulary(db: SQLiteDatabase): Promise<void> {
     'Vêtements',
     'cvocab_b9a3fbd3d8cb89'
   );
+
+  for (const item of CORE_N5_FUNCTION_VOCABULARY) {
+    const exact = await db.getFirstAsync<{ id: string }>(
+      `SELECT id
+       FROM canonical_vocabulary
+       WHERE japanese = ? AND kana = ? AND meaning_fr = ?
+       ORDER BY importance DESC, source_count DESC, id
+       LIMIT 1`,
+      item.japanese,
+      item.kana,
+      item.meaningFr
+    );
+    const existing = exact ?? await db.getFirstAsync<{ id: string }>(
+      `SELECT id
+       FROM canonical_vocabulary
+       WHERE japanese = ? OR kana = ?
+       ORDER BY importance DESC, source_count DESC, id
+       LIMIT 1`,
+      item.japanese,
+      item.kana
+    );
+    const id = existing?.id ?? item.id;
+    await db.runAsync(
+      `INSERT INTO canonical_vocabulary (
+         id, japanese, kana, kanji, romaji, meaning_fr, part_of_speech, theme,
+         jlpt_level, difficulty, importance, confidence, source_count, needs_review, review_note, created_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'N5', 1, 5, 1, 2, 0, NULL, datetime('now'))
+       ON CONFLICT(id) DO UPDATE SET
+         japanese = excluded.japanese,
+         kana = excluded.kana,
+         kanji = excluded.kanji,
+         romaji = excluded.romaji,
+         meaning_fr = excluded.meaning_fr,
+         part_of_speech = excluded.part_of_speech,
+         theme = excluded.theme,
+         jlpt_level = 'N5',
+         difficulty = 1,
+         importance = 5,
+         confidence = 1,
+         needs_review = 0,
+         review_note = NULL`,
+      id,
+      item.japanese,
+      item.kana,
+      item.kanji,
+      item.romaji,
+      item.meaningFr,
+      item.partOfSpeech,
+      `Mots essentiels : ${item.group}`
+    );
+  }
 }
 
 export async function checkDatabaseIntegrity(db: SQLiteDatabase): Promise<void> {

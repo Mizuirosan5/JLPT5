@@ -1,4 +1,5 @@
 import type { VocabularyItem } from '../models';
+import { CORE_N5_FUNCTION_VOCABULARY } from '../data/n5CoreVocabulary';
 
 export type VocabularyBrowseTheme = {
   id: string;
@@ -18,30 +19,36 @@ export type VocabularyBrowseSubtheme = {
 export const VOCABULARY_BROWSE_THEMES: VocabularyBrowseTheme[] = [
   { id: 'numbers', label: 'Nombres et compteurs', icon: '数', description: 'Compter, donner un prix, une heure ou une quantité.', order: 1 },
   { id: 'time', label: 'Temps et calendrier', icon: '時', description: 'Jours, mois, dates, heures et fréquence.', order: 2 },
-  { id: 'people', label: 'Personnes et famille', icon: '人', description: 'Famille, relations, métiers et présentation.', order: 3 },
-  { id: 'food', label: 'Nourriture et boissons', icon: '食', description: 'Repas, aliments, boissons et restaurant.', order: 4 },
-  { id: 'home', label: 'Maison et quotidien', icon: '家', description: 'Maison, routine et objets de tous les jours.', order: 5 },
-  { id: 'school', label: 'École et étude', icon: '学', description: 'Classe, apprentissage, langue et matériel scolaire.', order: 6 },
-  { id: 'travel', label: 'Lieux et déplacements', icon: '道', description: 'Villes, directions, transports et trajets.', order: 7 },
-  { id: 'body', label: 'Corps et santé', icon: '体', description: 'Parties du corps, état physique et soins courants.', order: 8 },
-  { id: 'nature', label: 'Nature et météo', icon: '天', description: 'Météo, saisons, animaux et environnement.', order: 9 },
-  { id: 'shopping', label: 'Achats et argent', icon: '買', description: 'Magasins, prix, argent et achats simples.', order: 10 },
-  { id: 'descriptions', label: 'Descriptions et émotions', icon: '色', description: 'Couleurs, tailles, qualités, goûts et sentiments.', order: 11 },
-  { id: 'actions', label: 'Actions et verbes', icon: '動', description: 'Actions essentielles et activités du quotidien.', order: 12 },
-  { id: 'expressions', label: 'Expressions utiles', icon: '話', description: 'Salutations, réponses et formules de conversation.', order: 13 },
-  { id: 'objects', label: 'Objets et technologie', icon: '物', description: 'Objets, vêtements, outils et appareils courants.', order: 14 },
-  { id: 'general', label: 'Vocabulaire général', icon: '語', description: 'Autres mots indispensables du niveau N5.', order: 15 },
+  { id: 'function-words', label: 'Pronoms et questions', icon: '問', description: 'Se désigner, montrer, situer et demander une information.', order: 3 },
+  { id: 'people', label: 'Personnes et famille', icon: '人', description: 'Famille, relations, métiers, pays et langues.', order: 4 },
+  { id: 'food', label: 'Nourriture et boissons', icon: '食', description: 'Repas, aliments, boissons et restaurant.', order: 5 },
+  { id: 'home', label: 'Maison et quotidien', icon: '家', description: 'Maison, routine et objets de tous les jours.', order: 6 },
+  { id: 'school', label: 'École et étude', icon: '学', description: 'Classe, apprentissage, langue et matériel scolaire.', order: 7 },
+  { id: 'travel', label: 'Lieux et déplacements', icon: '道', description: 'Villes, directions, transports et trajets.', order: 8 },
+  { id: 'body', label: 'Corps et santé', icon: '体', description: 'Parties du corps, état physique et soins courants.', order: 9 },
+  { id: 'nature', label: 'Nature et météo', icon: '天', description: 'Météo, saisons, animaux et environnement.', order: 10 },
+  { id: 'shopping', label: 'Achats et argent', icon: '買', description: 'Magasins, prix, argent et achats simples.', order: 11 },
+  { id: 'descriptions', label: 'Descriptions et émotions', icon: '色', description: 'Couleurs, tailles, qualités, goûts et sentiments.', order: 12 },
+  { id: 'actions', label: 'Actions et verbes', icon: '動', description: 'Actions essentielles et activités du quotidien.', order: 13 },
+  { id: 'leisure', label: 'Loisirs et culture', icon: '楽', description: 'Sports, musique, sorties, fêtes et centres d’intérêt.', order: 14 },
+  { id: 'expressions', label: 'Expressions utiles', icon: '話', description: 'Salutations, réponses et formules de conversation.', order: 15 },
+  { id: 'objects', label: 'Objets et technologie', icon: '物', description: 'Objets, vêtements, outils et appareils courants.', order: 16 },
+  { id: 'general', label: 'Vocabulaire général', icon: '語', description: 'Autres mots indispensables du niveau N5.', order: 17 },
 ];
 
 const THEMES_BY_ID = new Map(VOCABULARY_BROWSE_THEMES.map((theme) => [theme.id, theme]));
+const CORE_FUNCTION_WORDS = new Set(
+  CORE_N5_FUNCTION_VOCABULARY.flatMap((entry) => [entry.japanese, entry.kana]),
+);
 
 export function getVocabularyBrowseTheme(item: VocabularyItem): VocabularyBrowseTheme {
   const content = normalize(`${item.meaning_fr} ${item.japanese} ${item.kana ?? ''} ${item.kanji ?? ''}`);
   const source = normalize(`${item.theme ?? ''} ${item.category ?? ''} ${item.part_of_speech ?? ''}`);
   const reading = (item.kana || item.japanese || '').normalize('NFKC');
 
+  if (CORE_FUNCTION_WORDS.has(item.japanese) || CORE_FUNCTION_WORDS.has(item.kana || '') || matches(source, /mots essentiels/)) return theme('function-words');
   if (matches(content, /nourriture|boisson|repas|petit dejeuner|dejeuner|diner|manger|boire|restaurant|aliment|riz|pain|viande|poisson|fruit|legume|pomme|orange|banane|oeuf|sel|sucre|the|cafe|lait|jus/)) return theme('food');
-  if (matches(content, /famille|personne|pere|mere|frere|soeur|parent|enfant|ami|homme|femme|adulte|metier|monsieur|madame/)) return theme('people');
+  if (matches(content, /famille|personne|pere|mere|frere|soeur|parent|enfant|ami|homme|femme|adulte|metier|monsieur|madame|pays|nationalite|langue|france|japon|chine|coree/)) return theme('people');
   if (matches(content, /corps|sante|maladie|douleur|medecin|hopital|tete|visage|main|pied|jambe|oeil|oreille|douche|bain/)) return theme('body');
   if (matches(content, /heure|jour|mois|annee|semaine|matin|soir|midi|minuit|minute|date|calendrier|hier|demain|aujourd|saison|janvier|fevrier|mars|avril|mai|juin|juillet|aout|septembre|octobre|novembre|decembre/)) return theme('time');
   if (matches(content, /compteur|quantite|ordinal|chiffre|combien|\bfois\b|\bzero\b|\bun\b|\bdeux\b|\btrois\b|\bquatre\b|\bcinq\b|\bsix\b|\bsept\b|\bhuit\b|\bneuf\b|\bdix\b|\bcent\b|\bmille\b/)) return theme('numbers');
@@ -51,6 +58,7 @@ export function getVocabularyBrowseTheme(item: VocabularyItem): VocabularyBrowse
   if (matches(content, /argent|achat|magasin|prix|acheter|vendre|couter|yen/)) return theme('shopping');
   if (matches(content, /maison|menage|lessive|quotidien|routine|chambre|cuisine|toilettes|salle|porte|fenetre|jardin/)) return theme('home');
   if (matches(content, /couleur|rouge|bleu|blanc|noir|marron|adjectif|emotion|sentiment|grand|petit|chaud|froid|beau|joli|bon|mauvais|rapide|lent|fort|faible|leger|lourd|epais|fin|calme/)) return theme('descriptions');
+  if (matches(content, /loisir|sport|football|tennis|natation|musique|cinema|film|photo|lecture|manga|jeu|fete|festival|concert|danse|voyage|promenade/)) return theme('leisure');
   if (matches(content, /objet|technologie|vetement|jupe|pull|chaussure|pantalon|outil|appareil|ordinateur|telephone|montre|horloge|cle|ticket|timbre|savon|carte|guitare/)) return theme('objects');
   if (matches(content, /bonjour|bonsoir|merci|pardon|excuse|bien sur|qui\b|quoi|quand|comment|quel|ou\b|ici|ceci|cela|ce genre|et puis|ensuite/)) return theme('expressions');
   if (/ます(?:た|ん(?:でした)?)?$/u.test(reading) || matches(source, /\bverbe\b|verbes actions/) || matches(content, /^(se |s'|etre |avoir |aller|venir|entrer|sortir|faire|prendre|donner|montrer|finir|ecrire|lire|ecouter|chanter|jouer|habiter|arriver|quitter|ouvrir|fermer|aimer)/)) return theme('actions');
@@ -68,6 +76,12 @@ export function getVocabularyBrowseSubtheme(item: VocabularyItem, themeId: strin
   const text = `${content} ${source}`;
 
   switch (themeId) {
+    case 'function-words':
+      if (matches(text, /pronoms|pronom personnel/)) return subtheme('pronouns', 'Pronoms personnels', 'Dire je, tu, il, elle ou nous sans surutiliser les pronoms.', 1);
+      if (matches(text, /demonstratif/)) return subtheme('demonstratives', 'Séries こ・そ・あ・ど', 'Montrer une chose, une personne ou un lieu selon la distance.', 2);
+      if (matches(text, /questions|interrogatif/)) return subtheme('question-words', 'Mots interrogatifs', 'Demander qui, quoi, où, quand, comment ou combien.', 3);
+      if (matches(text, /position/)) return subtheme('position', 'Position et repères', 'Situer précisément une chose dans l’espace.', 4);
+      return subtheme('linking-words', 'Fréquence et liaison', 'Nuancer la fréquence et relier des idées simples.', 5);
     case 'numbers':
       if (matches(text, /compteur|fois|quantite|ordinal|age|etage|personne|objet long|objet plat/)) return subtheme('counters', 'Compteurs et quantités', 'Choisir le bon compteur selon ce que l’on compte.', 2);
       if (matches(text, /prix|argent|yen|couter|combien/)) return subtheme('prices', 'Prix et mesures', 'Donner un prix, une mesure ou une quantité.', 3);
@@ -79,7 +93,8 @@ export function getVocabularyBrowseSubtheme(item: VocabularyItem, themeId: strin
     case 'people':
       if (matches(text, /famille|pere|mere|frere|soeur|parent|enfant/)) return subtheme('family', 'Famille', 'Nommer les proches et les liens familiaux.', 1);
       if (matches(text, /metier|professeur|enseignant|medecin|etudiant|eleve/)) return subtheme('roles', 'Métiers et rôles', 'Présenter une activité ou un rôle social.', 2);
-      return subtheme('relations', 'Personnes et relations', 'Parler des autres et des relations courantes.', 3);
+      if (matches(text, /pays|nationalite|langue|france|japon|chine|coree/)) return subtheme('countries-languages', 'Pays et langues', 'Dire son origine, sa nationalité et les langues parlées.', 3);
+      return subtheme('relations', 'Personnes et relations', 'Parler des autres et des relations courantes.', 4);
     case 'food':
       if (matches(text, /boisson|boire|eau|the|cafe|lait|jus/)) return subtheme('drinks', 'Boissons', 'Commander et reconnaître les boissons courantes.', 2);
       if (matches(text, /restaurant|repas|petit dejeuner|dejeuner|diner/)) return subtheme('meals', 'Repas et restaurant', 'Manger, commander et parler d’un repas.', 3);
@@ -114,6 +129,11 @@ export function getVocabularyBrowseSubtheme(item: VocabularyItem, themeId: strin
       if (matches(text, /aller|venir|entrer|sortir|arriver|quitter|marcher|courir/)) return subtheme('movement', 'Mouvement', 'Décrire un déplacement ou un changement de lieu.', 1);
       if (matches(text, /parler|dire|demander|repondre|ecouter|lire|ecrire|montrer/)) return subtheme('communication', 'Communication', 'Comprendre et produire des actions de communication.', 2);
       return subtheme('daily-actions', 'Actions quotidiennes', 'Employer les verbes essentiels de tous les jours.', 3);
+    case 'leisure':
+      if (matches(text, /sport|football|tennis|natation|courir/)) return subtheme('sports', 'Sports', 'Parler des sports pratiqués ou regardés.', 1);
+      if (matches(text, /musique|concert|chanter|danse/)) return subtheme('music', 'Musique et arts', 'Parler de musique, d’art et de pratiques créatives.', 2);
+      if (matches(text, /fete|festival|evenement/)) return subtheme('events', 'Fêtes et événements', 'Comprendre et décrire une sortie ou une fête.', 4);
+      return subtheme('hobbies', 'Loisirs et sorties', 'Présenter ses goûts et ses activités pendant le temps libre.', 3);
     case 'expressions':
       if (matches(text, /bonjour|bonsoir|merci|pardon|excuse|salut/)) return subtheme('greetings', 'Saluer et remercier', 'Utiliser les formules sociales essentielles.', 1);
       if (matches(text, /qui\b|quoi|quand|comment|quel|combien|pourquoi/)) return subtheme('question-words', 'Mots interrogatifs', 'Poser une question simple et précise.', 2);

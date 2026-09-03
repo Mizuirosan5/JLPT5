@@ -321,6 +321,10 @@ function getVocabularyTopicCode(
   importance: number | null | undefined,
   reading: string,
 ): CurriculumCode {
+  if (/mots essentiels : (pronouns|demonstratives)/.test(text)) return '3C';
+  if (/mots essentiels : questions/.test(text)) return '4C';
+  if (/mots essentiels : (position|frequency)/.test(text)) return '5A';
+  if (/mots essentiels : connectors/.test(text)) return '6A';
   if (/(salutation|formule|bonjour|merci|pardon)/.test(text)) return '1A';
   if (/(nombre|compteur|chiffre)/.test(text)) return '4A';
   if (/(temps|calendrier|date|heure|saison)/.test(text)) return '4B';

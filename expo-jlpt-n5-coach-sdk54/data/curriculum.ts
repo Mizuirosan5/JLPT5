@@ -31,7 +31,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
   unit('1A', 'Premiers sons', 'Reconnaître et prononcer les cinq voyelles hiragana.', ['kana'], 5, 10, 80),
   unit('1B', 'Lignes K, S et T', 'Lire les lignes K, S et T et distinguer leurs syllabes proches.', ['kana'], 12),
   unit('1C', 'Hiragana usuels', 'Lire les lignes N, H, M et Y et enchaîner plusieurs kana connus.', ['kana'], 14),
-  unit('2A', 'Hiragana complets', 'Lire tous les hiragana de base dans de courtes séquences contrôlées.', ['kana', 'grammar'], 12),
+  unit('2A', 'Hiragana complets', 'Lire tous les hiragana de base dans de courtes séquences contrôlées.', ['kana', 'grammar'], 10),
   unit('2B', 'Sons voisés', 'Reconnaître les sons voisés et exprimer une action polie au présent.', ['kana', 'grammar'], 16),
   unit('2C', 'Sons combinés', 'Lire les petits kana et les sons combinés dans un mot entièrement déchiffrable.', ['kana', 'grammar'], 18),
   unit('3A', 'Katakana essentiels', 'Lire les premières lignes katakana et identifier sujet, objet et lieu dans une phrase.', ['kana', 'grammar'], 18),

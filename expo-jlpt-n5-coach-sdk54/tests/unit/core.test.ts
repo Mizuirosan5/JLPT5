@@ -27,6 +27,7 @@ import { getJapaneseSpeechText } from '../../services/audioText';
 import { calculateAptitudeMetrics } from '../../services/aptitudeAssessment';
 import { N5_KANJI_LEARNING_ORDER, getKanjiLearningPosition, sortByKanjiLearningOrder } from '../../data/kanjiLearningOrder';
 import { VOCABULARY_BROWSE_THEMES, getVocabularyBrowseSubtheme, getVocabularyBrowseTheme, getVocabularyMnemonic } from '../../services/vocabularyThemes';
+import { CORE_N5_FUNCTION_GROUPS, CORE_N5_FUNCTION_VOCABULARY } from '../../data/n5CoreVocabulary';
 
 const preferences: LearningPreferences = {
   showRomaji: true,
@@ -77,6 +78,19 @@ describe('moteurs metier critiques', () => {
     const clock = vocabularyItem({ japanese: '九時', kana: 'くじ', kanji: '九時', meaning_fr: 'neuf heures' });
     assert.equal(getVocabularyBrowseSubtheme(counter, 'numbers').id, 'counters');
     assert.equal(getVocabularyBrowseSubtheme(clock, 'time').id, 'clock');
+  });
+
+  it('couvre les pronoms, demonstratifs et interrogatifs essentiels du N5', () => {
+    assert.equal(CORE_N5_FUNCTION_VOCABULARY.length, 63);
+    assert.equal(CORE_N5_FUNCTION_GROUPS.size, 6);
+    const byRomaji = new Map(CORE_N5_FUNCTION_VOCABULARY.map((item) => [item.romaji, item]));
+    for (const required of ['watashi', 'watashitachi', 'kore', 'doko', 'nannin', 'nanyoubi']) {
+      assert.ok(byRomaji.has(required), `${required} doit rester dans le socle N5`);
+    }
+    assert.ok(CORE_N5_FUNCTION_VOCABULARY.every((item) => !/[\u3040-\u30ff\u3400-\u9fff]/u.test(item.romaji)));
+    const question = vocabularyItem({ ...byRomaji.get('doko'), meaning_fr: 'où ?', theme: 'Mots essentiels : questions' });
+    assert.equal(getVocabularyBrowseTheme(question).id, 'function-words');
+    assert.equal(getVocabularyBrowseSubtheme(question, 'function-words').id, 'question-words');
   });
 
   it('separe les particules des formes verbales dans la bibliotheque de grammaire', () => {

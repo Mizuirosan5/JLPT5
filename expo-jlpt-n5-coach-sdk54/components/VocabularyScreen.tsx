@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Modal, PanResponder, Pressable, SafeAreaView, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -47,6 +47,7 @@ const ANTONYM_THEME: VocabularyBrowseTheme = {
 
 export function VocabularyScreen() {
   const db = useSQLiteContext();
+  const contentScrollRef = useRef<ScrollView>(null);
   const [items, setItems] = useState<VocabularyItem[]>([]);
   const [query, setQuery] = useState('');
   const [scope, setScope] = useState<VocabularyScope>('n5');
@@ -142,7 +143,7 @@ export function VocabularyScreen() {
 
   const usesVocabularySubthemes = !!selectedThemeGroup
     && selectedThemeGroup.theme.id !== ANTONYM_THEME.id
-    && selectedThemeGroup.words.length > 72
+    && (selectedThemeGroup.words.length > 24 || selectedThemeGroup.theme.id === 'function-words')
     && vocabularySubthemeGroups.length > 1;
   const selectedSubthemeGroup = useMemo(
     () => vocabularySubthemeGroups.find(({ subtheme }) => subtheme.id === selectedVocabularySubtheme) ?? null,
@@ -222,8 +223,12 @@ export function VocabularyScreen() {
     await updateVocabularyCardFlag(db, id, flag, nextValue);
   };
 
+  const resetContentScroll = () => {
+    requestAnimationFrame(() => contentScrollRef.current?.scrollTo({ y: 0, animated: false }));
+  };
+
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+    <ScrollView contentContainerStyle={styles.content} ref={contentScrollRef}>
       <View style={styles.grammarHero}>
         <View style={styles.grammarHeroText}>
           <Text style={styles.grammarKicker}>語彙 N5</Text>
@@ -256,6 +261,7 @@ export function VocabularyScreen() {
                   setCardFilter('all');
                   setViewMode('cards');
                   setQuery('');
+                  resetContentScroll();
                 }}
                 style={styles.vocabularyThemeCard}
               >
@@ -276,6 +282,7 @@ export function VocabularyScreen() {
               setSelectedVocabularyTheme(ANTONYM_THEME.id);
               setSelectedVocabularySubtheme(null);
               setViewMode('antonyms');
+              resetContentScroll();
             }}
             style={styles.vocabularySpecialMenu}
           >
@@ -297,6 +304,7 @@ export function VocabularyScreen() {
                 onPress={() => {
                   setSelectedVocabularyTheme(null);
                   setSelectedVocabularySubtheme(null);
+                  resetContentScroll();
                 }}
                 style={styles.vocabularyThemeBackButton}
               >
@@ -318,6 +326,7 @@ export function VocabularyScreen() {
                         setSelectedVocabularySubtheme(subtheme.id);
                         setCardFilter('all');
                         setQuery('');
+                        resetContentScroll();
                       }}
                       style={styles.vocabularySubthemeCard}
                     >
@@ -343,6 +352,7 @@ export function VocabularyScreen() {
                   if (usesVocabularySubthemes) setSelectedVocabularySubtheme(null);
                   else setSelectedVocabularyTheme(null);
                   setQuery('');
+                  resetContentScroll();
                 }}
                 style={styles.vocabularyThemeBackButton}
               >
