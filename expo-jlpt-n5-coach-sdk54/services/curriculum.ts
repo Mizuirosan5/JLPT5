@@ -1,5 +1,5 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
-import { isCuratedVocabularyLearningItem } from './vocabularyLearning';
+import { isJlptN5ExamVocabularyItem } from './vocabularyLearning';
 import type { GrammarLesson, KanaCard, KanjiItem, VocabularyExample, VocabularyItem } from '../models';
 import {
   CURRICULUM_CODES,
@@ -113,8 +113,7 @@ export function getVocabularyCurriculumPlacement(
     .filter(Boolean)
     .reduce<CurriculumCode>((latest, code) => laterCode(latest, code as CurriculumCode), topicCode);
   const hasUnsupportedWriting = kanaRequirement === null || kanjiRequirement === null;
-  const isHandCurated = isCuratedVocabularyLearningItem(item);
-  const isCore = !hasUnsupportedWriting && ((item.importance ?? 3) >= 5 || isHandCurated);
+  const isCore = !hasUnsupportedWriting && isJlptN5ExamVocabularyItem({ ...item, jlpt_level: 'N5' });
   return {
     code: hasUnsupportedWriting ? '10C' : dependencyCode,
     track: isCore ? 'guided' : 'reference',

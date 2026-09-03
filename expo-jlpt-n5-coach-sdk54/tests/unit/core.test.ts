@@ -18,7 +18,7 @@ import { toJapaneseNumber, toJapaneseQuantity } from '../../services/practice';
 import { buildMasteryView, deriveMasteryStatus, summarizeMastery } from '../../services/mastery';
 import { chooseNextLearningAction } from '../../services/nextLearningAction';
 import { getKanjiForRadical, getPrimaryRadical, validateKanjiRadicalCoverage } from '../../data/kanjiRadicals';
-import { getVocabularyLearningMeta } from '../../services/vocabularyLearning';
+import { getVocabularyLearningMeta, isJlptN5ExamVocabularyItem } from '../../services/vocabularyLearning';
 import { buildGrammarQuizQuestions } from '../../services/grammarQuizFactory';
 import { buildGlobalQuizQuestions } from '../../services/globalQuizFactory';
 import { analyzeWritingText } from '../../services/writingJournal';
@@ -38,6 +38,18 @@ const preferences: LearningPreferences = {
   learningPlanMode: 'balanced',
   audioEnabled: true,
 };
+
+describe('périmètre du vocabulaire JLPT N5', () => {
+  it('écarte les mots de référence et les niveaux supérieurs', () => {
+    const essential = vocabularyItem({ japanese: '食べる', kana: 'たべる', importance: 5, jlpt_level: 'N5' });
+    const reference = vocabularyItem({ japanese: '抽象', kana: 'ちゅうしょう', importance: 3, jlpt_level: 'N5' });
+    const higherLevel = vocabularyItem({ japanese: '経験', kana: 'けいけん', importance: 5, jlpt_level: 'N4' });
+
+    assert.equal(isJlptN5ExamVocabularyItem(essential), true);
+    assert.equal(isJlptN5ExamVocabularyItem(reference), false);
+    assert.equal(isJlptN5ExamVocabularyItem(higherLevel), false);
+  });
+});
 
 function vocabularyItem(overrides: Partial<VocabularyItem>): VocabularyItem {
   return {

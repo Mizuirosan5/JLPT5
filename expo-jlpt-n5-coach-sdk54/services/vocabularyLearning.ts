@@ -39,8 +39,16 @@ export function isCuratedVocabularyLearningItem(item: Pick<VocabularyItem, 'kana
   return !!CURATED_VOCABULARY_EXAMPLES[normalizeVocabularyKey(item.kana || item.japanese)];
 }
 
+/** Keep the exam deck aligned with the guided syllabus, not the larger dictionary. */
+export function isJlptN5ExamVocabularyItem(
+  item: Pick<VocabularyItem, 'jlpt_level' | 'importance' | 'kana' | 'japanese'>,
+): boolean {
+  return (item.jlpt_level ?? 'N5') === 'N5'
+    && ((item.importance ?? 3) >= 5 || isCuratedVocabularyLearningItem(item));
+}
+
 export function auditTaughtVocabulary(items: VocabularyItem[]) {
-  const taught = items.filter((item) => (item.importance ?? 3) >= 5 || isCuratedVocabularyLearningItem(item));
+  const taught = items.filter(isJlptN5ExamVocabularyItem);
   const withoutExample = taught.filter((item) => !getVocabularyLearningMeta(item).example);
   const corrupted = taught.filter((item) => {
     const text = `${item.japanese}${item.kana}${item.meaning_fr}${item.theme ?? ''}`;

@@ -24,7 +24,7 @@ import { SegmentButton } from './formControls';
 import { OfflineAudioButton } from './OfflineAudioButton';
 import { KANJI_READING_CARDS } from '../data/kanjiReadingCards';
 import { getMasteryColorToken, loadMasteryMap, masteryKey, type MasteryView } from '../services/mastery';
-import { getVocabularyLearningMeta, type VocabularyAttribute } from '../services/vocabularyLearning';
+import { getVocabularyLearningMeta, isJlptN5ExamVocabularyItem, type VocabularyAttribute } from '../services/vocabularyLearning';
 import { VOCABULARY_ANTONYM_PAIRS } from '../data/vocabularyAntonyms';
 import { shuffle } from '../services/random';
 import {
@@ -100,7 +100,7 @@ export function VocabularyScreen() {
   }, [db, items]);
 
   const scopedItems = useMemo(() => {
-    const source = scope === 'all' ? items : items.filter((item) => (item.jlpt_level ?? 'N5') === 'N5');
+    const source = scope === 'all' ? items : items.filter(isJlptN5ExamVocabularyItem);
     return curateVocabularyLearningItems(source);
   }, [items, scope]);
 
@@ -231,7 +231,7 @@ export function VocabularyScreen() {
     <ScrollView contentContainerStyle={styles.content} ref={contentScrollRef}>
       <View style={styles.grammarHero}>
         <View style={styles.grammarHeroText}>
-          <Text style={styles.grammarKicker}>語彙 N5</Text>
+          <Text style={styles.grammarKicker}>{scope === 'n5' ? '語彙 N5' : '語彙 · 全集'}</Text>
           <Text style={styles.grammarTitle}>Vocabulaire</Text>
           <Text style={styles.grammarSubtitle}>
             Une image, un mot japonais et sa traduction pour mémoriser rapidement. Touche une carte pour découvrir sa lecture.
@@ -243,6 +243,12 @@ export function VocabularyScreen() {
         <SegmentButton label="JLPT N5" active={scope === 'n5'} onPress={() => setScope('n5')} />
         <SegmentButton label="Tout vocabulaire" active={scope === 'all'} onPress={() => setScope('all')} />
       </View>
+
+      <Text style={styles.quizConfigText}>
+        {scope === 'n5'
+          ? 'Sélection ciblée des mots essentiels à maîtriser pour le niveau et l’examen JLPT N5.'
+          : 'Catalogue complet : vocabulaire N5 et mots complémentaires de difficulté supérieure.'}
+      </Text>
 
       {!selectedThemeGroup ? (
         <Section title="Choisir un thème">
@@ -270,7 +276,11 @@ export function VocabularyScreen() {
                 </View>
                 <View style={styles.vocabularyThemeTextBlock}>
                   <Text numberOfLines={2} style={styles.vocabularyThemeTitle}>{theme.label}</Text>
-                  <Text numberOfLines={2} style={styles.vocabularyThemeDescription}>{theme.description}</Text>
+                  <Text numberOfLines={2} style={styles.vocabularyThemeDescription}>
+                    {scope === 'all' && theme.id === 'general'
+                      ? 'Autres mots et expressions du catalogue complet.'
+                      : theme.description}
+                  </Text>
                 </View>
                 <MaterialCommunityIcons color="#C83543" name="chevron-right" size={24} />
               </Pressable>
