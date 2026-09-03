@@ -20,7 +20,7 @@ import { detectOfflineAudio, speakJapanese as speakOfflineJapanese, stopOfflineA
 import { loadMasteryMap, masteryKey, summarizeMastery, type MasteryView } from '../services/mastery';
 import { DomainProgressHeader } from './DomainProgressHeader';
 import { playAnswerFeedback } from '../services/feedbackAudio';
-import { playEmbeddedAudioText } from '../services/embeddedAudio';
+import { playEmbeddedAudioText, stopEmbeddedAudioAsset } from '../services/embeddedAudio';
 import type {
   KanaCard,
   KanaDisplayStyle,
@@ -379,6 +379,7 @@ export function KanaScreen() {
 
   const speakKanaCard = (card: KanaCard) => {
     stopOfflineAudio();
+    stopEmbeddedAudioAsset();
     playEmbeddedAudioText(card.character, true)
       .then((played) => {
         if (!played) speakJapanese(buildKanaSpeechText(card), true);

@@ -1,4 +1,7 @@
 import * as Speech from 'expo-speech';
+import { getJapaneseSpeechText } from './audioText';
+
+let speechStopTimer: ReturnType<typeof setTimeout> | null = null;
 
 export type OfflineAudioState = {
   available: boolean;
@@ -19,18 +22,31 @@ export async function detectOfflineAudio(): Promise<OfflineAudioState> {
 }
 
 export function speakJapanese(text: string, audio: OfflineAudioState, slow = false): boolean {
-  const value = text.trim();
+  const value = getJapaneseSpeechText(text);
   if (!value || !audio.available) return false;
-  Speech.stop();
+  stopOfflineAudio();
+  const clearTimer = () => {
+    if (speechStopTimer) clearTimeout(speechStopTimer);
+    speechStopTimer = null;
+  };
   Speech.speak(value, {
     language: 'ja-JP',
     voice: audio.japaneseVoiceId ?? undefined,
-    rate: slow ? 0.62 : 0.74,
+    rate: slow ? 0.76 : 0.88,
     pitch: 1,
+    onDone: clearTimer,
+    onError: clearTimer,
+    onStopped: clearTimer,
   });
+  speechStopTimer = setTimeout(() => {
+    speechStopTimer = null;
+    Speech.stop();
+  }, 12_000);
   return true;
 }
 
 export function stopOfflineAudio() {
+  if (speechStopTimer) clearTimeout(speechStopTimer);
+  speechStopTimer = null;
   Speech.stop();
 }

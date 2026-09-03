@@ -77,6 +77,8 @@ export function AudioQuizScreen({ vocabularyLookupEntries, onNavigate, curriculu
 
   const playCurrentAudio = useCallback(() => {
     if (!currentQuestion || !audioEnabled) return;
+    stopOfflineAudio();
+    stopEmbeddedAudioAsset();
     playEmbeddedAudioAsset(currentQuestion.item.id, true)
       .then((playedEmbedded) => {
         if (!playedEmbedded) speakJapanese(currentQuestion.item.japanese || currentQuestion.item.kana, audio, true);

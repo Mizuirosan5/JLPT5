@@ -23,6 +23,7 @@ import { buildGrammarQuizQuestions } from '../../services/grammarQuizFactory';
 import { buildGlobalQuizQuestions } from '../../services/globalQuizFactory';
 import { analyzeWritingText } from '../../services/writingJournal';
 import { buildAdaptiveDailyGoals, type DailyGoalProfile } from '../../services/dashboardData';
+import { getJapaneseSpeechText } from '../../services/audioText';
 import { calculateAptitudeMetrics } from '../../services/aptitudeAssessment';
 import { N5_KANJI_LEARNING_ORDER, getKanjiLearningPosition, sortByKanjiLearningOrder } from '../../data/kanjiLearningOrder';
 import { VOCABULARY_BROWSE_THEMES, getVocabularyBrowseSubtheme, getVocabularyBrowseTheme, getVocabularyMnemonic } from '../../services/vocabularyThemes';
@@ -83,6 +84,11 @@ describe('moteurs metier critiques', () => {
     assert.ok(particleTitles.includes('は : annoncer le sujet'));
     assert.ok(!particleTitles.includes('ませんでした : passé négatif'));
     assert.ok(!particleTitles.includes('できる / 食べられる'));
+  });
+
+  it('borne la lecture vocale locale a une phrase courte', () => {
+    assert.equal(getJapaneseSpeechText(`これは本です。${'次の長い文章'.repeat(12)}`), 'これは本です。');
+    assert.equal(getJapaneseSpeechText('あ'.repeat(100)).length, 64);
   });
 
   it('ne place pas la bonne reponse en premiere position dans un QCM', () => {
