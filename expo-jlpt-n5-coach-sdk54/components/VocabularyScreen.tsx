@@ -19,19 +19,20 @@ import {
 } from '../services/vocabulary';
 import { DEFAULT_LEARNING_PREFERENCES, loadLearningPreferences } from '../services/preferences';
 import type { KanjiDetail } from '../services/kanjiComponents';
-import { EmptyState, Metric, Section } from './sharedUi';
+import { EmptyState, Section } from './sharedUi';
 import { SegmentButton } from './formControls';
 import { OfflineAudioButton } from './OfflineAudioButton';
 import { KANJI_READING_CARDS } from '../data/kanjiReadingCards';
-import { getMasteryColorToken, loadMasteryMap, masteryKey, summarizeMastery, type MasteryView } from '../services/mastery';
+import { getMasteryColorToken, loadMasteryMap, masteryKey, type MasteryView } from '../services/mastery';
 import { getVocabularyLearningMeta, type VocabularyAttribute } from '../services/vocabularyLearning';
-import { DomainProgressHeader } from './DomainProgressHeader';
 import { VOCABULARY_ANTONYM_PAIRS } from '../data/vocabularyAntonyms';
 import { shuffle } from '../services/random';
 import {
   getVocabularyBrowseTheme,
+  getVocabularyBrowseSubtheme,
   getVocabularyMnemonic,
   type VocabularyBrowseTheme,
+  type VocabularyBrowseSubtheme,
 } from '../services/vocabularyThemes';
 
 type VocabularyCardFilter = 'learn' | 'review' | 'known' | 'all' | 'favorites';
@@ -48,12 +49,11 @@ export function VocabularyScreen() {
   const db = useSQLiteContext();
   const [items, setItems] = useState<VocabularyItem[]>([]);
   const [query, setQuery] = useState('');
-  const [totalCount, setTotalCount] = useState(0);
-  const [n5Count, setN5Count] = useState(0);
   const [scope, setScope] = useState<VocabularyScope>('n5');
   const [viewMode, setViewMode] = useState<VocabularyViewMode>('cards');
   const [flippedIds, setFlippedIds] = useState<Set<string>>(new Set());
   const [selectedVocabularyTheme, setSelectedVocabularyTheme] = useState<string | null>(null);
+  const [selectedVocabularySubtheme, setSelectedVocabularySubtheme] = useState<string | null>(null);
   const [cardFilter, setCardFilter] = useState<VocabularyCardFilter>('learn');
   const [cardStates, setCardStates] = useState<Record<string, VocabularyCardState>>({});
   const [masteryById, setMasteryById] = useState<Record<string, MasteryView>>({});
@@ -64,10 +64,8 @@ export function VocabularyScreen() {
   useEffect(() => {
     let mounted = true;
     Promise.all([loadVocabularyItems(db), loadVocabularyCardStates(db), loadLearningPreferences(db)])
-      .then(([{ rows, total, n5 }, stateRows, loadedPreferences]) => {
+      .then(([{ rows }, stateRows, loadedPreferences]) => {
         if (!mounted) return;
-        setTotalCount(total);
-        setN5Count(n5);
         setItems(rows.map((row) => ({ ...row, category: getVocabularyCategory(row) })));
         setCardStates(indexVocabularyCardStates(stateRows));
         setPreferences(loadedPreferences);
@@ -75,7 +73,6 @@ export function VocabularyScreen() {
       .catch((error) => {
         console.error('Unable to load vocabulary', error);
         if (mounted) {
-        setTotalCount(0);
         setItems([]);
         setCardStates({});
       }
@@ -119,6 +116,7 @@ export function VocabularyScreen() {
 
   useEffect(() => {
     setSelectedVocabularyTheme(null);
+    setSelectedVocabularySubtheme(null);
     setQuery('');
     setViewMode('cards');
   }, [scope]);
@@ -130,9 +128,31 @@ export function VocabularyScreen() {
     [scopedItems, selectedVocabularyTheme, vocabularyThemeGroups],
   );
 
-  const genericThemeItems = useMemo(() => {
-    return selectedThemeGroup?.words ?? [];
+  const vocabularySubthemeGroups = useMemo(() => {
+    if (!selectedThemeGroup || selectedThemeGroup.theme.id === ANTONYM_THEME.id) return [];
+    const groups = new Map<string, { subtheme: VocabularyBrowseSubtheme; words: VocabularyItem[] }>();
+    selectedThemeGroup.words.forEach((item) => {
+      const subtheme = getVocabularyBrowseSubtheme(item, selectedThemeGroup.theme.id);
+      const group = groups.get(subtheme.id) ?? { subtheme, words: [] };
+      group.words.push(item);
+      groups.set(subtheme.id, group);
+    });
+    return Array.from(groups.values()).sort((a, b) => a.subtheme.order - b.subtheme.order);
   }, [selectedThemeGroup]);
+
+  const usesVocabularySubthemes = !!selectedThemeGroup
+    && selectedThemeGroup.theme.id !== ANTONYM_THEME.id
+    && selectedThemeGroup.words.length > 72
+    && vocabularySubthemeGroups.length > 1;
+  const selectedSubthemeGroup = useMemo(
+    () => vocabularySubthemeGroups.find(({ subtheme }) => subtheme.id === selectedVocabularySubtheme) ?? null,
+    [selectedVocabularySubtheme, vocabularySubthemeGroups],
+  );
+
+  const genericThemeItems = useMemo(() => {
+    if (usesVocabularySubthemes) return selectedSubthemeGroup?.words ?? [];
+    return selectedThemeGroup?.words ?? [];
+  }, [selectedSubthemeGroup, selectedThemeGroup, usesVocabularySubthemes]);
 
   const filteredItems = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -165,25 +185,9 @@ export function VocabularyScreen() {
     [learningIntentItems]
   );
 
-  const smartCardStats = useMemo(() => {
-    const statsItems = selectedThemeGroup?.words ?? scopedItems;
-    const allCardIds = statsItems.map((item) => item.id);
-    const flags = allCardIds.reduce(
-      (acc, id) => {
-        const state = cardStates[id];
-        if (state?.favorite) acc.favorites += 1;
-        if (state?.review) acc.review += 1;
-        return acc;
-      },
-      { total: allCardIds.length, favorites: 0, review: 0 }
-    );
-    const mastery = summarizeMastery(allCardIds.map((id) => masteryById[id]).filter((item): item is MasteryView => !!item));
-    return { ...flags, ...mastery, review: Math.max(flags.review, mastery.review) };
-  }, [cardStates, masteryById, scopedItems, selectedThemeGroup]);
-
   useEffect(() => {
     setCardPage(0);
-  }, [scope, viewMode, query, cardFilter, selectedVocabularyTheme]);
+  }, [scope, viewMode, query, cardFilter, selectedVocabularyTheme, selectedVocabularySubtheme]);
 
   const visibleGenericDeckItems = useMemo(
     () => genericDeckItems.slice(cardPage * CARD_PAGE_SIZE, (cardPage + 1) * CARD_PAGE_SIZE),
@@ -228,29 +232,7 @@ export function VocabularyScreen() {
             Une image, un mot japonais et sa traduction pour mémoriser rapidement. Touche une carte pour découvrir sa lecture.
           </Text>
         </View>
-        <View style={styles.grammarHeroBadge}>
-          <Text style={styles.grammarHeroBadgeValue}>{scope === 'n5' ? n5Count : totalCount}</Text>
-          <Text style={styles.grammarHeroBadgeText}>mots</Text>
-        </View>
       </View>
-
-      <DomainProgressHeader
-        label="Progression Vocabulaire"
-        mastered={smartCardStats.mastered}
-        total={smartCardStats.total}
-        review={smartCardStats.review}
-        attempts={Object.values(masteryById).reduce((sum, item) => sum + item.attempts, 0)}
-        recommendation={smartCardStats.review ? 'Reprendre les mots dus avant d’en découvrir de nouveaux.' : 'Découvrir le prochain lot de mots N5.'}
-        actionLabel={smartCardStats.review ? 'Revoir' : 'Apprendre'}
-        onContinue={() => {
-          const target = smartCardStats.review
-            ? vocabularyThemeGroups.find(({ words }) => words.some((item) => cardStates[item.id]?.review || masteryById[item.id]?.status === 'review'))
-            : vocabularyThemeGroups[0];
-          setSelectedVocabularyTheme(target?.theme.id ?? vocabularyThemeGroups[0]?.theme.id ?? null);
-          setViewMode('cards');
-          setCardFilter(smartCardStats.review ? 'review' : 'learn');
-        }}
-      />
 
       <View style={styles.segmented}>
         <SegmentButton label="JLPT N5" active={scope === 'n5'} onPress={() => setScope('n5')} />
@@ -263,13 +245,14 @@ export function VocabularyScreen() {
             Ouvre un dossier pour retrouver tous ses mots, leurs illustrations et leurs moyens mnémotechniques.
           </Text>
           <View style={styles.vocabularyThemeGrid}>
-            {vocabularyThemeGroups.map(({ theme, words }) => (
+            {vocabularyThemeGroups.map(({ theme }) => (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`Ouvrir ${theme.label}, ${words.length} mots`}
+                accessibilityLabel={`Ouvrir le thème ${theme.label}`}
                 key={theme.id}
                 onPress={() => {
                   setSelectedVocabularyTheme(theme.id);
+                  setSelectedVocabularySubtheme(null);
                   setCardFilter('all');
                   setViewMode('cards');
                   setQuery('');
@@ -282,7 +265,6 @@ export function VocabularyScreen() {
                 <View style={styles.vocabularyThemeTextBlock}>
                   <Text numberOfLines={2} style={styles.vocabularyThemeTitle}>{theme.label}</Text>
                   <Text numberOfLines={2} style={styles.vocabularyThemeDescription}>{theme.description}</Text>
-                  <Text style={styles.vocabularyThemeCount}>{words.length} mots</Text>
                 </View>
                 <MaterialCommunityIcons color="#C83543" name="chevron-right" size={24} />
               </Pressable>
@@ -292,6 +274,7 @@ export function VocabularyScreen() {
             accessibilityRole="button"
             onPress={() => {
               setSelectedVocabularyTheme(ANTONYM_THEME.id);
+              setSelectedVocabularySubtheme(null);
               setViewMode('antonyms');
             }}
             style={styles.vocabularySpecialMenu}
@@ -306,135 +289,181 @@ export function VocabularyScreen() {
         </Section>
       ) : (
         <>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Revenir aux thèmes de vocabulaire"
-        onPress={() => {
-          setSelectedVocabularyTheme(null);
-          setQuery('');
-        }}
-        style={styles.vocabularyThemeBackButton}
-      >
-        <MaterialCommunityIcons color="#152B3A" name="arrow-left" size={22} />
-        <View style={styles.vocabularyThemeBackCopy}>
-          <Text style={styles.vocabularyThemeBackLabel}>Tous les thèmes</Text>
-          <Text style={styles.vocabularyThemeBackTitle}>{selectedThemeGroup.theme.icon} {selectedThemeGroup.theme.label}</Text>
-        </View>
-      </Pressable>
-
-      <View style={styles.segmented}>
-        <SegmentButton label="Flashcards" active={viewMode === 'cards'} onPress={() => setViewMode('cards')} />
-        <SegmentButton label="Liste" active={viewMode === 'list'} onPress={() => setViewMode('list')} />
-        <SegmentButton label="Contraires" active={viewMode === 'antonyms'} onPress={() => setViewMode('antonyms')} />
-      </View>
-
-      <View style={styles.segmented}>
-        <SegmentButton label={`À apprendre ${smartCardStats.new + smartCardStats.learning}`} active={cardFilter === 'learn'} onPress={() => setCardFilter('learn')} />
-        <SegmentButton label={`À revoir ${smartCardStats.review}`} active={cardFilter === 'review'} onPress={() => setCardFilter('review')} />
-        <SegmentButton label={`Connus ${smartCardStats.known + smartCardStats.mastered}`} active={cardFilter === 'known'} onPress={() => setCardFilter('known')} />
-      </View>
-      <View style={styles.segmented}>
-        <SegmentButton label={`Tout voir ${smartCardStats.total}`} active={cardFilter === 'all'} onPress={() => setCardFilter('all')} />
-        <SegmentButton label={`Favoris ${smartCardStats.favorites}`} active={cardFilter === 'favorites'} onPress={() => setCardFilter('favorites')} />
-      </View>
-
-      <View style={styles.grammarStatsRow}>
-        <Metric label="En base" value={totalCount} />
-        <Metric label="N5" value={n5Count} />
-        <Metric label="Affichés" value={filteredItems.length} />
-      </View>
-
-      <Section title={`Recherche · ${selectedThemeGroup.theme.label}`}>
-        <TextInput
-          value={query}
-          onChangeText={setQuery}
-          autoCapitalize="none"
-          autoCorrect={false}
-          placeholder="Rechercher japonais, kana, romaji ou français"
-          style={styles.vocabularySearchInput}
-        />
-      </Section>
-
-      {viewMode === 'antonyms' ? (
-        <VocabularyAntonymPractice />
-      ) : groupedItems.length === 0 ? (
-        <EmptyState title="Aucun mot trouvé" />
-      ) : viewMode === 'cards' ? (
-        <Section title={`Flashcards · ${selectedThemeGroup.theme.label}`}>
-          <Text style={styles.quizConfigText}>
-            Chaque carte associe une image, le mot japonais et sa traduction. Touche-la pour afficher sa lecture et ses détails.
-          </Text>
-          <View style={styles.vocabularyDeckGrid}>
-            {visibleGenericDeckItems.map((item, index) => (
-                  <VocabularySmartCardShell
-                    key={item.id}
-                    favorite={!!cardStates[item.id]?.favorite}
-                    review={!!cardStates[item.id]?.review}
-                    seenCount={cardStates[item.id]?.seen_count ?? 0}
-                    mastery={masteryById[item.id]}
-                    onOpenDetail={() => setDetailItem(item)}
-                    onToggleFavorite={() => toggleCardFlag(item.id, 'favorite')}
-                    onToggleReview={() => toggleCardFlag(item.id, 'review')}
-                    audioText={item.kanji || item.japanese}
-                  >
-                    <GenericVocabularyFlashCard
-                      item={item}
-                      index={cardPage * CARD_PAGE_SIZE + index}
-                      flipped={flippedIds.has(item.id)}
-                      showRomaji={preferences.showRomaji}
-                      onPress={() => toggleVocabularyCard(item.id)}
-                    />
-                  </VocabularySmartCardShell>
-                ))}
-          </View>
-          {cardPageCount > 1 && (
-            <View style={styles.segmented}>
+          {usesVocabularySubthemes && !selectedSubthemeGroup ? (
+            <>
               <Pressable
-                accessibilityLabel="Page de cartes précédente"
                 accessibilityRole="button"
-                accessibilityState={{ disabled: cardPage === 0 }}
-                disabled={cardPage === 0}
-                style={[styles.segmentButton, cardPage === 0 && styles.primaryButtonDisabled]}
-                onPress={() => setCardPage((page) => Math.max(0, page - 1))}
+                accessibilityLabel="Revenir aux thèmes de vocabulaire"
+                onPress={() => {
+                  setSelectedVocabularyTheme(null);
+                  setSelectedVocabularySubtheme(null);
+                }}
+                style={styles.vocabularyThemeBackButton}
               >
-                <Text style={styles.segmentText}>Précédent</Text>
-              </Pressable>
-              <View style={styles.segmentButton}>
-                <Text style={styles.segmentText}>{cardPage + 1}/{cardPageCount}</Text>
-              </View>
-              <Pressable
-                accessibilityLabel="Page de cartes suivante"
-                accessibilityRole="button"
-                accessibilityState={{ disabled: cardPage >= cardPageCount - 1 }}
-                disabled={cardPage >= cardPageCount - 1}
-                style={[styles.segmentButton, cardPage >= cardPageCount - 1 && styles.primaryButtonDisabled]}
-                onPress={() => setCardPage((page) => Math.min(cardPageCount - 1, page + 1))}
-              >
-                <Text style={styles.segmentText}>Suivant</Text>
-              </Pressable>
-            </View>
-          )}
-        </Section>
-      ) : (
-        groupedItems.map(([category, words]) => (
-          <Section key={category} title={category}>
-            <View style={styles.grammarLessonList}>
-              {words.slice(0, 40).map((item) => (
-                <View key={item.id} style={styles.grammarLessonRow}>
-                  <Text style={styles.grammarLessonNumber}>語</Text>
-                  <View style={styles.grammarLessonRowBody}>
-                    <Text style={styles.grammarLessonTitle}>{item.kanji || item.japanese}</Text>
-                    <Text style={styles.grammarLessonPattern}>
-                      {[item.kana, preferences.showRomaji ? item.romaji : null].filter(Boolean).join(' / ')}
-                    </Text>
-                    <Text style={styles.quizConfigText}>{item.meaning_fr}</Text>
-                  </View>
+                <MaterialCommunityIcons color="#152B3A" name="arrow-left" size={22} />
+                <View style={styles.vocabularyThemeBackCopy}>
+                  <Text style={styles.vocabularyThemeBackLabel}>Tous les thèmes</Text>
+                  <Text style={styles.vocabularyThemeBackTitle}>{selectedThemeGroup.theme.icon} {selectedThemeGroup.theme.label}</Text>
                 </View>
-              ))}
-            </View>
-          </Section>
-        ))
-      )}
+              </Pressable>
+              <Section title="Choisir un sous-thème">
+                <Text style={styles.quizConfigText}>Avance par petits ensembles cohérents, selon ce que tu souhaites travailler maintenant.</Text>
+                <View style={styles.vocabularyThemeGrid}>
+                  {vocabularySubthemeGroups.map(({ subtheme }) => (
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={`Ouvrir ${subtheme.label}`}
+                      key={subtheme.id}
+                      onPress={() => {
+                        setSelectedVocabularySubtheme(subtheme.id);
+                        setCardFilter('all');
+                        setQuery('');
+                      }}
+                      style={styles.vocabularySubthemeCard}
+                    >
+                      <View style={styles.vocabularySubthemeIconBox}>
+                        <MaterialCommunityIcons color="#C83543" name="folder-outline" size={28} />
+                      </View>
+                      <View style={styles.vocabularyThemeTextBlock}>
+                        <Text style={styles.vocabularyThemeTitle}>{subtheme.label}</Text>
+                        <Text style={styles.vocabularyThemeDescription}>{subtheme.description}</Text>
+                      </View>
+                      <MaterialCommunityIcons color="#C83543" name="chevron-right" size={24} />
+                    </Pressable>
+                  ))}
+                </View>
+              </Section>
+            </>
+          ) : (
+            <>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={usesVocabularySubthemes ? 'Revenir aux sous-thèmes' : 'Revenir aux thèmes de vocabulaire'}
+                onPress={() => {
+                  if (usesVocabularySubthemes) setSelectedVocabularySubtheme(null);
+                  else setSelectedVocabularyTheme(null);
+                  setQuery('');
+                }}
+                style={styles.vocabularyThemeBackButton}
+              >
+                <MaterialCommunityIcons color="#152B3A" name="arrow-left" size={22} />
+                <View style={styles.vocabularyThemeBackCopy}>
+                  <Text style={styles.vocabularyThemeBackLabel}>{usesVocabularySubthemes ? selectedThemeGroup.theme.label : 'Tous les thèmes'}</Text>
+                  <Text style={styles.vocabularyThemeBackTitle}>
+                    {selectedSubthemeGroup?.subtheme.label ?? `${selectedThemeGroup.theme.icon} ${selectedThemeGroup.theme.label}`}
+                  </Text>
+                </View>
+              </Pressable>
+
+              <View style={styles.segmented}>
+                <SegmentButton label="Flashcards" active={viewMode === 'cards'} onPress={() => setViewMode('cards')} />
+                <SegmentButton label="Liste" active={viewMode === 'list'} onPress={() => setViewMode('list')} />
+                <SegmentButton label="Contraires" active={viewMode === 'antonyms'} onPress={() => setViewMode('antonyms')} />
+              </View>
+
+              <View style={styles.segmented}>
+                <SegmentButton label="À apprendre" active={cardFilter === 'learn'} onPress={() => setCardFilter('learn')} />
+                <SegmentButton label="À revoir" active={cardFilter === 'review'} onPress={() => setCardFilter('review')} />
+                <SegmentButton label="Connus" active={cardFilter === 'known'} onPress={() => setCardFilter('known')} />
+              </View>
+              <View style={styles.segmented}>
+                <SegmentButton label="Tout voir" active={cardFilter === 'all'} onPress={() => setCardFilter('all')} />
+                <SegmentButton label="Favoris" active={cardFilter === 'favorites'} onPress={() => setCardFilter('favorites')} />
+              </View>
+
+              <Section title="Rechercher dans ce thème">
+                <TextInput
+                  value={query}
+                  onChangeText={setQuery}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  placeholder="Japonais, kana, romaji ou français"
+                  style={styles.vocabularySearchInput}
+                />
+              </Section>
+
+              {viewMode === 'antonyms' ? (
+                <VocabularyAntonymPractice />
+              ) : groupedItems.length === 0 ? (
+                <EmptyState title="Aucun mot dans cette sélection" />
+              ) : viewMode === 'cards' ? (
+                <Section title={selectedSubthemeGroup?.subtheme.label ?? selectedThemeGroup.theme.label}>
+                  <Text style={styles.quizConfigText}>
+                    Une image, le mot japonais et sa traduction. Touche la carte pour voir sa lecture et son moyen mnémotechnique.
+                  </Text>
+                  <View style={styles.vocabularyDeckGrid}>
+                    {visibleGenericDeckItems.map((item, index) => (
+                      <VocabularySmartCardShell
+                        key={item.id}
+                        favorite={!!cardStates[item.id]?.favorite}
+                        review={!!cardStates[item.id]?.review}
+                        seenCount={cardStates[item.id]?.seen_count ?? 0}
+                        mastery={masteryById[item.id]}
+                        onOpenDetail={() => setDetailItem(item)}
+                        onToggleFavorite={() => toggleCardFlag(item.id, 'favorite')}
+                        onToggleReview={() => toggleCardFlag(item.id, 'review')}
+                        audioText={item.kanji || item.japanese}
+                      >
+                        <GenericVocabularyFlashCard
+                          item={item}
+                          index={cardPage * CARD_PAGE_SIZE + index}
+                          flipped={flippedIds.has(item.id)}
+                          showRomaji={preferences.showRomaji}
+                          onPress={() => toggleVocabularyCard(item.id)}
+                        />
+                      </VocabularySmartCardShell>
+                    ))}
+                  </View>
+                  {cardPageCount > 1 && (
+                    <View style={styles.segmented}>
+                      <Pressable
+                        accessibilityLabel="Page de cartes précédente"
+                        accessibilityRole="button"
+                        accessibilityState={{ disabled: cardPage === 0 }}
+                        disabled={cardPage === 0}
+                        style={[styles.segmentButton, cardPage === 0 && styles.primaryButtonDisabled]}
+                        onPress={() => setCardPage((page) => Math.max(0, page - 1))}
+                      >
+                        <Text style={styles.segmentText}>Précédent</Text>
+                      </Pressable>
+                      <View style={styles.segmentButton}>
+                        <Text style={styles.segmentText}>Page {cardPage + 1}</Text>
+                      </View>
+                      <Pressable
+                        accessibilityLabel="Page de cartes suivante"
+                        accessibilityRole="button"
+                        accessibilityState={{ disabled: cardPage >= cardPageCount - 1 }}
+                        disabled={cardPage >= cardPageCount - 1}
+                        style={[styles.segmentButton, cardPage >= cardPageCount - 1 && styles.primaryButtonDisabled]}
+                        onPress={() => setCardPage((page) => Math.min(cardPageCount - 1, page + 1))}
+                      >
+                        <Text style={styles.segmentText}>Suivant</Text>
+                      </Pressable>
+                    </View>
+                  )}
+                </Section>
+              ) : (
+                groupedItems.map(([category, words]) => (
+                  <Section key={category} title={category}>
+                    <View style={styles.grammarLessonList}>
+                      {words.slice(0, 40).map((item) => (
+                        <View key={item.id} style={styles.grammarLessonRow}>
+                          <Text style={styles.grammarLessonNumber}>語</Text>
+                          <View style={styles.grammarLessonRowBody}>
+                            <Text style={styles.grammarLessonTitle}>{item.kanji || item.japanese}</Text>
+                            <Text style={styles.grammarLessonPattern}>
+                              {[item.kana, preferences.showRomaji ? item.romaji : null].filter(Boolean).join(' / ')}
+                            </Text>
+                            <Text style={styles.quizConfigText}>{item.meaning_fr}</Text>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </Section>
+                ))
+              )}
+            </>
+          )}
         </>
       )}
       <VocabularyLearningDetailModal item={detailItem} onClose={() => setDetailItem(null)} />

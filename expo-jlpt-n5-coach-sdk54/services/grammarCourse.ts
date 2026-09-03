@@ -61,7 +61,50 @@ function normalizeGrammarLessonForTeacherCourse(lesson: GrammarLesson): GrammarL
   };
 }
 
+const TEACHER_GRAMMAR_PLACEMENTS: Array<{
+  orders: number[];
+  folder: string;
+  subfolder: string;
+}> = [
+  { orders: [37, 38, 40, 100, 111], folder: '01. Fondations JLPT N5', subfolder: 'Comprendre la langue' },
+  { orders: [2, 12, 41], folder: '03. Phrase et questions', subfolder: 'Construire une phrase simple' },
+  { orders: [1, 4, 5, 6, 7, 8, 9, 10, 11, 28, 29, 39], folder: '02. Particules', subfolder: 'Particules essentielles' },
+  { orders: [92], folder: '02. Particules', subfolder: 'Nuances de fin de phrase' },
+  { orders: [106, 132, 133], folder: '02. Particules', subfolder: 'Nuances et limites' },
+  { orders: [13, 14, 42], folder: '03. Phrase et questions', subfolder: 'Désigner et présenter' },
+  { orders: [3, 43, 44, 126, 127, 128, 129, 130, 131, 147], folder: '03. Phrase et questions', subfolder: 'Poser une question' },
+  { orders: [45, 47], folder: '04. Temps, nombres et adverbes', subfolder: 'Nombres, quantités et compteurs' },
+  { orders: [48, 49, 50, 107, 108, 110], folder: '04. Temps, nombres et adverbes', subfolder: 'Calendrier et heure' },
+  { orders: [46, 109, 134, 136], folder: '04. Temps, nombres et adverbes', subfolder: 'Fréquence, durée et manière' },
+  { orders: [15, 16, 17, 18, 30, 31, 86, 140], folder: '05. Verbes et formes', subfolder: 'Présent, passé et politesse' },
+  { orders: [22, 23, 59, 76, 141], folder: '05. Verbes et formes', subfolder: 'Forme en て et enchaînements' },
+  { orders: [51, 54, 55, 56, 62, 87, 137, 138, 139], folder: '05. Verbes et formes', subfolder: 'Conjuguer les verbes N5' },
+  { orders: [52, 53, 63, 64], folder: '05. Verbes et formes', subfolder: 'Déplacement et actions utiles' },
+  { orders: [57, 58, 60, 61, 88, 113], folder: '05. Verbes et formes', subfolder: 'Formes à reconnaître progressivement' },
+  { orders: [19, 20, 21, 65, 142, 143], folder: '06. Adjectifs et descriptions', subfolder: 'Former les adjectifs' },
+  { orders: [25, 66, 112, 114], folder: '06. Adjectifs et descriptions', subfolder: 'Décrire et nuancer' },
+  { orders: [34, 35, 36, 145], folder: '06. Adjectifs et descriptions', subfolder: 'Comparer et conseiller' },
+  { orders: [67, 68, 105], folder: '07. Expressions utiles', subfolder: 'Politesse et vie quotidienne' },
+  { orders: [24, 70], folder: '07. Expressions utiles', subfolder: 'Désir et préférence' },
+  { orders: [71, 72, 73, 74, 75], folder: '07. Expressions utiles', subfolder: 'Permission, obligation et capacité' },
+  { orders: [26, 27, 78, 79], folder: '08. Connecteurs et logique', subfolder: 'Cause et opposition' },
+  { orders: [32, 33, 77, 135, 144, 146], folder: '08. Connecteurs et logique', subfolder: 'Ordre et chronologie' },
+  { orders: [80, 81, 82], folder: '08. Connecteurs et logique', subfolder: 'But, condition et opinion' },
+  { orders: [83, 84, 85, 118, 120], folder: '09. Lecture et phrases complexes', subfolder: 'Comprendre les phrases longues' },
+  { orders: [89, 90, 91, 93, 94, 119], folder: '10. Conversation et registres', subfolder: 'Politesse et naturel' },
+  { orders: [69], folder: '11. Lexique grammatical', subfolder: 'Mots utiles en phrase' },
+  { orders: [95, 96, 97, 98, 99, 125], folder: '12. Révision JLPT', subfolder: 'Méthode, corrections et niveaux' },
+];
+
+const TEACHER_GRAMMAR_PLACEMENT_BY_ORDER = new Map(
+  TEACHER_GRAMMAR_PLACEMENTS.flatMap(({ orders, folder, subfolder }) =>
+    orders.map((order) => [order, { folder, subfolder }] as const)
+  )
+);
+
 function getTeacherGrammarPlacement(lesson: GrammarLesson): { folder: string; subfolder: string } {
+  const curatedPlacement = TEACHER_GRAMMAR_PLACEMENT_BY_ORDER.get(lesson.order);
+  if (curatedPlacement) return curatedPlacement;
   const text = `${lesson.folder} ${lesson.subfolder} ${lesson.title} ${lesson.pattern}`.toLowerCase();
   const title = lesson.title;
 
@@ -445,9 +488,9 @@ export function getGrammarMainMenu(lesson: GrammarLesson): string {
   if (text.includes('02. particules')) return 'Particules';
   if (text.includes('03. phrase')) {
     if (
-      text.includes('question') ||
-      text.includes('identifier et demander') ||
-      /誰|何|どこ|いつ|どう|なぜ|いくら|いくつ|どれ|どの|どちら/.test(text)
+      detailText.includes('question') ||
+      detailText.includes('identifier et demander') ||
+      /誰|何|どこ|いつ|どう|なぜ|いくら|いくつ|どれ|どの|どちら/.test(detailText)
     ) {
       return 'Questions';
     }

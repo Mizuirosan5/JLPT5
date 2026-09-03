@@ -11,7 +11,7 @@ import { hasJapaneseText, normalizeAnswer } from '../../services/text';
 import { normalizeAptitudeReport } from '../../services/aptitudeTest';
 import { assertMigrationCounts, getCommonMigrationColumns } from '../../services/databaseMigration';
 import { filterGrammarForCurriculum, filterKanaForCurriculum, filterKanjiForCurriculum, getKanaCurriculumCode, getKanjiCurriculumCode, getVocabularyCurriculumPlacement, isCurriculumAccessible } from '../../services/curriculum';
-import { ALL_GRAMMAR_LESSONS } from '../../services/grammarCourse';
+import { ALL_GRAMMAR_LESSONS, getGrammarMainMenu } from '../../services/grammarCourse';
 import { curateVocabularyLearningItems, sanitizeRomaji } from '../../services/vocabulary';
 import { buildKanaExercise, buildKanaQuiz, getCombinedKanaExplanation } from '../../services/kanaQuizFactory';
 import { toJapaneseNumber, toJapaneseQuantity } from '../../services/practice';
@@ -25,7 +25,7 @@ import { analyzeWritingText } from '../../services/writingJournal';
 import { buildAdaptiveDailyGoals, type DailyGoalProfile } from '../../services/dashboardData';
 import { calculateAptitudeMetrics } from '../../services/aptitudeAssessment';
 import { N5_KANJI_LEARNING_ORDER, getKanjiLearningPosition, sortByKanjiLearningOrder } from '../../data/kanjiLearningOrder';
-import { VOCABULARY_BROWSE_THEMES, getVocabularyBrowseTheme, getVocabularyMnemonic } from '../../services/vocabularyThemes';
+import { VOCABULARY_BROWSE_THEMES, getVocabularyBrowseSubtheme, getVocabularyBrowseTheme, getVocabularyMnemonic } from '../../services/vocabularyThemes';
 
 const preferences: LearningPreferences = {
   showRomaji: true,
@@ -69,6 +69,20 @@ describe('moteurs metier critiques', () => {
     assert.equal(getVocabularyBrowseTheme(foodWord).id, 'food');
     assert.match(getVocabularyMnemonic(numberWord), /trois traits/u);
     assert.match(getVocabularyMnemonic(foodWord), /りんご/u);
+  });
+
+  it('decoupe les grands themes de vocabulaire en sous-themes pedagogiques', () => {
+    const counter = vocabularyItem({ japanese: '三人', kana: 'さんにん', kanji: '三人', meaning_fr: 'trois personnes, compteur de personnes' });
+    const clock = vocabularyItem({ japanese: '九時', kana: 'くじ', kanji: '九時', meaning_fr: 'neuf heures' });
+    assert.equal(getVocabularyBrowseSubtheme(counter, 'numbers').id, 'counters');
+    assert.equal(getVocabularyBrowseSubtheme(clock, 'time').id, 'clock');
+  });
+
+  it('separe les particules des formes verbales dans la bibliotheque de grammaire', () => {
+    const particleTitles = ALL_GRAMMAR_LESSONS.filter((lesson) => getGrammarMainMenu(lesson) === 'Particules').map((lesson) => lesson.title);
+    assert.ok(particleTitles.includes('は : annoncer le sujet'));
+    assert.ok(!particleTitles.includes('ませんでした : passé négatif'));
+    assert.ok(!particleTitles.includes('できる / 食べられる'));
   });
 
   it('ne place pas la bonne reponse en premiere position dans un QCM', () => {

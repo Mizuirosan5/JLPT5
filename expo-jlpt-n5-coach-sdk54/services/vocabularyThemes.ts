@@ -8,6 +8,13 @@ export type VocabularyBrowseTheme = {
   order: number;
 };
 
+export type VocabularyBrowseSubtheme = {
+  id: string;
+  label: string;
+  description: string;
+  order: number;
+};
+
 export const VOCABULARY_BROWSE_THEMES: VocabularyBrowseTheme[] = [
   { id: 'numbers', label: 'Nombres et compteurs', icon: '数', description: 'Compter, donner un prix, une heure ou une quantité.', order: 1 },
   { id: 'time', label: 'Temps et calendrier', icon: '時', description: 'Jours, mois, dates, heures et fréquence.', order: 2 },
@@ -55,6 +62,75 @@ export function getVocabularyBrowseTheme(item: VocabularyItem): VocabularyBrowse
   return theme('general');
 }
 
+export function getVocabularyBrowseSubtheme(item: VocabularyItem, themeId: string): VocabularyBrowseSubtheme {
+  const content = normalize(`${item.meaning_fr} ${item.japanese} ${item.kana ?? ''} ${item.kanji ?? ''}`);
+  const source = normalize(`${item.theme ?? ''} ${item.category ?? ''} ${item.part_of_speech ?? ''}`);
+  const text = `${content} ${source}`;
+
+  switch (themeId) {
+    case 'numbers':
+      if (matches(text, /compteur|fois|quantite|ordinal|age|etage|personne|objet long|objet plat/)) return subtheme('counters', 'Compteurs et quantités', 'Choisir le bon compteur selon ce que l’on compte.', 2);
+      if (matches(text, /prix|argent|yen|couter|combien/)) return subtheme('prices', 'Prix et mesures', 'Donner un prix, une mesure ou une quantité.', 3);
+      return subtheme('numbers', 'Nombres essentiels', 'Lire, reconnaître et employer les nombres.', 1);
+    case 'time':
+      if (matches(text, /heure|minute|midi|minuit|matin|soir/)) return subtheme('clock', 'Heures et moments', 'Dire l’heure et situer un moment de la journée.', 1);
+      if (matches(text, /jour|semaine|mois|annee|date|janvier|fevrier|mars|avril|mai|juin|juillet|aout|septembre|octobre|novembre|decembre/)) return subtheme('calendar', 'Jours et calendrier', 'Parler des jours, des mois et des dates.', 2);
+      return subtheme('frequency', 'Durée et fréquence', 'Exprimer avant, après, souvent ou pendant.', 3);
+    case 'people':
+      if (matches(text, /famille|pere|mere|frere|soeur|parent|enfant/)) return subtheme('family', 'Famille', 'Nommer les proches et les liens familiaux.', 1);
+      if (matches(text, /metier|professeur|enseignant|medecin|etudiant|eleve/)) return subtheme('roles', 'Métiers et rôles', 'Présenter une activité ou un rôle social.', 2);
+      return subtheme('relations', 'Personnes et relations', 'Parler des autres et des relations courantes.', 3);
+    case 'food':
+      if (matches(text, /boisson|boire|eau|the|cafe|lait|jus/)) return subtheme('drinks', 'Boissons', 'Commander et reconnaître les boissons courantes.', 2);
+      if (matches(text, /restaurant|repas|petit dejeuner|dejeuner|diner/)) return subtheme('meals', 'Repas et restaurant', 'Manger, commander et parler d’un repas.', 3);
+      return subtheme('food', 'Aliments', 'Reconnaître les aliments essentiels du quotidien.', 1);
+    case 'home':
+      if (matches(text, /chambre|cuisine|toilettes|salle|jardin|porte|fenetre/)) return subtheme('rooms', 'Pièces et espaces', 'Se repérer dans la maison.', 1);
+      if (matches(text, /menage|lessive|routine|douche|bain/)) return subtheme('routine', 'Vie quotidienne', 'Décrire les gestes et habitudes à la maison.', 3);
+      return subtheme('home-objects', 'Objets de la maison', 'Nommer les objets que l’on utilise chaque jour.', 2);
+    case 'school':
+      if (matches(text, /professeur|enseignant|etudiant|eleve|classe/)) return subtheme('school-people', 'Personnes et classe', 'Parler des personnes et des lieux d’étude.', 1);
+      if (matches(text, /langue|kanji|hiragana|katakana|etudier|apprendre/)) return subtheme('learning', 'Langue et apprentissage', 'Dire ce que l’on apprend et comment on étudie.', 3);
+      return subtheme('school-tools', 'Matériel scolaire', 'Reconnaître les objets utiles pour étudier.', 2);
+    case 'travel':
+      if (matches(text, /train|voiture|velo|taxi|metro|gare|transport/)) return subtheme('transport', 'Transports', 'Choisir et nommer les moyens de transport.', 1);
+      if (matches(text, /gauche|droite|nord|sud|est|ouest|direction|chemin|route/)) return subtheme('directions', 'Directions et repères', 'Comprendre un itinéraire simple.', 2);
+      return subtheme('places', 'Lieux et destinations', 'Nommer les lieux utiles et les destinations.', 3);
+    case 'body':
+      if (matches(text, /maladie|douleur|medecin|hopital|sante|soin/)) return subtheme('health', 'Santé et soins', 'Exprimer un état et comprendre les soins courants.', 2);
+      return subtheme('body', 'Le corps', 'Nommer les principales parties du corps.', 1);
+    case 'nature':
+      if (matches(text, /pluie|neige|vent|ciel|meteo|saison/)) return subtheme('weather', 'Météo et saisons', 'Décrire le temps et les saisons.', 1);
+      if (matches(text, /animal|poisson|oiseau|chien|chat/)) return subtheme('animals', 'Animaux', 'Reconnaître les animaux les plus courants.', 2);
+      return subtheme('landscape', 'Paysages et plantes', 'Parler du monde naturel qui nous entoure.', 3);
+    case 'shopping':
+      if (matches(text, /argent|prix|yen|couter|cher|bon marche/)) return subtheme('money', 'Prix et argent', 'Comprendre et annoncer un prix.', 1);
+      return subtheme('shopping', 'Magasins et achats', 'Demander, choisir, acheter ou vendre.', 2);
+    case 'descriptions':
+      if (matches(text, /couleur|rouge|bleu|blanc|noir|marron/)) return subtheme('colors', 'Couleurs', 'Décrire simplement la couleur d’une chose.', 1);
+      if (matches(text, /emotion|sentiment|heureux|triste|peur|calme/)) return subtheme('feelings', 'Émotions et états', 'Exprimer une sensation ou un état.', 3);
+      return subtheme('qualities', 'Qualités et apparence', 'Décrire la taille, l’aspect et les qualités.', 2);
+    case 'actions':
+      if (matches(text, /aller|venir|entrer|sortir|arriver|quitter|marcher|courir/)) return subtheme('movement', 'Mouvement', 'Décrire un déplacement ou un changement de lieu.', 1);
+      if (matches(text, /parler|dire|demander|repondre|ecouter|lire|ecrire|montrer/)) return subtheme('communication', 'Communication', 'Comprendre et produire des actions de communication.', 2);
+      return subtheme('daily-actions', 'Actions quotidiennes', 'Employer les verbes essentiels de tous les jours.', 3);
+    case 'expressions':
+      if (matches(text, /bonjour|bonsoir|merci|pardon|excuse|salut/)) return subtheme('greetings', 'Saluer et remercier', 'Utiliser les formules sociales essentielles.', 1);
+      if (matches(text, /qui\b|quoi|quand|comment|quel|combien|pourquoi/)) return subtheme('question-words', 'Mots interrogatifs', 'Poser une question simple et précise.', 2);
+      return subtheme('conversation', 'Conversation courante', 'Réagir et enchaîner dans un échange bref.', 3);
+    case 'objects':
+      if (matches(text, /vetement|jupe|pull|chaussure|pantalon/)) return subtheme('clothes', 'Vêtements', 'Nommer les vêtements du quotidien.', 1);
+      if (matches(text, /ordinateur|telephone|appareil|technologie|electricite/)) return subtheme('technology', 'Appareils et technologie', 'Reconnaître les appareils les plus utiles.', 2);
+      return subtheme('objects', 'Objets courants', 'Nommer les objets rencontrés chaque jour.', 3);
+    default:
+      if (matches(source, /verbe|action/)) return subtheme('extra-verbs', 'Verbes complémentaires', 'Élargir progressivement les actions que l’on sait exprimer.', 1);
+      if (matches(source, /adjectif|etat|emotion/)) return subtheme('extra-descriptions', 'États et descriptions', 'Nuancer une description simple.', 2);
+      if (matches(source, /grammaire|expression|interjection/) || matches(text, /adverbe|liaison|particule/)) return subtheme('tool-words', 'Mots outils', 'Relier, préciser et nuancer une phrase.', 3);
+      if (!/[\u4E00-\u9FFF]/u.test(item.kanji || item.japanese || '')) return subtheme('kana-words', 'Mots usuels en kana', 'Mémoriser les mots généralement écrits en kana.', 4);
+      return subtheme('kanji-words', 'Mots usuels avec kanji', 'Reconnaître les mots fréquents écrits avec des kanji.', 5);
+  }
+}
+
 const KANJI_MEMORY_HINTS: Record<string, string> = {
   一: 'un trait', 二: 'deux traits', 三: 'trois traits', 人: 'une personne', 日: 'le soleil ou le jour',
   月: 'la lune ou le mois', 火: 'le feu', 水: 'l’eau', 木: 'un arbre', 金: 'l’or ou l’argent', 土: 'la terre',
@@ -87,6 +163,10 @@ export function getVocabularyMnemonic(item: VocabularyItem): string {
 
 function theme(id: string): VocabularyBrowseTheme {
   return THEMES_BY_ID.get(id) ?? VOCABULARY_BROWSE_THEMES[VOCABULARY_BROWSE_THEMES.length - 1];
+}
+
+function subtheme(id: string, label: string, description: string, order: number): VocabularyBrowseSubtheme {
+  return { id, label, description, order };
 }
 
 function normalize(value: string): string {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { styles } from '../appStyles';
 import { SegmentButton } from './formControls';
 import { JapaneseLookupText, WordLookupPanel, useVocabularyLookupIndex } from './JapaneseLookup';
@@ -79,8 +80,8 @@ export function GrammarLessonsScreen() {
   );
   const [selectedFolder, setSelectedFolder] = useState<string>(folders[0] ?? 'Particules');
   const [selectedSubfolder, setSelectedSubfolder] = useState<string | null>(null);
+  const [grammarBrowseLevel, setGrammarBrowseLevel] = useState<'folders' | 'subfolders' | 'lessons'>('folders');
   const [grammarMode, setGrammarMode] = useState<GrammarMode>('learn');
-  const [memoryGrammarCount, setMemoryGrammarCount] = useState(0);
   const folderLessons = useMemo(
     () => curriculumLessons.filter((lesson) => getGrammarMainMenu(lesson) === selectedFolder).sort((a, b) => a.order - b.order),
     [curriculumLessons, selectedFolder]
@@ -111,29 +112,23 @@ export function GrammarLessonsScreen() {
   const selectedLesson =
     curriculumLessons.find((lesson) => lesson.id === selectedLessonId) ?? visibleLessons[0] ?? curriculumLessons[0];
   const selectedLessonStatus = lessonStatusById[selectedLesson.id] ?? 'neutral';
-  const currentFolderLessons = visibleLessons.length > 0 ? visibleLessons : folderLessons;
   const subfolders = Array.from(new Set(folderLessons.map((lesson) => lesson.subfolder)));
-  const easyCount = curriculumLessons.filter((lesson) => lesson.level === 'facile').length;
-  const advancedCount = curriculumLessons.filter((lesson) => lesson.level === 'avance').length;
 
   useEffect(() => {
     let mounted = true;
     Promise.all([
-      db.getFirstAsync<{ count: number }>(`SELECT COUNT(*) AS count FROM canonical_grammar WHERE jlpt_level = 'N5'`),
       loadGrammarProgressSummary(db, ALL_GRAMMAR_LESSONS, getGrammarMainMenu),
       loadGrammarLessonStatusById(db, ALL_GRAMMAR_LESSONS),
       loadCurriculumProfile(db),
     ])
-      .then(([row, progress, statuses, curriculum]) => {
+      .then(([progress, statuses, curriculum]) => {
         if (!mounted) return;
-        setMemoryGrammarCount(row?.count ?? 0);
         setGrammarProgress(progress);
         setLessonStatusById(statuses);
         setCurriculumCode(curriculum.currentCode);
       })
       .catch(() => {
         if (mounted) {
-          setMemoryGrammarCount(0);
           setGrammarProgress(emptyGrammarProgressSummary);
         }
       });
@@ -147,6 +142,7 @@ export function GrammarLessonsScreen() {
     const first = folderItems[0];
     setSelectedFolder(folder);
     setSelectedSubfolder(null);
+    setGrammarBrowseLevel('subfolders');
     setSelectedLessonId(first?.id ?? selectedLessonId);
     setOpenedLessonId(null);
     setRevealedRomajiExampleId(null);
@@ -156,9 +152,10 @@ export function GrammarLessonsScreen() {
     setSelectedWordLookupAnchorId(null);
   };
 
-  const selectSubfolder = (subfolder: string | null) => {
-    const scopedLessons = folderLessons.filter((lesson) => !subfolder || lesson.subfolder === subfolder);
+  const selectSubfolder = (subfolder: string) => {
+    const scopedLessons = folderLessons.filter((lesson) => lesson.subfolder === subfolder);
     setSelectedSubfolder(subfolder);
+    setGrammarBrowseLevel('lessons');
     setSelectedLessonId(scopedLessons[0]?.id ?? selectedLessonId);
     setOpenedLessonId(null);
     setRevealedRomajiExampleId(null);
@@ -886,112 +883,150 @@ export function GrammarLessonsScreen() {
           <Text style={styles.grammarKicker}>文法 N5</Text>
           <Text style={styles.grammarTitle}>Leçons de grammaire</Text>
           <Text style={styles.grammarSubtitle}>
-            Choisis un grand menu, puis un sous-menu, puis une leçon complète avec exemples et traduction au toucher.
+            Choisis un domaine, un sous-thème, puis travaille une règle avec son cours, ses exemples et ses exercices.
           </Text>
         </View>
-        <View style={styles.grammarHeroBadge}>
-          <Text style={styles.grammarHeroBadgeValue}>{curriculumLessons.length}</Text>
-          <Text style={styles.grammarHeroBadgeText}>leçons</Text>
-        </View>
       </View>
-
-      <DomainProgressHeader
-        label="Progression Grammaire"
-        mastered={grammarProgress.completed}
-        total={grammarProgress.total}
-        review={grammarProgress.exerciseAttempts >= 3 && grammarProgress.exerciseRate < 70 ? 1 : 0}
-        attempts={grammarProgress.exerciseAttempts}
-        recommendation={grammarProgress.exerciseAttempts >= 3 && grammarProgress.exerciseRate < 70 ? 'Revoir les points fragiles du menu actuel.' : 'Ouvrir la prochaine leçon conseillée.'}
-        actionLabel={grammarProgress.exerciseAttempts >= 3 && grammarProgress.exerciseRate < 70 ? 'Exercices' : 'Continuer'}
-        onContinue={() => grammarProgress.exerciseAttempts >= 3 && grammarProgress.exerciseRate < 70 ? setGrammarMode('exercise') : setOpenedLessonId(selectedLesson.id)}
-      />
 
       <View style={styles.segmented}>
         <SegmentButton label="Leçons" active onPress={() => setGrammarMode('learn')} />
         <SegmentButton label="Exercices" active={false} onPress={() => setGrammarMode('exercise')} />
       </View>
 
-      <View style={styles.grammarStatsRow}>
-        <Metric label="Ouvertes" value={`${grammarProgress.opened}/${grammarProgress.total}`} />
-        <Metric label="Comprises" value={grammarProgress.completed} />
-        <Metric label="Réussite" value={`${grammarProgress.exerciseRate}%`} />
-      </View>
-
-      <View style={styles.grammarMemoryCard}>
-        <Text style={styles.grammarMemoryTitle}>Base mémoire connectée</Text>
-        <Text style={styles.grammarMemoryText}>
-          {memoryGrammarCount} entrées de grammaire N5 disponibles dans SQLite. Les leçons ci-dessous sont regroupées,
-          clarifiées et classées en menus pédagogiques pour apprendre sans surcharge.
-        </Text>
-      </View>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.grammarFolderTabs}>
-        {folders.map((folder) => (
-          <Pressable
-            key={folder}
-            onPress={() => selectFolder(folder)}
-            style={[styles.grammarFolderButton, selectedFolder === folder && styles.grammarFolderButtonActive]}
-          >
-            <Text style={[styles.grammarFolderText, selectedFolder === folder && styles.grammarFolderTextActive]}>
-              {folder}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-
-      <Section title="Menu et sous-menu">
-        <View style={styles.grammarSubfolderList}>
-          <Pressable
-            onPress={() => selectSubfolder(null)}
-            style={[styles.grammarSubfolderPill, selectedSubfolder === null && styles.grammarSubfolderPillActive]}
-          >
-            <Text style={[styles.grammarSubfolderText, selectedSubfolder === null && styles.grammarSubfolderTextActive]}>
-              Tout le dossier
-            </Text>
-            <Text style={[styles.grammarSubfolderCount, selectedSubfolder === null && styles.grammarSubfolderTextActive]}>
-              {folderLessons.length}
-            </Text>
-          </Pressable>
-          {subfolders.map((subfolder) => {
-            const count = folderLessons.filter((lesson) => lesson.subfolder === subfolder).length;
-            return (
+      {grammarBrowseLevel === 'folders' ? (
+        <Section title="Choisir un domaine">
+          <Text style={styles.quizConfigText}>Chaque domaine rassemble des règles proches pour apprendre sans mélanger les notions.</Text>
+          <View style={styles.grammarBrowseGrid}>
+            {folders.map((folder) => (
               <Pressable
-                key={subfolder}
-                onPress={() => selectSubfolder(subfolder)}
-                style={[styles.grammarSubfolderPill, selectedSubfolder === subfolder && styles.grammarSubfolderPillActive]}
+                accessibilityRole="button"
+                accessibilityLabel={`Ouvrir le domaine ${folder}`}
+                key={folder}
+                onPress={() => selectFolder(folder)}
+                style={styles.grammarBrowseCard}
               >
-                <Text style={[styles.grammarSubfolderText, selectedSubfolder === subfolder && styles.grammarSubfolderTextActive]}>
-                  {subfolder}
-                </Text>
-                <Text style={[styles.grammarSubfolderCount, selectedSubfolder === subfolder && styles.grammarSubfolderTextActive]}>
-                  {count}
-                </Text>
+                <View style={styles.grammarBrowseIconBox}>
+                  <Text style={styles.grammarBrowseIcon}>{getGrammarMenuIcon(folder)}</Text>
+                </View>
+                <View style={styles.grammarLessonRowBody}>
+                  <Text style={styles.grammarBrowseTitle}>{folder}</Text>
+                  <Text style={styles.grammarBrowseDescription}>{getGrammarMenuDescription(folder)}</Text>
+                </View>
+                <MaterialCommunityIcons color="#C83543" name="chevron-right" size={24} />
               </Pressable>
-            );
-          })}
-        </View>
-        <View style={styles.grammarLessonList}>
-          {currentFolderLessons.map((lesson) => (
-            <Pressable
-              key={lesson.id}
-              onPress={() => selectLesson(lesson)}
-              style={[styles.grammarLessonRow, selectedLesson?.id === lesson.id && styles.grammarLessonRowActive]}
-            >
-              <Text style={styles.grammarLessonNumber}>{lesson.order}</Text>
-              <View style={styles.grammarLessonRowBody}>
-                <Text style={styles.grammarLessonTitle}>{lesson.title}</Text>
-                <Text style={styles.grammarLessonPattern}>{humanizeGrammarPattern(lesson)}</Text>
-              </View>
-              <Text style={[styles.grammarLevelPill, getGrammarLevelStyle(lesson.level)]}>
-                {formatGrammarLevel(lesson.level)}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      </Section>
+            ))}
+          </View>
+        </Section>
+      ) : grammarBrowseLevel === 'subfolders' ? (
+        <>
+          <GrammarBrowseBack label="Tous les domaines" title={`${getGrammarMenuIcon(selectedFolder)} ${selectedFolder}`} onPress={() => setGrammarBrowseLevel('folders')} />
+          <Section title="Choisir un sous-thème">
+            <Text style={styles.quizConfigText}>Sélectionne la notion que tu veux comprendre ou consolider.</Text>
+            <View style={styles.grammarBrowseGrid}>
+              {subfolders.map((subfolder) => (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Ouvrir ${subfolder}`}
+                  key={subfolder}
+                  onPress={() => selectSubfolder(subfolder)}
+                  style={styles.grammarBrowseCard}
+                >
+                  <View style={styles.grammarBrowseSubIconBox}>
+                    <MaterialCommunityIcons color="#C83543" name="book-open-page-variant-outline" size={27} />
+                  </View>
+                  <View style={styles.grammarLessonRowBody}>
+                    <Text style={styles.grammarBrowseTitle}>{subfolder}</Text>
+                    <Text style={styles.grammarBrowseDescription}>Cours théorique, exemples expliqués et entraînement ciblé.</Text>
+                  </View>
+                  <MaterialCommunityIcons color="#C83543" name="chevron-right" size={24} />
+                </Pressable>
+              ))}
+            </View>
+          </Section>
+        </>
+      ) : (
+        <>
+          <GrammarBrowseBack label={selectedFolder} title={selectedSubfolder ?? 'Règles'} onPress={() => setGrammarBrowseLevel('subfolders')} />
+          <Section title="Choisir une règle">
+            <Text style={styles.quizConfigText}>Ouvre une règle pour accéder à son explication, ses exemples et son mini-entraînement.</Text>
+            <View style={styles.grammarLessonList}>
+              {visibleLessons.map((lesson) => (
+                <Pressable
+                  accessibilityRole="button"
+                  key={lesson.id}
+                  onPress={() => selectLesson(lesson)}
+                  style={styles.grammarLessonRow}
+                >
+                  <Text style={styles.grammarLessonNumber}>文</Text>
+                  <View style={styles.grammarLessonRowBody}>
+                    <Text style={styles.grammarLessonTitle}>{lesson.title}</Text>
+                    <Text style={styles.grammarLessonPattern}>{humanizeGrammarPattern(lesson)}</Text>
+                  </View>
+                  <Text style={[styles.grammarLevelPill, getGrammarLevelStyle(lesson.level)]}>{formatGrammarLevel(lesson.level)}</Text>
+                  <MaterialCommunityIcons color="#C83543" name="chevron-right" size={21} />
+                </Pressable>
+              ))}
+            </View>
+          </Section>
+        </>
+      )}
 
     </ScrollView>
   );
+}
+
+function GrammarBrowseBack({ label, title, onPress }: { label: string; title: string; onPress: () => void }) {
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel={`Revenir à ${label}`} onPress={onPress} style={styles.vocabularyThemeBackButton}>
+      <MaterialCommunityIcons color="#152B3A" name="arrow-left" size={22} />
+      <View style={styles.vocabularyThemeBackCopy}>
+        <Text style={styles.vocabularyThemeBackLabel}>{label}</Text>
+        <Text style={styles.vocabularyThemeBackTitle}>{title}</Text>
+      </View>
+    </Pressable>
+  );
+}
+
+function getGrammarMenuIcon(folder: string): string {
+  const icons: Record<string, string> = {
+    'Écriture et bases': '基',
+    Particules: '助',
+    Adjectifs: '形',
+    'Formes verbales': '活',
+    'Verbes et actions': '動',
+    'Structure de phrase': '文',
+    Questions: '問',
+    'Temps et adverbes': '時',
+    'Expressions pratiques': '話',
+    Connecteurs: '結',
+    'Phrases complexes': '読',
+    'Style et registre': '調',
+    'Lexique en contexte': '語',
+    'Méthode et corrections': '直',
+    JLPT: '試',
+  };
+  return icons[folder] ?? '学';
+}
+
+function getGrammarMenuDescription(folder: string): string {
+  const descriptions: Record<string, string> = {
+    'Écriture et bases': 'Comprendre les fondations de l’écriture et de la phrase japonaise.',
+    Particules: 'Choisir は, が, を, に, で et les autres particules utiles.',
+    Adjectifs: 'Décrire, comparer et conjuguer les adjectifs en い et en な.',
+    'Formes verbales': 'Construire les formes polies, négatives, passées et en て.',
+    'Verbes et actions': 'Exprimer une action, un déplacement, une capacité ou une intention.',
+    'Structure de phrase': 'Former des phrases affirmatives, négatives et bien ordonnées.',
+    Questions: 'Demander qui, quoi, où, quand, comment et combien.',
+    'Temps et adverbes': 'Situer une action et préciser sa fréquence ou sa manière.',
+    'Expressions pratiques': 'Utiliser les tournures indispensables dans une situation réelle.',
+    Connecteurs: 'Relier les idées, expliquer une cause et exprimer une opposition.',
+    'Phrases complexes': 'Lire et comprendre des phrases plus longues sans se perdre.',
+    'Style et registre': 'Adapter une phrase à la situation et au niveau de politesse.',
+    'Lexique en contexte': 'Comprendre les mots grammaticaux dans une phrase complète.',
+    'Méthode et corrections': 'Repérer une erreur et consolider les points fragiles.',
+    JLPT: 'S’entraîner aux formulations et pièges fréquents du JLPT N5.',
+  };
+  return descriptions[folder] ?? 'Cours progressifs, exemples concrets et exercices ciblés.';
 }
 
 function formatGrammarLevel(level: GrammarLesson['level']): string {
